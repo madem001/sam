@@ -4,15 +4,18 @@ import { Question } from '../../types';
 interface CreateBattleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (battleName: string, questions: Question[]) => void;
+  onCreate: (battleName: string, roundCount: number, groupCount: number, questions: { text: string; answers: string[]; correctIndex: number }[], studentsPerGroup: number) => void;
   existingQuestions: Question[];
+  isLoading?: boolean;
 }
 
-const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, onCreate, existingQuestions }) => {
+const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, onCreate, existingQuestions, isLoading = false }) => {
   const [battleName, setBattleName] = useState('');
+  const [roundCount, setRoundCount] = useState(10);
+  const [groupCount, setGroupCount] = useState(4);
+  const [studentsPerGroup, setStudentsPerGroup] = useState(4);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
-  
-  // State for the new question form inside the modal
+
   const [newQuestionText, setNewQuestionText] = useState('');
   const [newAnswers, setNewAnswers] = useState(['', '', '', '']);
   const [newCorrectAnswer, setNewCorrectAnswer] = useState(0);
@@ -48,7 +51,6 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
       correctAnswerIndex: newCorrectAnswer,
     };
     setTempAddedQuestions([...tempAddedQuestions, newQuestion]);
-    // Reset form
     setNewQuestionText('');
     setNewAnswers(['', '', '', '']);
     setNewCorrectAnswer(0);
@@ -57,99 +59,218 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (battleName.trim() === '') {
-        alert('Por favor, dale un nombre a la batalla.');
-        return;
+      alert('Por favor, dale un nombre a la batalla.');
+      return;
     }
 
     const selectedFromBank = existingQuestions.filter(q => selectedQuestionIds.has(q.id));
     const finalQuestions = [...selectedFromBank, ...tempAddedQuestions];
 
     if (finalQuestions.length === 0) {
-        alert('Debes seleccionar o añadir al menos una pregunta.');
-        return;
+      alert('Debes seleccionar o añadir al menos una pregunta.');
+      return;
     }
 
-    onCreate(battleName, finalQuestions);
-    // Reset state for next time
+    if (finalQuestions.length < roundCount) {
+      alert(`Necesitas al menos ${roundCount} preguntas para ${roundCount} rondas.`);
+      return;
+    }
+
+    if (roundCount < 5 || roundCount > 20) {
+      alert('El número de rondas debe estar entre 5 y 20.');
+      return;
+    }
+
+    if (groupCount < 1 || groupCount > 10) {
+      alert('El número de grupos debe estar entre 1 y 10.');
+      return;
+    }
+
+    if (studentsPerGroup < 2 || studentsPerGroup > 10) {
+      alert('Los estudiantes por grupo deben estar entre 2 y 10.');
+      return;
+    }
+
+    const formattedQuestions = finalQuestions.slice(0, roundCount).map(q => ({
+      text: q.text,
+      answers: q.answers,
+      correctIndex: q.correctAnswerIndex,
+    }));
+
+    onCreate(battleName, roundCount, groupCount, formattedQuestions, studentsPerGroup);
     setBattleName('');
+    setRoundCount(10);
+    setGroupCount(4);
+    setStudentsPerGroup(4);
     setSelectedQuestionIds(new Set());
     setTempAddedQuestions([]);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Crear Nueva Batalla</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-            {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
-            <ion-icon name="close-outline" class="text-2xl"></ion-icon>
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-4 space-y-6">
-          <div>
-            <label htmlFor="battleName" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Nombre de la Batalla</label>
-            <input 
-              id="battleName"
-              type="text" 
-              value={battleName}
-              onChange={e => setBattleName(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
-              placeholder="Ej: Repaso de React Hooks"
-              required
-            />
-          </div>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-6">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">Crear Nueva Batalla</h2>
 
-          {/* Select Questions */}
-          <div>
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-2">Seleccionar del Banco</h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto border dark:border-slate-600 rounded-lg p-2 bg-slate-50 dark:bg-slate-900">
-              {existingQuestions.map(q => (
-                <label key={q.id} className="flex items-center space-x-3 p-2 bg-white dark:bg-slate-800 rounded cursor-pointer">
-                  <input type="checkbox" checked={selectedQuestionIds.has(q.id)} onChange={() => handleToggleQuestion(q.id)} className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"/>
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{q.text}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Add New Question Form */}
-           <div className="space-y-3 p-4 border-t dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Añadir Pregunta Nueva</h3>
-              <textarea 
-                  value={newQuestionText}
-                  onChange={(e) => setNewQuestionText(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400"
-                  placeholder="Texto de la pregunta"
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                Nombre de la Batalla
+              </label>
+              <input
+                type="text"
+                value={battleName}
+                onChange={(e) => setBattleName(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 dark:bg-slate-700 dark:text-slate-100"
+                placeholder="Ej: Batalla de Matemáticas"
+                disabled={isLoading}
               />
-              {newAnswers.map((answer, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                      <input type="radio" name="newCorrectAnswer" checked={newCorrectAnswer === index} onChange={() => setNewCorrectAnswer(index)} className="h-4 w-4 text-sky-600 border-slate-300 focus:ring-sky-500" />
-                      <input type="text" value={answer} onChange={(e) => handleAnswerChange(index, e.target.value)} className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400" placeholder={`Respuesta ${index + 1}`} />
-                  </div>
-              ))}
-              <button type="button" onClick={handleAddNewQuestion} className="w-full py-2 text-sm bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-500 transition">Añadir a la Batalla</button>
-           </div>
-            {tempAddedQuestions.length > 0 && (
-                <div className="p-2 border-t dark:border-slate-700">
-                    <h4 className="text-sm font-bold mb-1 dark:text-slate-200">Preguntas añadidas:</h4>
-                    <ul className="text-xs list-disc pl-5 text-slate-600 dark:text-slate-400">
-                        {tempAddedQuestions.map(q => <li key={q.id}>{q.text}</li>)}
-                    </ul>
-                </div>
-            )}
-        </form>
+            </div>
 
-        <div className="p-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-            <button 
-              type="submit"
-              onClick={handleSubmit}
-              className="w-full py-3 rounded-lg bg-sky-500 text-white font-bold shadow-md hover:bg-sky-600 transition"
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Rondas (5-20)
+                </label>
+                <input
+                  type="number"
+                  min="5"
+                  max="20"
+                  value={roundCount}
+                  onChange={(e) => setRoundCount(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 dark:bg-slate-700 dark:text-slate-100"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Grupos (1-10)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={groupCount}
+                  onChange={(e) => setGroupCount(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 dark:bg-slate-700 dark:text-slate-100"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                  Por Grupo (2-10)
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="10"
+                  value={studentsPerGroup}
+                  onChange={(e) => setStudentsPerGroup(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 dark:bg-slate-700 dark:text-slate-100"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                Banco de Preguntas ({selectedQuestionIds.size + tempAddedQuestions.length} seleccionadas)
+              </h3>
+              <div className="max-h-48 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-600 rounded-lg p-3">
+                {existingQuestions.length === 0 ? (
+                  <p className="text-slate-500 dark:text-slate-400 text-center py-4">No hay preguntas en el banco</p>
+                ) : (
+                  existingQuestions.map(q => (
+                    <label key={q.id} className="flex items-start space-x-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded">
+                      <input
+                        type="checkbox"
+                        checked={selectedQuestionIds.has(q.id)}
+                        onChange={() => handleToggleQuestion(q.id)}
+                        className="mt-1"
+                        disabled={isLoading}
+                      />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">{q.text}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-600 pt-4">
+              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Agregar Nueva Pregunta</h3>
+              <input
+                type="text"
+                value={newQuestionText}
+                onChange={(e) => setNewQuestionText(e.target.value)}
+                placeholder="Texto de la pregunta"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg mb-3 dark:bg-slate-700 dark:text-slate-100"
+                disabled={isLoading}
+              />
+              {newAnswers.map((ans, idx) => (
+                <div key={idx} className="flex items-center space-x-2 mb-2">
+                  <input
+                    type="radio"
+                    name="correctAnswer"
+                    checked={newCorrectAnswer === idx}
+                    onChange={() => setNewCorrectAnswer(idx)}
+                    disabled={isLoading}
+                  />
+                  <input
+                    type="text"
+                    value={ans}
+                    onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                    placeholder={`Respuesta ${idx + 1}`}
+                    className="flex-1 px-3 py-1 border border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-slate-100"
+                    disabled={isLoading}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={handleAddNewQuestion}
+                className="mt-2 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50"
+                disabled={isLoading}
+              >
+                Agregar Pregunta
+              </button>
+            </div>
+
+            {tempAddedQuestions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                  Preguntas Agregadas ({tempAddedQuestions.length})
+                </h4>
+                <div className="space-y-1">
+                  {tempAddedQuestions.map(q => (
+                    <div key={q.id} className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 p-2 rounded">
+                      {q.text}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-500 transition disabled:opacity-50"
+              disabled={isLoading}
             >
-              Crear Sala
+              Cancelar
             </button>
-        </div>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition disabled:opacity-50"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creando...' : 'Crear Batalla'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

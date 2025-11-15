@@ -90,11 +90,12 @@ export const battleApi = {
     name: string,
     questionCount: number,
     groupCount: number,
-    questions: { text: string; answers: string[]; correctIndex: number }[]
+    questions: { text: string; answers: string[]; correctIndex: number }[],
+    studentsPerGroup?: number
   ) => {
     return apiFetch('/battles', {
       method: 'POST',
-      body: JSON.stringify({ name, questionCount, groupCount, questions }),
+      body: JSON.stringify({ name, questionCount, groupCount, questions, studentsPerGroup }),
     });
   },
 

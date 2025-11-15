@@ -45,9 +45,10 @@ model Battle {
   name                  String
   teacherId             String
   teacher               User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  questionCount         Int
+  roundCount            Int
+  studentsPerGroup      Int          @default(4)
   status                BattleStatus @default(WAITING)
-  currentQuestionIndex  Int          @default(0)
+  currentRoundIndex     Int          @default(0)
   createdAt             DateTime     @default(now())
   startedAt             DateTime?
   finishedAt            DateTime?
@@ -69,6 +70,7 @@ model BattleGroup {
   groupName      String
   score          Int      @default(0)
   correctAnswers Int      @default(0)
+  isFull         Boolean  @default(false)
   createdAt      DateTime @default(now())
 
   members        GroupMember[]

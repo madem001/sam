@@ -1,5 +1,5 @@
 import prisma from '../config/database.js';
-import { ANSWER_COLORS, POINTS_PER_CORRECT_ANSWER, MAX_GROUP_MEMBERS } from '../config/constants.js';
+import { ANSWER_COLORS, POINTS_PER_CORRECT_ANSWER } from '../config/constants.js';
 import { CreateBattleDTO, JoinGroupDTO, SubmitAnswerDTO } from '../types/index.js';
 
 export class BattleService {
@@ -12,9 +12,10 @@ export class BattleService {
       data: {
         name: data.name,
         teacherId,
-        questionCount: data.questionCount,
+        roundCount: data.questionCount,
+        studentsPerGroup: data.studentsPerGroup || 4,
         status: 'WAITING',
-        currentQuestionIndex: 0,
+        currentRoundIndex: 0,
       },
     });
 
@@ -24,6 +25,7 @@ export class BattleService {
       groupName: `Grupo ${i + 1}`,
       score: 0,
       correctAnswers: 0,
+      isFull: false,
     }));
 
     const groups = await prisma.battleGroup.createMany({
@@ -79,6 +81,7 @@ export class BattleService {
             groupName: true,
             score: true,
             correctAnswers: true,
+            isFull: true,
           },
         },
       },
@@ -114,6 +117,7 @@ export class BattleService {
       where: { groupCode: data.groupCode },
       include: {
         members: true,
+        battle: true,
       },
     });
 
@@ -121,13 +125,79 @@ export class BattleService {
       throw new Error('Código de grupo inválido');
     }
 
-    if (group.members.length >= MAX_GROUP_MEMBERS) {
-      throw new Error('El grupo está lleno');
+    if (group.isFull) {
+      const availableGroups = await prisma.battleGroup.findMany({
+        where: {
+          battleId: group.battleId,
+          isFull: false,
+        },
+        include: {
+          members: true,
+        },
+      });
+
+      if (availableGroups.length === 0) {
+        throw new Error('Todos los grupos están llenos');
+      }
+
+      const randomGroup = availableGroups[Math.floor(Math.random() * availableGroups.length)];
+
+      const alreadyInBattle = await prisma.groupMember.findFirst({
+        where: {
+          studentId: data.studentId,
+          group: {
+            battleId: group.battleId,
+          },
+        },
+      });
+
+      if (alreadyInBattle) {
+        const currentGroup = await prisma.battleGroup.findUnique({
+          where: { id: alreadyInBattle.groupId },
+        });
+        return { group: currentGroup!, message: 'Ya estás en un grupo de esta batalla' };
+      }
+
+      await prisma.groupMember.create({
+        data: {
+          groupId: randomGroup.id,
+          studentId: data.studentId,
+          studentName: data.studentName,
+        },
+      });
+
+      const updatedMembers = await prisma.groupMember.count({
+        where: { groupId: randomGroup.id },
+      });
+
+      if (updatedMembers >= group.battle.studentsPerGroup) {
+        await prisma.battleGroup.update({
+          where: { id: randomGroup.id },
+          data: { isFull: true },
+        });
+      }
+
+      const finalGroup = await prisma.battleGroup.findUnique({
+        where: { id: randomGroup.id },
+      });
+
+      return { group: finalGroup!, message: 'Te has unido al grupo exitosamente' };
     }
 
-    const alreadyJoined = group.members.some((m) => m.studentId === data.studentId);
-    if (alreadyJoined) {
-      return { group, message: 'Ya estás en este grupo' };
+    const alreadyInBattle = await prisma.groupMember.findFirst({
+      where: {
+        studentId: data.studentId,
+        group: {
+          battleId: group.battleId,
+        },
+      },
+    });
+
+    if (alreadyInBattle) {
+      const currentGroup = await prisma.battleGroup.findUnique({
+        where: { id: alreadyInBattle.groupId },
+      });
+      return { group: currentGroup!, message: 'Ya estás en un grupo de esta batalla' };
     }
 
     await prisma.groupMember.create({
@@ -138,7 +208,22 @@ export class BattleService {
       },
     });
 
-    return { group, message: 'Te has unido al grupo exitosamente' };
+    const updatedMembers = await prisma.groupMember.count({
+      where: { groupId: group.id },
+    });
+
+    if (updatedMembers >= group.battle.studentsPerGroup) {
+      await prisma.battleGroup.update({
+        where: { id: group.id },
+        data: { isFull: true },
+        });
+    }
+
+    const finalGroup = await prisma.battleGroup.findUnique({
+      where: { id: group.id },
+    });
+
+    return { group: finalGroup!, message: 'Te has unido al grupo exitosamente' };
   }
 
   async submitAnswer(data: SubmitAnswerDTO) {
@@ -208,13 +293,13 @@ export class BattleService {
       throw new Error('Batalla no encontrada');
     }
 
-    const nextIndex = battle.currentQuestionIndex + 1;
-    const isFinished = nextIndex >= battle.questionCount;
+    const nextIndex = battle.currentRoundIndex + 1;
+    const isFinished = nextIndex >= battle.roundCount;
 
     return await prisma.battle.update({
       where: { id: battleId },
       data: {
-        currentQuestionIndex: nextIndex,
+        currentRoundIndex: nextIndex,
         status: isFinished ? 'FINISHED' : battle.status,
         finishedAt: isFinished ? new Date() : null,
       },

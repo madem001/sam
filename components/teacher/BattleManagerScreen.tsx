@@ -53,11 +53,12 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
         battleName: string,
         questionCount: number,
         groupCount: number,
-        questions: { text: string; answers: string[]; correctIndex: number }[]
+        questions: { text: string; answers: string[]; correctIndex: number }[],
+        studentsPerGroup: number
     ) => {
         setIsLoading(true);
 
-        const result = await battleApi.createFullBattle(teacherId, battleName, questionCount, groupCount, questions);
+        const result = await battleApi.createFullBattle(teacherId, battleName, questionCount, groupCount, questions, studentsPerGroup);
 
         if (!result) {
             alert('Error al crear la batalla');

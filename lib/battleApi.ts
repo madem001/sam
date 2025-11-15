@@ -44,9 +44,9 @@ const mapBattleFromAPI = (data: any): Battle => ({
   id: data.id,
   name: data.name,
   teacher_id: data.teacherId,
-  question_count: data.questionCount,
+  question_count: data.roundCount || data.questionCount,
   status: data.status.toLowerCase(),
-  current_question_index: data.currentQuestionIndex,
+  current_question_index: data.currentRoundIndex !== undefined ? data.currentRoundIndex : data.currentQuestionIndex,
   created_at: data.createdAt,
   started_at: data.startedAt,
   finished_at: data.finishedAt,
@@ -104,10 +104,11 @@ export const createFullBattle = async (
   battleName: string,
   questionCount: number,
   groupCount: number,
-  questions: { text: string; answers: string[]; correctIndex: number }[]
+  questions: { text: string; answers: string[]; correctIndex: number }[],
+  studentsPerGroup?: number
 ): Promise<{ battle: Battle; groups: BattleGroup[] } | null> => {
   try {
-    const result = await api.createBattle(battleName, questionCount, groupCount, questions);
+    const result = await api.createBattle(battleName, questionCount, groupCount, questions, studentsPerGroup);
     const battle = mapBattleFromAPI(result.battle);
     const groups = await getBattleGroups(battle.id);
     return { battle, groups };

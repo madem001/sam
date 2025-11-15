@@ -8,6 +8,7 @@ export interface CreateBattleDTO {
   name: string;
   questionCount: number;
   groupCount: number;
+  studentsPerGroup?: number;
   questions: {
     text: string;
     answers: string[];
