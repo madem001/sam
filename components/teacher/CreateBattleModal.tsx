@@ -18,8 +18,8 @@ interface CreateBattleModalProps {
 
 const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, onCreate, teacherId, isLoading = false }) => {
   const [battleName, setBattleName] = useState('');
-  const [groupCount, setGroupCount] = useState(4);
-  const [studentsPerGroup, setStudentsPerGroup] = useState(4);
+  const [groupCount, setGroupCount] = useState(2);
+  const [studentsPerGroup, setStudentsPerGroup] = useState(1);
   const [selectedSetId, setSelectedSetId] = useState<string>('');
   const [questionSets, setQuestionSets] = useState<QuestionSet[]>([]);
 
@@ -65,13 +65,13 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
       return;
     }
 
-    if (groupCount < 1 || groupCount > 10) {
-      alert('El número de grupos debe estar entre 1 y 10.');
+    if (groupCount < 2 || groupCount > 10) {
+      alert('El número de grupos debe estar entre 2 y 10.');
       return;
     }
 
-    if (studentsPerGroup < 2 || studentsPerGroup > 10) {
-      alert('Los estudiantes por grupo deben estar entre 2 y 10.');
+    if (studentsPerGroup < 1 || studentsPerGroup > 10) {
+      alert('Los estudiantes por grupo deben estar entre 1 y 10.');
       return;
     }
 
@@ -95,8 +95,8 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
 
     onCreate(battleName, roundCount, groupCount, formattedQuestions, studentsPerGroup);
     setBattleName('');
-    setGroupCount(4);
-    setStudentsPerGroup(4);
+    setGroupCount(2);
+    setStudentsPerGroup(1);
     setSelectedSetId('');
   };
 
@@ -126,11 +126,11 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Grupos (1-10)
+                  Grupos (2-10)
                 </label>
                 <input
                   type="number"
-                  min="1"
+                  min="2"
                   max="10"
                   value={groupCount}
                   onChange={(e) => setGroupCount(Number(e.target.value))}
@@ -141,11 +141,11 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Por Grupo (2-10)
+                  Por Grupo (1-10)
                 </label>
                 <input
                   type="number"
-                  min="2"
+                  min="1"
                   max="10"
                   value={studentsPerGroup}
                   onChange={(e) => setStudentsPerGroup(Number(e.target.value))}

@@ -69,19 +69,36 @@ const App: React.FC = () => {
   };
 
   const handleLoginSuccess = async (authData: AuthData) => {
+    console.log('🎯 App.handleLoginSuccess llamado con:', authData);
     setIsLoading(true);
-    const loggedInUser = await api.login(authData);
-    
-    if (loggedInUser) {
-        setUser(loggedInUser);
-        if (loggedInUser.role === UserRole.Student) {
-            setActiveScreen(Screen.Profile);
-        }
-        setIsAuthenticated(true);
-    } else {
-        alert("No user found for this role.");
+
+    try {
+      const loggedInUser = await api.login(authData);
+      console.log('👤 Usuario logueado:', loggedInUser);
+
+      if (loggedInUser) {
+          setUser(loggedInUser);
+          console.log('✅ User state actualizado');
+
+          if (loggedInUser.role === UserRole.Student) {
+              setActiveScreen(Screen.Profile);
+              console.log('📱 Screen set to Profile');
+          } else if (loggedInUser.role === UserRole.Teacher) {
+              setActiveScreen(TeacherScreen.Dashboard);
+              console.log('📱 Screen set to Teacher Dashboard');
+          }
+
+          setIsAuthenticated(true);
+          console.log('✅ Autenticado correctamente');
+      } else {
+          console.error('❌ No se obtuvo usuario');
+          alert("No se pudo obtener el usuario.");
+      }
+    } catch (error) {
+      console.error('❌ Error en handleLoginSuccess:', error);
+      alert('Error al iniciar sesión');
     }
-    
+
     setIsLoading(false);
   };
   
