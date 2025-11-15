@@ -57,23 +57,10 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     ) => {
         setIsLoading(true);
 
-        const battle = await battleApi.createBattle(teacherId, battleName, questionCount);
-        if (!battle) {
+        const result = await battleApi.createFullBattle(teacherId, battleName, questionCount, groupCount, questions);
+
+        if (!result) {
             alert('Error al crear la batalla');
-            setIsLoading(false);
-            return;
-        }
-
-        const groups = await battleApi.createBattleGroups(battle.id, groupCount);
-        if (groups.length === 0) {
-            alert('Error al crear los grupos');
-            setIsLoading(false);
-            return;
-        }
-
-        const questionsAdded = await battleApi.addBattleQuestions(battle.id, questions);
-        if (!questionsAdded) {
-            alert('Error al agregar las preguntas');
             setIsLoading(false);
             return;
         }

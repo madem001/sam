@@ -1,3 +1,6 @@
+import { battleApi as api } from './api';
+import * as ws from './websocket';
+
 export interface Battle {
   id: string;
   name: string;
@@ -37,95 +40,81 @@ export interface GroupMember {
   joined_at: string;
 }
 
-export interface BattleAnswer {
-  id: string;
-  battle_id: string;
-  group_id: string;
-  question_id: string;
-  answer_index: number;
-  is_correct: boolean;
-  answered_at: string;
-  response_time_ms?: number;
-}
+const mapBattleFromAPI = (data: any): Battle => ({
+  id: data.id,
+  name: data.name,
+  teacher_id: data.teacherId,
+  question_count: data.questionCount,
+  status: data.status.toLowerCase(),
+  current_question_index: data.currentQuestionIndex,
+  created_at: data.createdAt,
+  started_at: data.startedAt,
+  finished_at: data.finishedAt,
+});
 
-const mockBattles: Battle[] = [];
-const mockGroups: BattleGroup[] = [];
-const mockQuestions: BattleQuestion[] = [];
-const mockMembers: GroupMember[] = [];
-const mockAnswers: BattleAnswer[] = [];
+const mapGroupFromAPI = (data: any): BattleGroup => ({
+  id: data.id,
+  battle_id: data.battleId,
+  group_code: data.groupCode,
+  group_name: data.groupName,
+  score: data.score,
+  correct_answers: data.correctAnswers,
+  created_at: data.createdAt,
+});
 
-const ANSWER_COLORS = [
-  '#ef4444',
-  '#3b82f6',
-  '#22c55e',
-  '#eab308',
-];
-
-const generateGroupCode = (): string => {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-};
+const mapQuestionFromAPI = (data: any): BattleQuestion => ({
+  id: data.id,
+  battle_id: data.battleId,
+  question_text: data.questionText,
+  answers: data.answers,
+  correct_answer_index: data.correctAnswerIndex,
+  question_order: data.questionOrder,
+});
 
 export const createBattle = async (
   teacherId: string,
   battleName: string,
   questionCount: number
 ): Promise<Battle | null> => {
-  const battle: Battle = {
-    id: `battle-${Date.now()}`,
-    name: battleName,
-    teacher_id: teacherId,
-    question_count: questionCount,
-    status: 'waiting',
-    current_question_index: 0,
-    created_at: new Date().toISOString(),
-  };
-  mockBattles.push(battle);
-  return battle;
+  try {
+    const result = await api.createBattle(battleName, questionCount, 0, []);
+    return mapBattleFromAPI(result.battle);
+  } catch (error) {
+    console.error('Error creating battle:', error);
+    return null;
+  }
 };
 
 export const createBattleGroups = async (
   battleId: string,
   groupCount: number
 ): Promise<BattleGroup[]> => {
-  const groups: BattleGroup[] = [];
-
-  for (let i = 0; i < groupCount; i++) {
-    const group: BattleGroup = {
-      id: `group-${Date.now()}-${i}`,
-      battle_id: battleId,
-      group_code: generateGroupCode(),
-      group_name: `Grupo ${i + 1}`,
-      score: 0,
-      correct_answers: 0,
-      created_at: new Date().toISOString(),
-    };
-    groups.push(group);
-    mockGroups.push(group);
-  }
-
-  return groups;
+  return [];
 };
 
 export const addBattleQuestions = async (
   battleId: string,
   questions: { text: string; answers: string[]; correctIndex: number }[]
 ): Promise<boolean> => {
-  questions.forEach((q, index) => {
-    const question: BattleQuestion = {
-      id: `question-${Date.now()}-${index}`,
-      battle_id: battleId,
-      question_text: q.text,
-      answers: q.answers.map((text, idx) => ({
-        text,
-        color: ANSWER_COLORS[idx % ANSWER_COLORS.length],
-      })),
-      correct_answer_index: q.correctIndex,
-      question_order: index,
-    };
-    mockQuestions.push(question);
-  });
-
   return true;
+};
+
+export const createFullBattle = async (
+  teacherId: string,
+  battleName: string,
+  questionCount: number,
+  groupCount: number,
+  questions: { text: string; answers: string[]; correctIndex: number }[]
+): Promise<{ battle: Battle; groups: BattleGroup[] } | null> => {
+  try {
+    const result = await api.createBattle(battleName, questionCount, groupCount, questions);
+    const battle = mapBattleFromAPI(result.battle);
+    const groups = await getBattleGroups(battle.id);
+    return { battle, groups };
+  } catch (error) {
+    console.error('Error creating battle:', error);
+    return null;
+  }
 };
 
 export const joinBattleGroup = async (
@@ -133,49 +122,52 @@ export const joinBattleGroup = async (
   studentId: string,
   studentName: string
 ): Promise<{ success: boolean; group?: BattleGroup; message?: string }> => {
-  const group = mockGroups.find(g => g.group_code === groupCode);
-
-  if (!group) {
-    return { success: false, message: 'Código de grupo inválido' };
+  try {
+    const result = await api.joinGroup(groupCode, studentId, studentName);
+    return {
+      success: true,
+      group: mapGroupFromAPI(result.group),
+      message: result.message
+    };
+  } catch (error: any) {
+    return { success: false, message: error.message };
   }
-
-  const members = mockMembers.filter(m => m.group_id === group.id);
-
-  if (members.length >= 4) {
-    return { success: false, message: 'El grupo está lleno (máximo 4 estudiantes)' };
-  }
-
-  const alreadyJoined = members.some(m => m.student_id === studentId);
-  if (alreadyJoined) {
-    return { success: true, group, message: 'Ya estás en este grupo' };
-  }
-
-  const member: GroupMember = {
-    id: `member-${Date.now()}`,
-    group_id: group.id,
-    student_id: studentId,
-    student_name: studentName,
-    joined_at: new Date().toISOString(),
-  };
-  mockMembers.push(member);
-
-  return { success: true, group };
 };
 
 export const getBattleGroups = async (battleId: string): Promise<BattleGroup[]> => {
-  return mockGroups
-    .filter(g => g.battle_id === battleId)
-    .sort((a, b) => b.score - a.score);
+  try {
+    const groups = await api.getBattleGroups(battleId);
+    return groups.map(mapGroupFromAPI);
+  } catch (error) {
+    console.error('Error getting battle groups:', error);
+    return [];
+  }
 };
 
 export const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
-  return mockMembers.filter(m => m.group_id === groupId);
+  try {
+    const members = await api.getGroupMembers(groupId);
+    return members.map((m: any) => ({
+      id: m.id,
+      group_id: m.groupId,
+      student_id: m.studentId,
+      student_name: m.studentName,
+      joined_at: m.joinedAt,
+    }));
+  } catch (error) {
+    console.error('Error getting group members:', error);
+    return [];
+  }
 };
 
 export const getBattleQuestions = async (battleId: string): Promise<BattleQuestion[]> => {
-  return mockQuestions
-    .filter(q => q.battle_id === battleId)
-    .sort((a, b) => a.question_order - b.question_order);
+  try {
+    const questions = await api.getBattleQuestions(battleId);
+    return questions.map(mapQuestionFromAPI);
+  } catch (error) {
+    console.error('Error getting battle questions:', error);
+    return [];
+  }
 };
 
 export const submitAnswer = async (
@@ -186,81 +178,81 @@ export const submitAnswer = async (
   correctIndex: number,
   responseTimeMs: number
 ): Promise<boolean> => {
-  const isCorrect = answerIndex === correctIndex;
-
-  const answer: BattleAnswer = {
-    id: `answer-${Date.now()}`,
-    battle_id: battleId,
-    group_id: groupId,
-    question_id: questionId,
-    answer_index: answerIndex,
-    is_correct: isCorrect,
-    answered_at: new Date().toISOString(),
-    response_time_ms: responseTimeMs,
-  };
-  mockAnswers.push(answer);
-
-  if (isCorrect) {
-    const group = mockGroups.find(g => g.id === groupId);
-    if (group) {
-      group.score += 100;
-      group.correct_answers += 1;
-    }
+  try {
+    await api.submitAnswer(battleId, groupId, questionId, answerIndex, responseTimeMs);
+    return true;
+  } catch (error) {
+    console.error('Error submitting answer:', error);
+    return false;
   }
-
-  return true;
 };
 
 export const startBattle = async (battleId: string): Promise<boolean> => {
-  const battle = mockBattles.find(b => b.id === battleId);
-  if (battle) {
-    battle.status = 'active';
-    battle.started_at = new Date().toISOString();
+  try {
+    await api.startBattle(battleId);
     return true;
+  } catch (error) {
+    console.error('Error starting battle:', error);
+    return false;
   }
-  return false;
 };
 
 export const nextQuestion = async (battleId: string): Promise<boolean> => {
-  const battle = mockBattles.find(b => b.id === battleId);
-  if (!battle) return false;
-
-  const nextIndex = battle.current_question_index + 1;
-  const isFinished = nextIndex >= battle.question_count;
-
-  battle.current_question_index = nextIndex;
-  if (isFinished) {
-    battle.status = 'finished';
-    battle.finished_at = new Date().toISOString();
+  try {
+    await api.nextQuestion(battleId);
+    return true;
+  } catch (error) {
+    console.error('Error advancing question:', error);
+    return false;
   }
-
-  return true;
 };
 
 export const getBattleState = async (battleId: string): Promise<Battle | null> => {
-  return mockBattles.find(b => b.id === battleId) || null;
+  try {
+    const battle = await api.getBattle(battleId);
+    return mapBattleFromAPI(battle);
+  } catch (error) {
+    console.error('Error getting battle state:', error);
+    return null;
+  }
 };
 
 export const getTeacherBattles = async (teacherId: string): Promise<Battle[]> => {
-  return mockBattles
-    .filter(b => b.teacher_id === teacherId)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  try {
+    const battles = await api.getTeacherBattles();
+    return battles.map(mapBattleFromAPI);
+  } catch (error) {
+    console.error('Error getting teacher battles:', error);
+    return [];
+  }
 };
 
-export const subscribeToBattle = (
-  battleId: string,
-  callback: (payload: any) => void
-) => {
+export const subscribeToBattle = (battleId: string, callback: (payload: any) => void) => {
+  ws.joinBattle(battleId);
+  ws.onBattleUpdate((data) => {
+    if (data.battleId === battleId) {
+      callback(data);
+    }
+  });
+
   return {
-    unsubscribe: () => {},
+    unsubscribe: () => {
+      ws.leaveBattle(battleId);
+      ws.offBattleUpdate();
+    },
   };
 };
 
-export const subscribeToBattleGroups = (
-  battleId: string,
-  callback: (payload: any) => void
-) => {
+export const subscribeToBattleGroups = (battleId: string, callback: (payload: any) => void) => {
+  ws.onGroupUpdate((data) => {
+    if (data.battleId === battleId) {
+      callback(data);
+    }
+  });
+
   return {
-    unsubscribe: () => {},
+    unsubscribe: () => {
+      ws.offGroupUpdate();
+    },
   };
 };
