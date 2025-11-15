@@ -143,7 +143,6 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
     const { data: newSet, error: setError } = await supabase
       .from('question_sets')
       .insert({
-        teacher_id: teacherId,
         set_name: setName,
         description: setDescription
       })
@@ -151,13 +150,12 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
       .single();
 
     if (setError || !newSet) {
-      alert('Error al crear el set');
-      console.error(setError);
+      alert('Error al crear el set: ' + (setError?.message || 'desconocido'));
+      console.error('Error creating set:', setError);
       return;
     }
 
     const questionsToInsert = newQuestions.map(q => ({
-      teacher_id: teacherId,
       set_id: newSet.id,
       question_text: q.question_text,
       answers: q.answers,
@@ -169,10 +167,12 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
       .insert(questionsToInsert);
 
     if (questionsError) {
-      alert('Error al agregar preguntas');
-      console.error(questionsError);
+      alert('Error al agregar preguntas: ' + (questionsError?.message || 'desconocido'));
+      console.error('Error creating questions:', questionsError);
       return;
     }
+
+    alert('Set creado exitosamente con ' + newQuestions.length + ' preguntas');
 
     setShowCreateModal(false);
     setSetName('');
