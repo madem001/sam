@@ -33,10 +33,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     });
   }, []);
 
-  const currentLevelXP = 3020;
-  const xpForNextLevel = 3250;
-  const progressPercentage = (currentLevelXP / xpForNextLevel) * 100;
-
   const handleOpenNotifications = () => {
       setIsNotificationsOpen(true);
       const unreadIds = (user.notifications || []).filter(n => !n.read).map(n => n.id);
@@ -94,51 +90,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
 
       {/* Main Profile Content */}
       <main className="flex-grow flex flex-col items-center px-4 pb-8">
-        {/* Avatar with Progress Ring */}
+        {/* Avatar */}
         <div className="relative w-36 h-36 mb-4">
-          <svg className="w-full h-full" viewBox="0 0 100 100">
-            <circle className="stroke-slate-200 dark:stroke-slate-700" strokeWidth="8" cx="50" cy="50" r="45" fill="transparent"></circle>
-            <circle 
-              className="stroke-sky-500 dark:stroke-sky-400" 
-              strokeWidth="8" 
-              cx="50" cy="50" r="45" 
-              fill="transparent"
-              strokeLinecap="round"
-              strokeDasharray={2 * Math.PI * 45}
-              strokeDashoffset={(2 * Math.PI * 45) * (1 - progressPercentage / 100)}
-              transform="rotate(-90 50 50)"
-            ></circle>
-          </svg>
-          <img src={user.imageUrl} alt={user.name} className="absolute top-1/2 left-1/2 w-32 h-32 rounded-full transform -translate-x-1/2 -translate-y-1/2 border-4 border-white dark:border-slate-800" />
+          <img src={user.imageUrl} alt={user.name} className="w-full h-full rounded-full border-4 border-white dark:border-slate-700 shadow-lg" />
         </div>
-        
+
         {/* User Info */}
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.name}</h2>
-        <div className="flex items-center space-x-2 mt-1">
-          <span className="text-slate-500 dark:text-slate-400">Nivel {user.level}</span>
-          <span className="bg-sky-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">PRO</span>
-        </div>
         <div className="flex items-center space-x-3 mt-4">
             <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-5 py-2 rounded-full border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition shadow-sm">
-                {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
                 <ion-icon name="create-outline"></ion-icon>
                 <span>Editar</span>
             </button>
             <button onClick={onLogout} className="flex items-center space-x-2 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold px-5 py-2 rounded-full hover:bg-red-200 dark:hover:bg-red-900/60 transition shadow-sm">
-                {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
                 <ion-icon name="log-out-outline"></ion-icon>
                 <span>Salir</span>
             </button>
-        </div>
-
-        {/* XP Progress Bar */}
-        <div className="w-full max-w-sm mt-6">
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
-            <div className="bg-gradient-to-r from-cyan-400 to-sky-500 h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
-          </div>
-          <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
-            <span className="font-bold text-slate-700 dark:text-slate-300">{currentLevelXP} P</span> / <span className="font-bold text-slate-700 dark:text-slate-300">{xpForNextLevel} P</span> para el siguiente nivel
-          </p>
         </div>
         
         {/* Achievements Section */}

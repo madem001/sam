@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import EditProfileModal from '../EditProfileModal';
+import { supabase } from '../../lib/supabase';
 
 interface TeacherProfileScreenProps {
   user: User;
@@ -27,6 +28,38 @@ const Tag: React.FC<{ text: string }> = ({ text }) => (
 const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLogout, theme, onToggleTheme }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editableUser, setEditableUser] = useState<User>(user);
+  const [unlockPoints, setUnlockPoints] = useState(100);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    loadUnlockPoints();
+  }, [user.id]);
+
+  const loadUnlockPoints = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('unlock_points')
+      .eq('id', user.id)
+      .single();
+
+    if (!error && data) {
+      setUnlockPoints(data.unlock_points || 100);
+    }
+  };
+
+  const handleSaveUnlockPoints = async () => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ unlock_points: unlockPoints })
+      .eq('id', user.id);
+
+    if (error) {
+      alert('Error al guardar');
+      console.error(error);
+    } else {
+      setIsEditing(false);
+    }
+  };
 
   const handleSaveProfile = (updatedData: { name: string; imageUrl: string }) => {
     setEditableUser(prev => ({ ...prev, ...updatedData }));
@@ -83,6 +116,65 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
         <InfoCard title="Ciclos Académicos" delay="400ms">
              <div className="flex flex-wrap gap-2">
                 {editableUser.cycles?.map(cycle => <Tag key={cycle} text={cycle} />)}
+            </div>
+        </InfoCard>
+
+        {/* Card Unlock Configuration */}
+        <InfoCard title="Configuración de Tarjeta" delay="500ms">
+            <div className="space-y-3">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Puntos necesarios para desbloquear tu tarjeta de profesor
+                </p>
+                <div className="flex items-center space-x-3">
+                    <div className="flex-1">
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Puntos Requeridos
+                        </label>
+                        <input
+                            type="number"
+                            min="10"
+                            max="10000"
+                            value={unlockPoints}
+                            onChange={(e) => setUnlockPoints(Number(e.target.value))}
+                            disabled={!isEditing}
+                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-slate-100 disabled:opacity-50"
+                        />
+                    </div>
+                    <div className="flex space-x-2 mt-5">
+                        {isEditing ? (
+                            <>
+                                <button
+                                    onClick={handleSaveUnlockPoints}
+                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                                >
+                                    Guardar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        loadUnlockPoints();
+                                    }}
+                                    className="px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-400 dark:hover:bg-slate-500 transition"
+                                >
+                                    Cancelar
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
+                            >
+                                Editar
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div className="flex items-center space-x-2 mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <ion-icon name="information-circle" class="text-2xl text-amber-600 dark:text-amber-400"></ion-icon>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                        Los estudiantes necesitarán <strong>{unlockPoints} puntos</strong> jugando tus batallas para desbloquear tu tarjeta
+                    </p>
+                </div>
             </div>
         </InfoCard>
 

@@ -4,10 +4,12 @@ import { Professor } from '../types';
 interface ProfessorCardProps {
   professor: Professor;
   onClick?: () => void;
-  isActive?: boolean; // New prop for activating hover effect
+  isActive?: boolean;
+  points?: number;
+  requiredPoints?: number;
 }
 
-const ProfessorCard: React.FC<ProfessorCardProps> = ({ professor, onClick, isActive = false }) => {
+const ProfessorCard: React.FC<ProfessorCardProps> = ({ professor, onClick, isActive = false, points = 0, requiredPoints = 100 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const isLocked = professor.locked;
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -76,7 +78,27 @@ const ProfessorCard: React.FC<ProfessorCardProps> = ({ professor, onClick, isAct
         
         {/* Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent ${isInteractive ? 'tilt-card-bg' : ''}`}></div>
-        
+
+        {/* Points Badge - Top Left */}
+        {!isLocked && (
+          <div className="absolute top-4 left-4 bg-gradient-to-br from-amber-400 to-orange-500 text-white px-3 py-1.5 rounded-full shadow-lg border-2 border-white/30 backdrop-blur-sm z-10">
+            <div className="flex items-center space-x-1">
+              <ion-icon name="star" class="text-sm"></ion-icon>
+              <span className="font-bold text-sm">{points}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Lock Progress Badge - Top Left */}
+        {isLocked && (
+          <div className="absolute top-4 left-4 bg-slate-900/80 text-white px-3 py-1.5 rounded-full shadow-lg border-2 border-white/30 backdrop-blur-sm z-10">
+            <div className="flex items-center space-x-1">
+              <ion-icon name="lock-closed" class="text-xs"></ion-icon>
+              <span className="font-bold text-xs">{points}/{requiredPoints}</span>
+            </div>
+          </div>
+        )}
+
         {/* Text Content */}
         <div className={`absolute bottom-0 left-0 p-5 ${isInteractive ? 'tilt-card-content' : ''}`}>
             <h3 className="text-white text-xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{professor.name}</h3>
