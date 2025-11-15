@@ -5,29 +5,17 @@ export const authApi = {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          name,
-          role,
-        },
-      },
     });
 
     if (authError) throw authError;
 
     if (authData.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email,
-          name,
-          role,
-        });
-
-      if (profileError && profileError.code !== '23505') {
-        throw profileError;
-      }
+      await supabase.from('profiles').insert({
+        id: authData.user.id,
+        email,
+        name,
+        role,
+      });
     }
 
     return { user: authData.user, session: authData.session };
@@ -44,8 +32,7 @@ export const authApi = {
   },
 
   logout: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await supabase.auth.signOut();
   },
 
   getCurrentUser: async () => {
@@ -57,13 +44,12 @@ export const authApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 };
@@ -71,23 +57,22 @@ export const authApi = {
 export const questionBankApi = {
   getQuestionSets: async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) return [];
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('question_sets')
       .select('*')
       .eq('teacher_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
     return data || [];
   },
 
   createQuestionSet: async (setName: string, description: string) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new Error('No autenticado');
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('question_sets')
       .insert({
         teacher_id: user.id,
@@ -95,20 +80,18 @@ export const questionBankApi = {
         description,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 
   getQuestionsBySet: async (setId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('question_bank')
       .select('*')
       .eq('set_id', setId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
     return data || [];
   },
 
@@ -121,9 +104,9 @@ export const questionBankApi = {
     difficulty?: string
   ) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) throw new Error('No autenticado');
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('question_bank')
       .insert({
         teacher_id: user.id,
@@ -135,19 +118,13 @@ export const questionBankApi = {
         difficulty,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 
   deleteQuestion: async (questionId: string) => {
-    const { error } = await supabase
-      .from('question_bank')
-      .delete()
-      .eq('id', questionId);
-
-    if (error) throw error;
+    await supabase.from('question_bank').delete().eq('id', questionId);
   },
 
   updateQuestion: async (
@@ -156,7 +133,7 @@ export const questionBankApi = {
     answers: string[],
     correctIndex: number
   ) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('question_bank')
       .update({
         question_text: questionText,
@@ -166,14 +143,17 @@ export const questionBankApi = {
       })
       .eq('id', questionId)
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 };
 
 const generateGroupCode = (): string => {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+};
+
+const generateCode = (): string => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
@@ -185,95 +165,69 @@ export const battleApi = {
     questions: { text: string; answers: string[]; correctIndex: number }[],
     studentsPerGroup?: number
   ) => {
-    try {
-      console.log('🚀 CREANDO BATALLA:', { name, roundCount, groupCount, questionsCount: questions.length });
+    console.log('🚀 Creando batalla:', name);
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        throw new Error('No autenticado');
-      }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No autenticado');
 
-      console.log('✅ Usuario:', user.id);
+    const battleCode = generateCode();
 
-      const battleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { data: battle } = await supabase
+      .from('battles')
+      .insert({
+        name,
+        teacher_id: user.id,
+        question_count: roundCount,
+        battle_code: battleCode,
+        students_per_group: studentsPerGroup || 4,
+        status: 'waiting',
+        current_question_index: 0,
+      })
+      .select()
+      .maybeSingle();
 
-      const { data: battle, error: battleError } = await supabase
-        .from('battles')
-        .insert({
-          name,
-          teacher_id: user.id,
-          question_count: roundCount,
-          battle_code: battleCode,
-          students_per_group: studentsPerGroup || 4,
-          status: 'waiting',
-          current_question_index: 0,
-        })
-        .select()
-        .single();
+    if (!battle) throw new Error('No se pudo crear batalla');
 
-      if (battleError) {
-        console.error('❌ Error batalla:', battleError);
-        throw battleError;
-      }
+    console.log('✅ Batalla creada:', battle.id);
 
-      console.log('✅ Batalla creada:', battle.id);
+    const groupsData = Array.from({ length: groupCount }, (_, i) => ({
+      battle_id: battle.id,
+      group_code: generateCode(),
+      group_name: `Grupo ${i + 1}`,
+      score: 0,
+      correct_answers: 0,
+      is_full: false,
+    }));
 
-      const groupsData = Array.from({ length: groupCount }, (_, i) => ({
-        battle_id: battle.id,
-        group_code: generateGroupCode(),
-        group_name: `Grupo ${i + 1}`,
-        score: 0,
-        correct_answers: 0,
-        is_full: false,
-      }));
+    await supabase.from('battle_groups').insert(groupsData);
 
-      const { error: groupsError } = await supabase
-        .from('battle_groups')
-        .insert(groupsData);
+    console.log('✅ Grupos creados:', groupCount);
 
-      if (groupsError) {
-        console.error('❌ Error grupos:', groupsError);
-        throw groupsError;
-      }
+    const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
+    const questionsData = questions.map((q, index) => ({
+      battle_id: battle.id,
+      question_text: q.text,
+      answers: q.answers.map((text, idx) => ({
+        text,
+        color: COLORS[idx % COLORS.length],
+      })),
+      correct_answer_index: q.correctIndex,
+      question_order: index,
+    }));
 
-      console.log('✅ Grupos creados');
+    await supabase.from('battle_questions').insert(questionsData);
 
-      const ANSWER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
-      const questionsData = questions.map((q, index) => ({
-        battle_id: battle.id,
-        question_text: q.text,
-        answers: q.answers.map((text, idx) => ({
-          text,
-          color: ANSWER_COLORS[idx % ANSWER_COLORS.length],
-        })),
-        correct_answer_index: q.correctIndex,
-        question_order: index,
-      }));
+    console.log('✅ Preguntas creadas:', questions.length);
+    console.log('🎉 BATALLA LISTA');
 
-      const { error: questionsError } = await supabase
-        .from('battle_questions')
-        .insert(questionsData);
-
-      if (questionsError) {
-        console.error('❌ Error preguntas:', questionsError);
-        throw questionsError;
-      }
-
-      console.log('✅ Preguntas creadas');
-      console.log('🎉 BATALLA COMPLETA');
-
-      return { battle };
-    } catch (error: any) {
-      console.error('💥 ERROR TOTAL:', error);
-      throw error;
-    }
+    return { battle };
   },
 
   getTeacherBattles: async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    if (!user) return [];
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('battles')
       .select(`
         *,
@@ -289,12 +243,11 @@ export const battleApi = {
       .eq('teacher_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
     return data || [];
   },
 
   getBattle: async (battleId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('battles')
       .select(`
         *,
@@ -320,26 +273,24 @@ export const battleApi = {
         )
       `)
       .eq('id', battleId)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 
   updateBattleStatus: async (battleId: string, status: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('battles')
       .update({ status })
       .eq('id', battleId)
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 
   getBattleByCode: async (battleCode: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('battles')
       .select(`
         *,
@@ -351,31 +302,26 @@ export const battleApi = {
         )
       `)
       .eq('battle_code', battleCode.toUpperCase())
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
     return data;
   },
 
   joinGroup: async (groupCode: string, studentId: string, studentName: string) => {
-    const { data: group, error: groupError } = await supabase
+    const { data: group } = await supabase
       .from('battle_groups')
       .select('*')
       .eq('group_code', groupCode.toUpperCase())
-      .single();
+      .maybeSingle();
 
-    if (groupError) throw groupError;
-    if (group.is_full) throw new Error('El grupo está lleno');
+    if (!group) throw new Error('Grupo no encontrado');
+    if (group.is_full) throw new Error('Grupo lleno');
 
-    const { error: memberError } = await supabase
-      .from('group_members')
-      .insert({
-        group_id: group.id,
-        student_id: studentId,
-        student_name: studentName,
-      });
-
-    if (memberError) throw memberError;
+    await supabase.from('group_members').insert({
+      group_id: group.id,
+      student_id: studentId,
+      student_name: studentName,
+    });
 
     const { data: members } = await supabase
       .from('group_members')
@@ -386,7 +332,7 @@ export const battleApi = {
       .from('battles')
       .select('students_per_group')
       .eq('id', group.battle_id)
-      .single();
+      .maybeSingle();
 
     if (members && battle && members.length >= battle.students_per_group) {
       await supabase
