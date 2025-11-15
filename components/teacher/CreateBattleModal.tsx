@@ -16,11 +16,6 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
   const [studentsPerGroup, setStudentsPerGroup] = useState(4);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
 
-  const [newQuestionText, setNewQuestionText] = useState('');
-  const [newAnswers, setNewAnswers] = useState(['', '', '', '']);
-  const [newCorrectAnswer, setNewCorrectAnswer] = useState(0);
-  const [tempAddedQuestions, setTempAddedQuestions] = useState<Question[]>([]);
-
   if (!isOpen) return null;
 
   const handleToggleQuestion = (questionId: string) => {
@@ -33,29 +28,6 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
     setSelectedQuestionIds(newSet);
   };
 
-  const handleAnswerChange = (index: number, value: string) => {
-    const updatedAnswers = [...newAnswers];
-    updatedAnswers[index] = value;
-    setNewAnswers(updatedAnswers);
-  };
-
-  const handleAddNewQuestion = () => {
-    if (newQuestionText.trim() === '' || newAnswers.some(a => a.trim() === '')) {
-      alert('Por favor, completa la nueva pregunta y todas sus respuestas.');
-      return;
-    }
-    const newQuestion: Question = {
-      id: `temp-${Date.now()}`,
-      text: newQuestionText,
-      answers: newAnswers,
-      correctAnswerIndex: newCorrectAnswer,
-    };
-    setTempAddedQuestions([...tempAddedQuestions, newQuestion]);
-    setNewQuestionText('');
-    setNewAnswers(['', '', '', '']);
-    setNewCorrectAnswer(0);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (battleName.trim() === '') {
@@ -64,15 +36,14 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
     }
 
     const selectedFromBank = existingQuestions.filter(q => selectedQuestionIds.has(q.id));
-    const finalQuestions = [...selectedFromBank, ...tempAddedQuestions];
 
-    if (finalQuestions.length === 0) {
-      alert('Debes seleccionar o añadir al menos una pregunta.');
+    if (selectedFromBank.length === 0) {
+      alert('Debes seleccionar al menos una pregunta del banco.');
       return;
     }
 
-    if (finalQuestions.length < roundCount) {
-      alert(`Necesitas al menos ${roundCount} preguntas para ${roundCount} rondas.`);
+    if (selectedFromBank.length < roundCount) {
+      alert(`Necesitas al menos ${roundCount} preguntas para ${roundCount} rondas. Tienes ${selectedFromBank.length} seleccionadas.`);
       return;
     }
 
@@ -91,7 +62,7 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
       return;
     }
 
-    const formattedQuestions = finalQuestions.slice(0, roundCount).map(q => ({
+    const formattedQuestions = selectedFromBank.slice(0, roundCount).map(q => ({
       text: q.text,
       answers: q.answers,
       correctIndex: q.correctAnswerIndex,
@@ -103,7 +74,6 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
     setGroupCount(4);
     setStudentsPerGroup(4);
     setSelectedQuestionIds(new Set());
-    setTempAddedQuestions([]);
   };
 
   return (
@@ -176,7 +146,7 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
 
             <div>
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                Banco de Preguntas ({selectedQuestionIds.size + tempAddedQuestions.length} seleccionadas)
+                Seleccionar Preguntas del Banco ({selectedQuestionIds.size} seleccionadas)
               </h3>
               <div className="max-h-48 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-600 rounded-lg p-3">
                 {existingQuestions.length === 0 ? (
@@ -197,60 +167,6 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
                 )}
               </div>
             </div>
-
-            <div className="border-t border-slate-200 dark:border-slate-600 pt-4">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Agregar Nueva Pregunta</h3>
-              <input
-                type="text"
-                value={newQuestionText}
-                onChange={(e) => setNewQuestionText(e.target.value)}
-                placeholder="Texto de la pregunta"
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg mb-3 dark:bg-slate-700 dark:text-slate-100"
-                disabled={isLoading}
-              />
-              {newAnswers.map((ans, idx) => (
-                <div key={idx} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={newCorrectAnswer === idx}
-                    onChange={() => setNewCorrectAnswer(idx)}
-                    disabled={isLoading}
-                  />
-                  <input
-                    type="text"
-                    value={ans}
-                    onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                    placeholder={`Respuesta ${idx + 1}`}
-                    className="flex-1 px-3 py-1 border border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-slate-100"
-                    disabled={isLoading}
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleAddNewQuestion}
-                className="mt-2 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50"
-                disabled={isLoading}
-              >
-                Agregar Pregunta
-              </button>
-            </div>
-
-            {tempAddedQuestions.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                  Preguntas Agregadas ({tempAddedQuestions.length})
-                </h4>
-                <div className="space-y-1">
-                  {tempAddedQuestions.map(q => (
-                    <div key={q.id} className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 p-2 rounded">
-                      {q.text}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="flex justify-end space-x-3 mt-6">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Question, User } from '../../types';
 import CreateBattleModal from './CreateBattleModal';
 import BattleControlScreen from './BattleControlScreen';
+import QuestionBankScreen from './QuestionBankScreen';
 import { supabase } from '../../lib/supabase';
 import * as battleApi from '../../lib/battleApi';
 
@@ -9,7 +10,8 @@ interface BattleRoom {
     id: string;
     name: string;
     questionCount: number;
-    groupCodes: { groupName: string; code: string }[];
+    battleCode: string;
+    groupCount: number;
     status: 'waiting' | 'active' | 'finished';
 }
 
@@ -23,6 +25,7 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     const [rooms, setRooms] = useState<BattleRoom[]>([]);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedBattleId, setSelectedBattleId] = useState<string | null>(null);
+    const [showQuestionBank, setShowQuestionBank] = useState(false);
     const [questionBank, setQuestionBank] = useState<Question[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -52,16 +55,30 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     };
 
     const loadTeacherBattles = async () => {
-        const battles = await battleApi.getTeacherBattles(teacherId);
-        const roomsData: BattleRoom[] = [];
+        const { data: battles, error } = await supabase
+            .from('battles')
+            .select('*')
+            .eq('teacher_id', teacherId)
+            .order('created_at', { ascending: false });
 
-        for (const battle of battles) {
-            const groups = await battleApi.getBattleGroups(battle.id);
+        if (error) {
+            console.error('Error loading battles:', error);
+            return;
+        }
+
+        const roomsData: BattleRoom[] = [];
+        for (const battle of battles || []) {
+            const { data: groups } = await supabase
+                .from('battle_groups')
+                .select('*')
+                .eq('battle_id', battle.id);
+
             roomsData.push({
                 id: battle.id,
                 name: battle.name,
                 questionCount: battle.question_count,
-                groupCodes: groups.map(g => ({ groupName: g.group_name, code: g.group_code })),
+                battleCode: battle.battle_code || 'N/A',
+                groupCount: (groups || []).length,
                 status: battle.status,
             });
         }
@@ -95,6 +112,15 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
         setSelectedBattleId(battleId);
     };
 
+    if (showQuestionBank) {
+        return (
+            <QuestionBankScreen
+                teacherId={teacherId}
+                onBack={() => setShowQuestionBank(false)}
+            />
+        );
+    }
+
     if (selectedBattleId) {
         return (
             <BattleControlScreen
@@ -122,14 +148,22 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Crea y administra las batallas para tus clases.</p>
                 </div>
 
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="w-full py-3 bg-sky-500 text-white font-bold rounded-lg shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition transform hover:scale-105 flex items-center justify-center animate-stagger"
-                    style={{ '--stagger-delay': '200ms' } as React.CSSProperties}
-                >
-                    <ion-icon name="add-circle-outline" class="mr-2 text-xl"></ion-icon>
-                    Crear Nueva Batalla
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={() => setShowQuestionBank(true)}
+                        className="py-3 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition transform hover:scale-105 flex items-center justify-center"
+                    >
+                        <ion-icon name="book-outline" class="mr-2 text-xl"></ion-icon>
+                        Banco de Preguntas
+                    </button>
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="py-3 bg-sky-500 text-white font-bold rounded-lg shadow-md hover:bg-sky-600 transition transform hover:scale-105 flex items-center justify-center"
+                    >
+                        <ion-icon name="add-circle-outline" class="mr-2 text-xl"></ion-icon>
+                        Crear Batalla
+                    </button>
+                </div>
 
                 <div className="animate-stagger" style={{ '--stagger-delay': '300ms' } as React.CSSProperties}>
                     <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-3">Batallas Creadas</h2>
@@ -142,7 +176,7 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                                     <div className="flex justify-between items-center mb-3">
                                         <div>
                                             <p className="font-bold text-slate-800 dark:text-slate-100 text-lg">{room.name}</p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">{room.questionCount} preguntas - {room.groupCodes.length} grupos</p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">{room.questionCount} preguntas - {room.groupCount} grupos</p>
                                         </div>
                                         <button
                                             onClick={() => handleOpenBattle(room.id)}
@@ -152,16 +186,10 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                                             <span>Abrir</span>
                                         </button>
                                     </div>
-                                    <div className="mt-3">
-                                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">📋 Códigos para Estudiantes:</p>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {room.groupCodes.map((group, idx) => (
-                                                <div key={idx} className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 p-3 rounded-lg border-2 border-sky-200 dark:border-sky-700">
-                                                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">{group.groupName}</p>
-                                                    <p className="font-mono text-lg font-bold text-sky-600 dark:text-sky-400 tracking-wider">{group.code}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                    <div className="mt-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border-2 border-amber-400 dark:border-amber-600">
+                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">🎮 Código de Batalla (compartir con TODOS los estudiantes):</p>
+                                        <p className="font-mono text-3xl font-bold text-amber-600 dark:text-amber-400 tracking-widest text-center">{room.battleCode}</p>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 text-center">Los estudiantes serán asignados automáticamente a equipos</p>
                                     </div>
                                 </div>
                             ))}
