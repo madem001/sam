@@ -68,7 +68,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   };
 
   return (
-    <div className="bg-profile-light text-slate-800 dark:text-slate-200 h-full overflow-y-auto flex flex-col">
+    <div className="bg-profile-light text-slate-800 dark:text-slate-200 h-full flex flex-col overflow-hidden">
       {/* Header */}
       <header className="flex-shrink-0 flex items-center justify-between p-4">
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-wider">Mi Perfil</h1>
@@ -89,83 +89,86 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Profile Content */}
-      <main className="flex-grow flex flex-col items-center px-4 pb-8">
-        {/* Avatar */}
-        <div className="relative w-36 h-36 mb-4">
-          <img src={user.imageUrl} alt={user.name} className="w-full h-full rounded-full border-4 border-white dark:border-slate-700 shadow-lg" />
-        </div>
-
-        {/* User Info */}
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.name}</h2>
-        <div className="flex items-center space-x-3 mt-4">
-            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-5 py-2 rounded-full border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition shadow-sm">
-                <ion-icon name="create-outline"></ion-icon>
-                <span>Editar</span>
-            </button>
-            <button onClick={onLogout} className="flex items-center space-x-2 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold px-5 py-2 rounded-full hover:bg-red-200 dark:hover:bg-red-900/60 transition shadow-sm">
-                <ion-icon name="log-out-outline"></ion-icon>
-                <span>Salir</span>
-            </button>
-        </div>
-        
-        {/* Achievements Section */}
-        <div className="w-full mt-8">
-          <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-3 px-2">Mis Logros</h3>
-          <div className="flex space-x-4 overflow-x-auto pb-4 horizontal-scrollbar px-2">
-            {user.achievements.map(ach => (
-              <div key={ach.id} className="flex-shrink-0 w-24 text-center">
-                <div className="bg-white dark:bg-slate-700 rounded-full h-20 w-20 flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-600">
-                  {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
-                  <ion-icon name={ach.icon} class="text-4xl text-sky-500 dark:text-sky-400"></ion-icon>
-                </div>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-2 truncate">{ach.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Professor Cards Section */}
-        <div className="w-full mt-8 flex flex-col items-center">
-          <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-4">Mis Maestros</h3>
-          {isLoadingProfessors ? (
-            <div className="h-80 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-500"></div>
+      <main className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
+        <div className="w-full max-w-2xl">
+          {/* Avatar */}
+          <div className="flex flex-col items-center pt-4">
+            <div className="relative w-28 h-28 mb-3">
+              <img src={user.imageUrl} alt={user.name} className="w-full h-full rounded-full border-4 border-white dark:border-slate-700 shadow-lg" />
             </div>
-          ) : (
-            <>
-              <div className="carousel-container w-full">
-                <div className="carousel-track">
+
+            {/* User Info */}
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.name}</h2>
+            <div className="flex items-center space-x-3 mt-3">
+                <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition shadow-sm text-sm">
+                    <ion-icon name="create-outline"></ion-icon>
+                    <span>Editar</span>
+                </button>
+                <button onClick={onLogout} className="flex items-center space-x-2 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold px-4 py-2 rounded-full hover:bg-red-200 dark:hover:bg-red-900/60 transition shadow-sm text-sm">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                    <span>Salir</span>
+                </button>
+            </div>
+          </div>
+
+          {/* Achievements Section */}
+          <div className="w-full mt-6">
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-2">Mis Logros</h3>
+            <div className="flex justify-center flex-wrap gap-3">
+              {user.achievements.map(ach => (
+                <div key={ach.id} className="flex-shrink-0 w-20 text-center">
+                  <div className="bg-white dark:bg-slate-700 rounded-full h-16 w-16 mx-auto flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-600">
+                    <ion-icon name={ach.icon} class="text-3xl text-sky-500 dark:text-sky-400"></ion-icon>
+                  </div>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 truncate">{ach.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Professor Cards Section */}
+          <div className="w-full mt-6 flex flex-col items-center pb-6">
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-3">Mis Maestros</h3>
+            {isLoadingProfessors ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-500"></div>
+              </div>
+            ) : (
+              <>
+                <div className="carousel-container w-full">
+                  <div className="carousel-track">
+                    {professors.map((prof, index) => (
+                      <div
+                        className="carousel-item"
+                        key={prof.id}
+                        style={getCardStyle(index)}
+                        onClick={() => {
+                            if (index === activeCardIndex) {
+                              if (!prof.locked) setSelectedProfessor(prof);
+                            } else {
+                                setActiveCardIndex(index);
+                            }
+                        }}
+                      >
+                        <ProfessorCard professor={prof} isActive={index === activeCardIndex} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="thumbnail-gallery mt-4">
                   {professors.map((prof, index) => (
-                    <div 
-                      className="carousel-item" 
-                      key={prof.id} 
-                      style={getCardStyle(index)}
-                      onClick={() => {
-                          if (index === activeCardIndex) {
-                            if (!prof.locked) setSelectedProfessor(prof);
-                          } else {
-                              setActiveCardIndex(index);
-                          }
-                      }}
+                    <div
+                      key={prof.id}
+                      className={`thumbnail-item ${index === activeCardIndex ? 'active' : ''}`}
+                      onClick={() => setActiveCardIndex(index)}
                     >
-                      <ProfessorCard professor={prof} isActive={index === activeCardIndex} />
+                      <img src={prof.imageUrl} alt={prof.name} />
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="thumbnail-gallery mt-4 horizontal-scrollbar">
-                {professors.map((prof, index) => (
-                  <div 
-                    key={prof.id} 
-                    className={`thumbnail-item ${index === activeCardIndex ? 'active' : ''}`}
-                    onClick={() => setActiveCardIndex(index)}
-                  >
-                    <img src={prof.imageUrl} alt={prof.name} />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </main>
       
