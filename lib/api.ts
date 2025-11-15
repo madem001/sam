@@ -230,34 +230,20 @@ export const battleApi = {
   },
 
   getBattle: async (battleId: string) => {
-    const { data } = await supabase
+    console.log('🔍 getBattle llamado para:', battleId);
+
+    const { data, error } = await supabase
       .from('battles')
-      .select(`
-        *,
-        battle_groups (
-          id,
-          group_code,
-          group_name,
-          score,
-          correct_answers,
-          is_full,
-          group_members (
-            id,
-            student_id,
-            student_name
-          )
-        ),
-        battle_questions (
-          id,
-          question_text,
-          answers,
-          correct_answer_index,
-          question_order
-        )
-      `)
+      .select('*')
       .eq('id', battleId)
       .maybeSingle();
 
+    if (error) {
+      console.error('❌ Error obteniendo batalla:', error);
+      throw error;
+    }
+
+    console.log('✅ Batalla obtenida:', data?.name);
     return data;
   },
 

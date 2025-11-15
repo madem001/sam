@@ -41,23 +41,32 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   }, [battleId]);
 
   const loadBattleData = async () => {
-    const battleData = await battleApi.getBattleState(battleId);
-    if (battleData) {
-      setBattle(battleData);
-      const questionsData = await battleApi.getBattleQuestions(battleId);
-      setQuestions(questionsData);
+    console.log('📥 StudentBattleScreen: Cargando datos de batalla...');
+    try {
+      const battleData = await battleApi.getBattleState(battleId);
+      console.log('✅ StudentBattleScreen: Batalla cargada:', battleData);
 
-      if (questionsData.length > 0 && battleData.status === 'active') {
-        const currentQ = questionsData[battleData.current_question_index];
-        if (currentQ) {
-          setCurrentQuestion(currentQ);
-          setStartTime(Date.now());
-          setHasAnswered(false);
-          setSelectedAnswer(null);
+      if (battleData) {
+        setBattle(battleData);
+        const questionsData = await battleApi.getBattleQuestions(battleId);
+        console.log('✅ StudentBattleScreen: Preguntas cargadas:', questionsData.length);
+        setQuestions(questionsData);
+
+        if (questionsData.length > 0 && battleData.status === 'active') {
+          const currentQ = questionsData[battleData.current_question_index];
+          if (currentQ) {
+            setCurrentQuestion(currentQ);
+            setStartTime(Date.now());
+            setHasAnswered(false);
+            setSelectedAnswer(null);
+          }
         }
       }
+      await loadGroups();
+      console.log('✅ StudentBattleScreen: Datos completos cargados');
+    } catch (error) {
+      console.error('❌ StudentBattleScreen: Error cargando datos:', error);
     }
-    await loadGroups();
   };
 
   const loadGroups = async () => {

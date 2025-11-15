@@ -54,21 +54,25 @@ const JoinBattleScreen: React.FC<JoinBattleScreenProps> = ({ onBack, studentId, 
         }
 
         setIsJoining(true);
+        console.log('🎮 Intentando unirse con código:', fullCode);
 
         try {
             const result = await battleApi.joinBattleWithCode(fullCode, studentId, studentName);
+            console.log('📦 Resultado de joinBattleWithCode:', result);
 
             if (result.success && result.group) {
-                console.log('Unido exitosamente al grupo:', result.group.group_name);
+                console.log('✅ Unido exitosamente al grupo:', result.group.group_name);
+                console.log('🎯 Configurando joined group - GroupID:', result.group.id, 'BattleID:', result.group.battle_id);
                 setJoinedGroup({
                     groupId: result.group.id,
                     battleId: result.group.battle_id,
                 });
             } else {
+                console.log('❌ Join falló:', result.message);
                 alert(result.message || 'Error al unirse a la batalla');
             }
         } catch (error: any) {
-            console.error('Error joining battle:', error);
+            console.error('❌ Error joining battle:', error);
             alert(error.message || 'No se pudo unir a la batalla');
         }
 
