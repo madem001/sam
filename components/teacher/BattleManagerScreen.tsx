@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Question, User } from '../../types';
 import CreateBattleModal from './CreateBattleModal';
 import BattleControlScreen from './BattleControlScreen';
-import { getQuestionBank } from '../../api';
+import { supabase } from '../../lib/supabase';
 import * as battleApi from '../../lib/battleApi';
 
 interface BattleRoom {
@@ -27,9 +27,29 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        getQuestionBank().then(setQuestionBank);
+        loadQuestionBank();
         loadTeacherBattles();
-    }, []);
+    }, [teacherId]);
+
+    const loadQuestionBank = async () => {
+        const { data, error } = await supabase
+            .from('question_bank')
+            .select('*')
+            .eq('teacher_id', teacherId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error loading question bank:', error);
+        } else {
+            const questions: Question[] = (data || []).map(q => ({
+                id: q.id,
+                text: q.question_text,
+                answers: q.answers,
+                correctAnswer: q.correct_answer_index,
+            }));
+            setQuestionBank(questions);
+        }
+    };
 
     const loadTeacherBattles = async () => {
         const battles = await battleApi.getTeacherBattles(teacherId);
@@ -132,13 +152,16 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                                             <span>Abrir</span>
                                         </button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {room.groupCodes.map((group, idx) => (
-                                            <div key={idx} className="bg-slate-50 dark:bg-slate-700 p-2 rounded-lg">
-                                                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{group.groupName}</p>
-                                                <p className="font-mono text-sm font-bold text-sky-600 dark:text-sky-400 tracking-widest">{group.code}</p>
-                                            </div>
-                                        ))}
+                                    <div className="mt-3">
+                                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">📋 Códigos para Estudiantes:</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {room.groupCodes.map((group, idx) => (
+                                                <div key={idx} className="bg-gradient-to-r from-sky-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 p-3 rounded-lg border-2 border-sky-200 dark:border-sky-700">
+                                                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">{group.groupName}</p>
+                                                    <p className="font-mono text-lg font-bold text-sky-600 dark:text-sky-400 tracking-wider">{group.code}</p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
