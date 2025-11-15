@@ -105,14 +105,25 @@ export const battleApi = {
     questions: { text: string; answers: string[]; correctIndex: number }[],
     studentsPerGroup?: number
   ) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    try {
+      console.log('🚀 Iniciando creación de batalla:', { name, roundCount, groupCount, questionsCount: questions.length });
 
-    const battleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('❌ Error obteniendo usuario:', userError);
+        throw new Error('Error de autenticación: ' + userError.message);
+      }
+      if (!user) {
+        console.error('❌ No hay usuario autenticado');
+        throw new Error('No estás autenticado. Por favor inicia sesión.');
+      }
 
-    const { data: battle, error: battleError } = await supabase
-      .from('battles')
-      .insert({
+      console.log('✅ Usuario autenticado:', user.id);
+
+      const battleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      console.log('🎲 Código de batalla generado:', battleCode);
+
+      const battleData = {
         name,
         teacher_id: user.id,
         question_count: roundCount,
@@ -120,46 +131,76 @@ export const battleApi = {
         students_per_group: studentsPerGroup || 4,
         status: 'waiting',
         current_question_index: 0,
-      })
-      .select()
-      .single();
+      };
 
-    if (battleError) throw battleError;
+      console.log('📝 Insertando batalla:', battleData);
 
-    const groupsData = Array.from({ length: groupCount }, (_, i) => ({
-      battle_id: battle.id,
-      group_code: generateGroupCode(),
-      group_name: `Grupo ${i + 1}`,
-      score: 0,
-      correct_answers: 0,
-      is_full: false,
-    }));
+      const { data: battle, error: battleError } = await supabase
+        .from('battles')
+        .insert(battleData)
+        .select()
+        .single();
 
-    const { error: groupsError } = await supabase
-      .from('battle_groups')
-      .insert(groupsData);
+      if (battleError) {
+        console.error('❌ Error creando batalla:', battleError);
+        throw new Error('Error al crear batalla: ' + battleError.message);
+      }
 
-    if (groupsError) throw groupsError;
+      console.log('✅ Batalla creada:', battle.id);
 
-    const ANSWER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
-    const questionsData = questions.map((q, index) => ({
-      battle_id: battle.id,
-      question_text: q.text,
-      answers: q.answers.map((text, idx) => ({
-        text,
-        color: ANSWER_COLORS[idx % ANSWER_COLORS.length],
-      })),
-      correct_answer_index: q.correctIndex,
-      question_order: index,
-    }));
+      const groupsData = Array.from({ length: groupCount }, (_, i) => ({
+        battle_id: battle.id,
+        group_code: generateGroupCode(),
+        group_name: `Grupo ${i + 1}`,
+        score: 0,
+        correct_answers: 0,
+        is_full: false,
+      }));
 
-    const { error: questionsError } = await supabase
-      .from('battle_questions')
-      .insert(questionsData);
+      console.log('📝 Insertando', groupCount, 'grupos');
 
-    if (questionsError) throw questionsError;
+      const { error: groupsError } = await supabase
+        .from('battle_groups')
+        .insert(groupsData);
 
-    return { battle };
+      if (groupsError) {
+        console.error('❌ Error creando grupos:', groupsError);
+        throw new Error('Error al crear grupos: ' + groupsError.message);
+      }
+
+      console.log('✅ Grupos creados');
+
+      const ANSWER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
+      const questionsData = questions.map((q, index) => ({
+        battle_id: battle.id,
+        question_text: q.text,
+        answers: q.answers.map((text, idx) => ({
+          text,
+          color: ANSWER_COLORS[idx % ANSWER_COLORS.length],
+        })),
+        correct_answer_index: q.correctIndex,
+        question_order: index,
+      }));
+
+      console.log('📝 Insertando', questions.length, 'preguntas');
+
+      const { error: questionsError } = await supabase
+        .from('battle_questions')
+        .insert(questionsData);
+
+      if (questionsError) {
+        console.error('❌ Error creando preguntas:', questionsError);
+        throw new Error('Error al crear preguntas: ' + questionsError.message);
+      }
+
+      console.log('✅ Preguntas creadas');
+      console.log('🎉 BATALLA CREADA EXITOSAMENTE:', battle.id);
+
+      return { battle };
+    } catch (error: any) {
+      console.error('💥 ERROR FATAL EN createBattle:', error);
+      throw error;
+    }
   },
 
   getTeacherBattles: async () => {
