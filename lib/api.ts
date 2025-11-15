@@ -56,26 +56,19 @@ export const authApi = {
 
 export const questionBankApi = {
   getQuestionSets: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
     const { data } = await supabase
       .from('question_sets')
       .select('*')
-      .eq('teacher_id', user.id)
       .order('created_at', { ascending: false });
 
     return data || [];
   },
 
   createQuestionSet: async (setName: string, description: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No autenticado');
-
     const { data } = await supabase
       .from('question_sets')
       .insert({
-        teacher_id: user.id,
+        teacher_id: 'default-teacher',
         set_name: setName,
         description,
       })
@@ -103,13 +96,10 @@ export const questionBankApi = {
     category?: string,
     difficulty?: string
   ) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No autenticado');
-
     const { data } = await supabase
       .from('question_bank')
       .insert({
-        teacher_id: user.id,
+        teacher_id: 'default-teacher',
         set_id: setId,
         question_text: questionText,
         answers,
@@ -167,16 +157,13 @@ export const battleApi = {
   ) => {
     console.log('🚀 Creando batalla:', name);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No autenticado');
-
     const battleCode = generateCode();
 
     const { data: battle } = await supabase
       .from('battles')
       .insert({
         name,
-        teacher_id: user.id,
+        teacher_id: 'default-teacher',
         question_count: roundCount,
         battle_code: battleCode,
         students_per_group: studentsPerGroup || 4,
@@ -224,9 +211,6 @@ export const battleApi = {
   },
 
   getTeacherBattles: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
     const { data } = await supabase
       .from('battles')
       .select(`
@@ -240,7 +224,6 @@ export const battleApi = {
           is_full
         )
       `)
-      .eq('teacher_id', user.id)
       .order('created_at', { ascending: false });
 
     return data || [];
