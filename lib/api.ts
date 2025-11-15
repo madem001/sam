@@ -2,32 +2,60 @@ import { supabase } from './supabase';
 
 export const authApi = {
   register: async (email: string, password: string, name: string, role: 'STUDENT' | 'TEACHER') => {
+    console.log('📝 Registrando en Supabase:', { email, name, role });
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: undefined,
+      }
     });
 
-    if (authError) throw authError;
+    console.log('📝 Respuesta de Supabase signUp:', { authData, authError });
+
+    if (authError) {
+      console.error('❌ Error en signUp:', authError);
+      throw authError;
+    }
 
     if (authData.user) {
-      await supabase.from('profiles').insert({
+      console.log('📝 Creando perfil para usuario:', authData.user.id);
+
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: authData.user.id,
         email,
         name,
         role,
       });
+
+      if (profileError) {
+        console.error('❌ Error creando perfil:', profileError);
+        throw profileError;
+      }
+
+      console.log('✅ Perfil creado exitosamente');
     }
 
     return { user: authData.user, session: authData.session };
   },
 
   login: async (email: string, password: string) => {
+    console.log('🔐 Intentando login con email:', email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    console.log('🔐 Respuesta de signInWithPassword:', { data, error });
+
+    if (error) {
+      console.error('❌ Error en login:', error.message);
+      throw error;
+    }
+
+    console.log('✅ Login exitoso, usuario:', data.user?.email);
     return data;
   },
 
