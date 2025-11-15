@@ -73,17 +73,23 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     ) => {
         setIsLoading(true);
 
-        const result = await battleApi.createFullBattle(teacherId, battleName, questionCount, groupCount, questions, studentsPerGroup);
+        try {
+            const result = await battleApi.createFullBattle(teacherId, battleName, questionCount, groupCount, questions, studentsPerGroup);
 
-        if (!result) {
-            alert('Error al crear la batalla');
+            if (!result) {
+                alert('Error: No se pudo crear la batalla (resultado vacío)');
+                setIsLoading(false);
+                return;
+            }
+
+            setIsCreateModalOpen(false);
+            await loadTeacherBattles();
             setIsLoading(false);
-            return;
+        } catch (error: any) {
+            console.error('Error detallado:', error);
+            alert('ERROR AL CREAR BATALLA:\n\n' + (error?.message || error?.toString() || 'Error desconocido'));
+            setIsLoading(false);
         }
-
-        setIsCreateModalOpen(false);
-        await loadTeacherBattles();
-        setIsLoading(false);
     };
 
     const handleOpenBattle = (battleId: string) => {
