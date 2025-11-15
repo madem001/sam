@@ -1,129 +1,321 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('auth_token');
-};
-
-const setAuthToken = (token: string) => {
-  localStorage.setItem('auth_token', token);
-};
-
-export const clearAuthToken = () => {
-  localStorage.removeItem('auth_token');
-};
-
-interface FetchOptions extends RequestInit {
-  requiresAuth?: boolean;
-}
-
-const apiFetch = async (endpoint: string, options: FetchOptions = {}) => {
-  const { requiresAuth = true, headers = {}, ...restOptions } = options;
-
-  const finalHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...headers,
-  };
-
-  if (requiresAuth) {
-    const token = getAuthToken();
-    if (token) {
-      finalHeaders['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...restOptions,
-    headers: finalHeaders,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Error desconocido' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
-  }
-
-  return response.json();
-};
+import { supabase } from './supabase';
 
 export const authApi = {
   register: async (email: string, password: string, name: string, role: 'STUDENT' | 'TEACHER') => {
-    const data = await apiFetch('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name, role }),
-      requiresAuth: false,
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          role,
+        },
+      },
     });
-    if (data.token) {
-      setAuthToken(data.token);
+
+    if (authError) throw authError;
+
+    if (authData.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          email,
+          name,
+          role,
+        });
+
+      if (profileError && profileError.code !== '23505') {
+        throw profileError;
+      }
     }
-    return data;
+
+    return { user: authData.user, session: authData.session };
   },
 
   login: async (email: string, password: string) => {
-    const data = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-      requiresAuth: false,
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    if (data.token) {
-      setAuthToken(data.token);
-    }
+
+    if (error) throw error;
     return data;
   },
 
+  logout: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
   getMe: async () => {
-    return apiFetch('/auth/me');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error) throw error;
+    return profile;
   },
 
   updateProfile: async (name?: string, avatar?: string) => {
-    return apiFetch('/auth/profile', {
-      method: 'PATCH',
-      body: JSON.stringify({ name, avatar }),
-    });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const updates: any = {};
+    if (name) updates.name = name;
+    if (avatar) updates.avatar = avatar;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   getStudents: async () => {
-    return apiFetch('/auth/students');
+    const { data, error} = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'STUDENT')
+      .order('points', { ascending: false });
+
+    if (error) throw error;
+    return data;
   },
+};
+
+const generateGroupCode = (): string => {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
 export const battleApi = {
   createBattle: async (
     name: string,
-    questionCount: number,
+    roundCount: number,
     groupCount: number,
     questions: { text: string; answers: string[]; correctIndex: number }[],
     studentsPerGroup?: number
   ) => {
-    return apiFetch('/battles', {
-      method: 'POST',
-      body: JSON.stringify({ name, questionCount, groupCount, questions, studentsPerGroup }),
-    });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data: battle, error: battleError } = await supabase
+      .from('battles')
+      .insert({
+        name,
+        teacher_id: user.id,
+        round_count: roundCount,
+        students_per_group: studentsPerGroup || 4,
+        status: 'waiting',
+        current_round_index: 0,
+      })
+      .select()
+      .single();
+
+    if (battleError) throw battleError;
+
+    const groupsData = Array.from({ length: groupCount }, (_, i) => ({
+      battle_id: battle.id,
+      group_code: generateGroupCode(),
+      group_name: `Grupo ${i + 1}`,
+      score: 0,
+      correct_answers: 0,
+      is_full: false,
+    }));
+
+    const { error: groupsError } = await supabase
+      .from('battle_groups')
+      .insert(groupsData);
+
+    if (groupsError) throw groupsError;
+
+    const ANSWER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
+    const questionsData = questions.map((q, index) => ({
+      battle_id: battle.id,
+      question_text: q.text,
+      answers: q.answers.map((text, idx) => ({
+        text,
+        color: ANSWER_COLORS[idx % ANSWER_COLORS.length],
+      })),
+      correct_answer_index: q.correctIndex,
+      question_order: index,
+    }));
+
+    const { error: questionsError } = await supabase
+      .from('battle_questions')
+      .insert(questionsData);
+
+    if (questionsError) throw questionsError;
+
+    return { battle };
   },
 
   getTeacherBattles: async () => {
-    return apiFetch('/battles/teacher');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('battles')
+      .select(`
+        *,
+        battle_groups (
+          id,
+          group_code,
+          group_name,
+          score,
+          correct_answers,
+          is_full
+        )
+      `)
+      .eq('teacher_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
   },
 
   getBattle: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}`);
+    const { data, error } = await supabase
+      .from('battles')
+      .select('*')
+      .eq('id', battleId)
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   getBattleGroups: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}/groups`);
+    const { data, error } = await supabase
+      .from('battle_groups')
+      .select(`
+        *,
+        group_members (
+          id,
+          student_id,
+          student_name,
+          joined_at
+        )
+      `)
+      .eq('battle_id', battleId)
+      .order('score', { ascending: false });
+
+    if (error) throw error;
+    return data;
   },
 
   getBattleQuestions: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}/questions`);
+    const { data, error } = await supabase
+      .from('battle_questions')
+      .select('*')
+      .eq('battle_id', battleId)
+      .order('question_order', { ascending: true });
+
+    if (error) throw error;
+    return data;
   },
 
   getBattleAnswers: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}/answers`);
+    const { data, error } = await supabase
+      .from('battle_answers')
+      .select('*')
+      .eq('battle_id', battleId)
+      .order('answered_at', { ascending: true });
+
+    if (error) throw error;
+    return data;
   },
 
   joinGroup: async (groupCode: string, studentId: string, studentName: string) => {
-    return apiFetch('/battles/join', {
-      method: 'POST',
-      body: JSON.stringify({ groupCode, studentId, studentName }),
-    });
+    const { data: groups, error: groupError } = await supabase
+      .from('battle_groups')
+      .select('*, battles!inner(students_per_group, id)')
+      .eq('group_code', groupCode);
+
+    if (groupError || !groups || groups.length === 0) {
+      throw new Error('Código de grupo inválido');
+    }
+
+    const group = groups[0];
+    const battleId = group.battles.id;
+
+    const { data: existingMember } = await supabase
+      .from('group_members')
+      .select('*, battle_groups!inner(battle_id)')
+      .eq('student_id', studentId)
+      .eq('battle_groups.battle_id', battleId)
+      .maybeSingle();
+
+    if (existingMember) {
+      const { data: currentGroup } = await supabase
+        .from('battle_groups')
+        .select('*')
+        .eq('id', existingMember.group_id)
+        .single();
+
+      return {
+        group: currentGroup,
+        message: 'Ya estás en un grupo de esta batalla'
+      };
+    }
+
+    let targetGroup = group;
+
+    if (group.is_full) {
+      const { data: availableGroups } = await supabase
+        .from('battle_groups')
+        .select('*, battles!inner(students_per_group)')
+        .eq('battle_id', battleId)
+        .eq('is_full', false);
+
+      if (!availableGroups || availableGroups.length === 0) {
+        throw new Error('Todos los grupos están llenos');
+      }
+
+      targetGroup = availableGroups[Math.floor(Math.random() * availableGroups.length)];
+    }
+
+    const { error: insertError } = await supabase
+      .from('group_members')
+      .insert({
+        group_id: targetGroup.id,
+        student_id: studentId,
+        student_name: studentName,
+      });
+
+    if (insertError) throw insertError;
+
+    const { count } = await supabase
+      .from('group_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('group_id', targetGroup.id);
+
+    if (count && count >= targetGroup.battles.students_per_group) {
+      await supabase
+        .from('battle_groups')
+        .update({ is_full: true })
+        .eq('id', targetGroup.id);
+    }
+
+    const { data: finalGroup } = await supabase
+      .from('battle_groups')
+      .select('*')
+      .eq('id', targetGroup.id)
+      .single();
+
+    return {
+      group: finalGroup,
+      message: 'Te has unido al grupo exitosamente'
+    };
   },
 
   submitAnswer: async (
@@ -133,25 +325,109 @@ export const battleApi = {
     answerIndex: number,
     responseTimeMs: number
   ) => {
-    return apiFetch('/battles/answer', {
-      method: 'POST',
-      body: JSON.stringify({ battleId, groupId, questionId, answerIndex, responseTimeMs }),
-    });
+    const { data: question, error: questionError } = await supabase
+      .from('battle_questions')
+      .select('correct_answer_index')
+      .eq('id', questionId)
+      .single();
+
+    if (questionError) throw new Error('Pregunta no encontrada');
+
+    const isCorrect = answerIndex === question.correct_answer_index;
+
+    const { error: insertError } = await supabase
+      .from('battle_answers')
+      .insert({
+        battle_id: battleId,
+        group_id: groupId,
+        question_id: questionId,
+        answer_index: answerIndex,
+        is_correct: isCorrect,
+        response_time_ms: responseTimeMs,
+      });
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        throw new Error('Este grupo ya respondió esta pregunta');
+      }
+      throw insertError;
+    }
+
+    if (isCorrect) {
+      const { data: currentGroup } = await supabase
+        .from('battle_groups')
+        .select('score, correct_answers')
+        .eq('id', groupId)
+        .single();
+
+      if (currentGroup) {
+        await supabase
+          .from('battle_groups')
+          .update({
+            score: currentGroup.score + 100,
+            correct_answers: currentGroup.correct_answers + 1,
+          })
+          .eq('id', groupId);
+      }
+    }
+
+    return { isCorrect, pointsEarned: isCorrect ? 100 : 0 };
   },
 
   startBattle: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}/start`, {
-      method: 'POST',
-    });
+    const { data, error } = await supabase
+      .from('battles')
+      .update({
+        status: 'active',
+        started_at: new Date().toISOString(),
+      })
+      .eq('id', battleId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   nextQuestion: async (battleId: string) => {
-    return apiFetch(`/battles/${battleId}/next`, {
-      method: 'POST',
-    });
+    const { data: battle, error: fetchError } = await supabase
+      .from('battles')
+      .select('current_round_index, round_count')
+      .eq('id', battleId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const nextIndex = (battle.current_round_index || 0) + 1;
+    const isFinished = nextIndex >= battle.round_count;
+
+    const updates: any = {
+      current_round_index: nextIndex,
+    };
+
+    if (isFinished) {
+      updates.status = 'finished';
+      updates.finished_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from('battles')
+      .update(updates)
+      .eq('id', battleId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   getGroupMembers: async (groupId: string) => {
-    return apiFetch(`/battles/groups/${groupId}/members`);
+    const { data, error } = await supabase
+      .from('group_members')
+      .select('*')
+      .eq('group_id', groupId);
+
+    if (error) throw error;
+    return data;
   },
 };

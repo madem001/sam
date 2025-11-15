@@ -1,5 +1,5 @@
 import { battleApi as api } from './api';
-import * as ws from './websocket';
+import { supabase } from './supabase';
 
 export interface Battle {
   id: string;
@@ -229,31 +229,49 @@ export const getTeacherBattles = async (teacherId: string): Promise<Battle[]> =>
 };
 
 export const subscribeToBattle = (battleId: string, callback: (payload: any) => void) => {
-  ws.joinBattle(battleId);
-  ws.onBattleUpdate((data) => {
-    if (data.battleId === battleId) {
-      callback(data);
-    }
-  });
+  const channel = supabase
+    .channel(`battle:${battleId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'battles',
+        filter: `id=eq.${battleId}`,
+      },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
 
   return {
     unsubscribe: () => {
-      ws.leaveBattle(battleId);
-      ws.offBattleUpdate();
+      channel.unsubscribe();
     },
   };
 };
 
 export const subscribeToBattleGroups = (battleId: string, callback: (payload: any) => void) => {
-  ws.onGroupUpdate((data) => {
-    if (data.battleId === battleId) {
-      callback(data);
-    }
-  });
+  const channel = supabase
+    .channel(`battle_groups:${battleId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'battle_groups',
+        filter: `battle_id=eq.${battleId}`,
+      },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
 
   return {
     unsubscribe: () => {
-      ws.offGroupUpdate();
+      channel.unsubscribe();
     },
   };
 };
