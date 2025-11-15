@@ -19,23 +19,27 @@ export const authApi = {
       throw authError;
     }
 
-    if (authData.user) {
-      console.log('📝 Creando perfil para usuario:', authData.user.id);
-
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email,
-        name,
-        role,
-      });
-
-      if (profileError) {
-        console.error('❌ Error creando perfil:', profileError);
-        throw profileError;
-      }
-
-      console.log('✅ Perfil creado exitosamente');
+    if (!authData.user) {
+      console.error('❌ No se obtuvo usuario de signUp');
+      throw new Error('No se pudo crear el usuario');
     }
+
+    console.log('📝 Creando perfil para usuario:', authData.user.id);
+
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: authData.user.id,
+      email,
+      name,
+      role,
+    });
+
+    if (profileError) {
+      console.error('❌ Error creando perfil:', profileError);
+      throw profileError;
+    }
+
+    console.log('✅ Perfil creado exitosamente');
+    console.log('✅ Registro completo - user:', authData.user.email, 'session:', !!authData.session);
 
     return { user: authData.user, session: authData.session };
   },
@@ -69,15 +73,34 @@ export const authApi = {
   },
 
   getProfile: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    console.log('👤 getProfile - Obteniendo usuario actual');
 
-    const { data } = await supabase
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error('❌ Error obteniendo usuario:', userError);
+      return null;
+    }
+
+    if (!user) {
+      console.log('❌ No hay usuario autenticado');
+      return null;
+    }
+
+    console.log('👤 Usuario autenticado:', user.email, 'ID:', user.id);
+
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
 
+    if (error) {
+      console.error('❌ Error obteniendo perfil:', error);
+      return null;
+    }
+
+    console.log('✅ Perfil obtenido:', data);
     return data;
   },
 };
