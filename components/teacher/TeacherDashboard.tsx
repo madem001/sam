@@ -35,7 +35,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         content = <BattleManagerScreen students={students} teacherId={user.id} onBack={handleBack} />;
         break;
       case TeacherScreen.QuestionBank:
-        content = <QuestionBankScreen onBack={handleBack} />;
+        content = <QuestionBankScreen teacherId={user.id} onBack={handleBack} />;
         break;
       case TeacherScreen.StudentList:
         content = <StudentListScreen onBack={handleBack} />;

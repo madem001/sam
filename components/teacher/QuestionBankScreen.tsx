@@ -1,153 +1,325 @@
 import React, { useState, useEffect } from 'react';
-import { Question } from '../../types';
-import { getQuestionBank } from '../../api';
+import { supabase } from '../../lib/supabase';
 
-interface QuestionBankScreenProps {
-    onBack: () => void;
+interface QuestionBankItem {
+  id: string;
+  question_text: string;
+  answers: string[];
+  correct_answer_index: number;
+  category?: string;
+  difficulty?: string;
+  created_at: string;
 }
 
-const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ onBack }) => {
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [newQuestion, setNewQuestion] = useState('');
-    const [newAnswers, setNewAnswers] = useState(['', '', '', '']);
-    const [correctAnswer, setCorrectAnswer] = useState(0);
+interface QuestionBankScreenProps {
+  teacherId: string;
+  onBack: () => void;
+}
 
-    useEffect(() => {
-        const fetchQuestions = async () => {
-            try {
-                const data = await getQuestionBank();
-                setQuestions(data);
-            } catch (error) {
-                console.error("Failed to fetch questions:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchQuestions();
-    }, []);
+const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBack }) => {
+  const [questions, setQuestions] = useState<QuestionBankItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<QuestionBankItem | null>(null);
 
-    const handleAnswerChange = (index: number, value: string) => {
-        const updatedAnswers = [...newAnswers];
-        updatedAnswers[index] = value;
-        setNewAnswers(updatedAnswers);
-    };
+  const [questionText, setQuestionText] = useState('');
+  const [answers, setAnswers] = useState(['', '', '', '']);
+  const [correctIndex, setCorrectIndex] = useState(0);
+  const [category, setCategory] = useState('');
+  const [difficulty, setDifficulty] = useState<'facil' | 'medio' | 'dificil'>('medio');
 
-    const handleAddQuestion = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newQuestion.trim() === '' || newAnswers.some(a => a.trim() === '')) {
-            alert('Por favor, completa todos los campos.');
-            return;
-        }
+  useEffect(() => {
+    loadQuestions();
+  }, [teacherId]);
 
-        const questionToAdd: Omit<Question, 'id'> = {
-            text: newQuestion,
-            answers: newAnswers,
-            correctAnswerIndex: correctAnswer,
-        };
-        
-        try {
-            // En una app real: const savedQuestion = await api.addQuestion(questionToAdd);
-            // Simulación:
-             const savedQuestion: Question = { ...questionToAdd, id: `q${Date.now()}`};
-             setQuestions([savedQuestion, ...questions]);
+  const loadQuestions = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('question_bank')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .order('created_at', { ascending: false });
 
-            // Reset form
-            setNewQuestion('');
-            setNewAnswers(['', '', '', '']);
-            setCorrectAnswer(0);
+    if (error) {
+      console.error('Error loading questions:', error);
+    } else {
+      setQuestions(data || []);
+    }
+    setIsLoading(false);
+  };
 
-        } catch (error) {
-             console.error("Failed to add question:", error);
-             alert('Error al guardar la pregunta.');
-        }
-    };
+  const handleAddQuestion = () => {
+    setEditingQuestion(null);
+    setQuestionText('');
+    setAnswers(['', '', '', '']);
+    setCorrectIndex(0);
+    setCategory('');
+    setDifficulty('medio');
+    setShowAddModal(true);
+  };
 
-    return (
-       <div className="relative">
-           <button
-                onClick={onBack}
-                className="absolute top-0 left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200/50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                aria-label="Regresar"
+  const handleEditQuestion = (question: QuestionBankItem) => {
+    setEditingQuestion(question);
+    setQuestionText(question.question_text);
+    setAnswers(question.answers);
+    setCorrectIndex(question.correct_answer_index);
+    setCategory(question.category || '');
+    setDifficulty((question.difficulty as 'facil' | 'medio' | 'dificil') || 'medio');
+    setShowAddModal(true);
+  };
+
+  const handleSaveQuestion = async () => {
+    if (questionText.trim() === '' || answers.some(a => a.trim() === '')) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    if (editingQuestion) {
+      const { error } = await supabase
+        .from('question_bank')
+        .update({
+          question_text: questionText,
+          answers: answers,
+          correct_answer_index: correctIndex,
+          category: category || null,
+          difficulty: difficulty,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingQuestion.id);
+
+      if (error) {
+        console.error('Error updating question:', error);
+        alert('Error al actualizar la pregunta');
+      } else {
+        setShowAddModal(false);
+        loadQuestions();
+      }
+    } else {
+      const { error } = await supabase
+        .from('question_bank')
+        .insert({
+          teacher_id: teacherId,
+          question_text: questionText,
+          answers: answers,
+          correct_answer_index: correctIndex,
+          category: category || null,
+          difficulty: difficulty,
+        });
+
+      if (error) {
+        console.error('Error adding question:', error);
+        alert('Error al agregar la pregunta');
+      } else {
+        setShowAddModal(false);
+        loadQuestions();
+      }
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta pregunta?')) return;
+
+    const { error } = await supabase
+      .from('question_bank')
+      .delete()
+      .eq('id', questionId);
+
+    if (error) {
+      console.error('Error deleting question:', error);
+      alert('Error al eliminar la pregunta');
+    } else {
+      loadQuestions();
+    }
+  };
+
+  const handleAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...answers];
+    newAnswers[index] = value;
+    setAnswers(newAnswers);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
             >
-                {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
-                <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+              ← Volver
             </button>
-            <div className="p-2 space-y-6">
-                <div className="animate-stagger text-center" style={{ '--stagger-delay': '100ms' } as React.CSSProperties}>
-                    <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Banco de Preguntas</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Añade y gestiona las preguntas para las batallas.</p>
-                </div>
+            <h1 className="text-3xl font-bold">📚 Banco de Preguntas</h1>
+          </div>
+          <button
+            onClick={handleAddQuestion}
+            className="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
+          >
+            + Agregar Pregunta
+          </button>
+        </div>
 
-                {/* Add Question Form */}
-                <form onSubmit={handleAddQuestion} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 space-y-4 animate-stagger" style={{ '--stagger-delay': '200ms' } as React.CSSProperties}>
-                    <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">Añadir Nueva Pregunta</h2>
-                    <div>
-                        <label htmlFor="questionText" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Texto de la pregunta</label>
-                        <textarea 
-                            id="questionText"
-                            value={newQuestion}
-                            onChange={(e) => setNewQuestion(e.target.value)}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-400 transition text-slate-900 dark:text-slate-100"
-                            placeholder="Ej: ¿Qué renderiza un componente de React?"
-                            required
-                        />
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin w-12 h-12 border-4 border-sky-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-slate-400">Cargando preguntas...</p>
+          </div>
+        ) : questions.length === 0 ? (
+          <div className="text-center py-12 bg-slate-800 rounded-xl">
+            <p className="text-slate-400 text-lg mb-4">No tienes preguntas en tu banco</p>
+            <p className="text-slate-500">Crea tu primera pregunta para comenzar</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {questions.map((q, index) => (
+              <div key={q.id} className="bg-slate-800 rounded-xl p-6 hover:bg-slate-750 transition">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-sm font-semibold text-sky-400">#{index + 1}</span>
+                      {q.difficulty && (
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          q.difficulty === 'facil' ? 'bg-green-500/20 text-green-400' :
+                          q.difficulty === 'medio' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {q.difficulty.toUpperCase()}
+                        </span>
+                      )}
+                      {q.category && (
+                        <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
+                          {q.category}
+                        </span>
+                      )}
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Opciones de respuesta</label>
-                        {newAnswers.map((answer, index) => (
-                             <div key={index} className="flex items-center space-x-2 mb-2">
-                                 <input 
-                                    type="radio" 
-                                    name="correctAnswer" 
-                                    id={`answer_radio_${index}`}
-                                    checked={correctAnswer === index}
-                                    onChange={() => setCorrectAnswer(index)}
-                                    className="h-4 w-4 text-sky-600 border-slate-300 focus:ring-sky-500"
-                                />
-                                <input 
-                                    type="text" 
-                                    value={answer}
-                                    onChange={(e) => handleAnswerChange(index, e.target.value)}
-                                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-400 transition text-slate-900 dark:text-slate-100"
-                                    placeholder={`Respuesta ${index + 1}`}
-                                    required
-                                />
-                             </div>
-                        ))}
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Selecciona la respuesta correcta marcando el círculo.</p>
+                    <h3 className="text-lg font-semibold mb-3">{q.question_text}</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {q.answers.map((answer, idx) => (
+                        <div
+                          key={idx}
+                          className={`px-3 py-2 rounded-lg text-sm ${
+                            idx === q.correct_answer_index
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                              : 'bg-slate-700 text-slate-300'
+                          }`}
+                        >
+                          {idx === q.correct_answer_index && '✓ '}
+                          {answer}
+                        </div>
+                      ))}
                     </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
                     <button
-                        type="submit"
-                        className="w-full py-2 bg-sky-500 text-white font-bold rounded-lg shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 transition"
+                      onClick={() => handleEditQuestion(q)}
+                      className="px-3 py-2 bg-sky-500 hover:bg-sky-600 rounded-lg text-sm transition"
                     >
-                        Guardar Pregunta
+                      ✏️ Editar
                     </button>
-                </form>
-
-                {/* Existing Questions List */}
-                <div className="space-y-3 animate-stagger" style={{ '--stagger-delay': '300ms' } as React.CSSProperties}>
-                     <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">Preguntas Existentes</h2>
-                    {isLoading ? (
-                        <p className="text-slate-500 dark:text-slate-400 text-center">Cargando preguntas...</p>
-                    ) : (
-                        questions.map(q => (
-                            <div key={q.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <p className="font-bold text-slate-800 dark:text-slate-100">{q.text}</p>
-                                <ul className="mt-2 space-y-1 text-sm">
-                                    {q.answers.map((ans, index) => (
-                                        <li key={index} className={`pl-4 py-1 rounded ${index === q.correctAnswerIndex ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-semibold' : 'text-slate-600 dark:text-slate-300'}`}>
-                                            {ans}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))
-                    )}
+                    <button
+                      onClick={() => handleDeleteQuestion(q.id)}
+                      className="px-3 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm transition"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="text-2xl font-bold mb-6">
+              {editingQuestion ? 'Editar Pregunta' : 'Nueva Pregunta'}
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Pregunta</label>
+                <textarea
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 text-white"
+                  rows={3}
+                  placeholder="Escribe tu pregunta aquí..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Categoría (Opcional)</label>
+                  <input
+                    type="text"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 text-white"
+                    placeholder="Ej: Matemáticas"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Dificultad</label>
+                  <select
+                    value={difficulty}
+                    onChange={(e) => setDifficulty(e.target.value as 'facil' | 'medio' | 'dificil')}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 text-white"
+                  >
+                    <option value="facil">Fácil</option>
+                    <option value="medio">Medio</option>
+                    <option value="dificil">Difícil</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-3">Respuestas</label>
+                {answers.map((answer, idx) => (
+                  <div key={idx} className="flex items-center gap-3 mb-3">
+                    <input
+                      type="radio"
+                      name="correctAnswer"
+                      checked={correctIndex === idx}
+                      onChange={() => setCorrectIndex(idx)}
+                      className="w-5 h-5"
+                    />
+                    <input
+                      type="text"
+                      value={answer}
+                      onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                      className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 text-white"
+                      placeholder={`Respuesta ${idx + 1}`}
+                    />
+                    {correctIndex === idx && (
+                      <span className="text-green-400 font-semibold">✓ Correcta</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-       </div>
-    );
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveQuestion}
+                className="px-6 py-2 bg-sky-500 hover:bg-sky-600 rounded-lg font-semibold transition"
+              >
+                {editingQuestion ? 'Actualizar' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default QuestionBankScreen;
