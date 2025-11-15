@@ -32,7 +32,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         content = <DashboardScreen navigateTo={navigateTo}/>;
         break;
       case TeacherScreen.BattleManager:
-        content = <BattleManagerScreen students={students} onInvite={onInviteStudents} onBack={handleBack} />;
+        content = <BattleManagerScreen students={students} teacherId={user.id} onBack={handleBack} />;
         break;
       case TeacherScreen.QuestionBank:
         content = <QuestionBankScreen onBack={handleBack} />;

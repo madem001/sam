@@ -181,7 +181,7 @@ const App: React.FC = () => {
         );
         break;
       case Screen.JoinBattle:
-        content = <JoinBattleScreen onJoinSuccess={() => setActiveScreen(Screen.BattleLobby)} onBack={() => setActiveScreen(Screen.Profile)} initialCode={joinBattleCode} onCodeUsed={() => setJoinBattleCode(null)} />;
+        content = <JoinBattleScreen onBack={() => setActiveScreen(Screen.Profile)} studentId={user.id} studentName={user.name} />;
         break;
       case Screen.BattleLobby:
         content = <BattleLobbyScreen onBack={() => setActiveScreen(Screen.JoinBattle)} />;
