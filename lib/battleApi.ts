@@ -135,6 +135,23 @@ export const createFullBattle = async (
   }
 };
 
+export const joinBattleWithCode = async (
+  battleCode: string,
+  studentId: string,
+  studentName: string
+): Promise<{ success: boolean; group?: BattleGroup; battle?: Battle; message?: string }> => {
+  try {
+    const result = await api.joinBattleWithCode(battleCode, studentId, studentName);
+    return {
+      success: true,
+      group: mapGroupFromAPI(result.group),
+      battle: mapBattleFromAPI(result.battle),
+    };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+};
+
 export const joinBattleGroup = async (
   groupCode: string,
   studentId: string,

@@ -290,6 +290,61 @@ export const battleApi = {
     return data;
   },
 
+  joinBattleWithCode: async (battleCode: string, studentId: string, studentName: string) => {
+    console.log('Buscando batalla con código:', battleCode);
+
+    const { data: battle } = await supabase
+      .from('battles')
+      .select('*')
+      .eq('battle_code', battleCode.toUpperCase())
+      .maybeSingle();
+
+    if (!battle) {
+      console.log('Batalla no encontrada');
+      throw new Error('Batalla no encontrada');
+    }
+
+    console.log('Batalla encontrada:', battle);
+
+    const { data: groups } = await supabase
+      .from('battle_groups')
+      .select('*, group_members(*)')
+      .eq('battle_id', battle.id)
+      .eq('is_full', false);
+
+    if (!groups || groups.length === 0) {
+      throw new Error('No hay grupos disponibles');
+    }
+
+    console.log('Grupos disponibles:', groups.length);
+
+    const availableGroup = groups.find(g =>
+      (g.group_members?.length || 0) < battle.students_per_group
+    ) || groups[0];
+
+    console.log('Grupo seleccionado:', availableGroup.group_name);
+
+    await supabase.from('group_members').insert({
+      group_id: availableGroup.id,
+      student_id: studentId,
+      student_name: studentName,
+    });
+
+    const { data: updatedMembers } = await supabase
+      .from('group_members')
+      .select('*')
+      .eq('group_id', availableGroup.id);
+
+    if (updatedMembers && updatedMembers.length >= battle.students_per_group) {
+      await supabase
+        .from('battle_groups')
+        .update({ is_full: true })
+        .eq('id', availableGroup.id);
+    }
+
+    return { group: availableGroup, battle };
+  },
+
   joinGroup: async (groupCode: string, studentId: string, studentName: string) => {
     const { data: group } = await supabase
       .from('battle_groups')
