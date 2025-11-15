@@ -1,54 +1,67 @@
-import React, { useState } from 'react';
-import { Question } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+
+interface QuestionSet {
+  id: string;
+  set_name: string;
+  description?: string;
+  question_count: number;
+}
 
 interface CreateBattleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (battleName: string, roundCount: number, groupCount: number, questions: { text: string; answers: string[]; correctIndex: number }[], studentsPerGroup: number) => void;
-  existingQuestions: Question[];
+  teacherId: string;
   isLoading?: boolean;
 }
 
-const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, onCreate, existingQuestions, isLoading = false }) => {
+const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, onCreate, teacherId, isLoading = false }) => {
   const [battleName, setBattleName] = useState('');
-  const [roundCount, setRoundCount] = useState(10);
   const [groupCount, setGroupCount] = useState(4);
   const [studentsPerGroup, setStudentsPerGroup] = useState(4);
-  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
+  const [selectedSetId, setSelectedSetId] = useState<string>('');
+  const [questionSets, setQuestionSets] = useState<QuestionSet[]>([]);
 
-  if (!isOpen) return null;
-
-  const handleToggleQuestion = (questionId: string) => {
-    const newSet = new Set(selectedQuestionIds);
-    if (newSet.has(questionId)) {
-      newSet.delete(questionId);
-    } else {
-      newSet.add(questionId);
+  useEffect(() => {
+    if (isOpen) {
+      loadQuestionSets();
     }
-    setSelectedQuestionIds(newSet);
+  }, [isOpen, teacherId]);
+
+  const loadQuestionSets = async () => {
+    const { data: setsData, error } = await supabase
+      .from('question_sets')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading sets:', error);
+    } else {
+      const setsWithCount = await Promise.all(
+        (setsData || []).map(async (set) => {
+          const { count } = await supabase
+            .from('question_bank')
+            .select('*', { count: 'exact', head: true })
+            .eq('set_id', set.id);
+          return { ...set, question_count: count || 0 };
+        })
+      );
+      setQuestionSets(setsWithCount);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (battleName.trim() === '') {
       alert('Por favor, dale un nombre a la batalla.');
       return;
     }
 
-    const selectedFromBank = existingQuestions.filter(q => selectedQuestionIds.has(q.id));
-
-    if (selectedFromBank.length === 0) {
-      alert('Debes seleccionar al menos una pregunta del banco.');
-      return;
-    }
-
-    if (selectedFromBank.length < roundCount) {
-      alert(`Necesitas al menos ${roundCount} preguntas para ${roundCount} rondas. Tienes ${selectedFromBank.length} seleccionadas.`);
-      return;
-    }
-
-    if (roundCount < 5 || roundCount > 20) {
-      alert('El número de rondas debe estar entre 5 y 20.');
+    if (!selectedSetId) {
+      alert('Debes seleccionar un set de preguntas.');
       return;
     }
 
@@ -62,19 +75,32 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
       return;
     }
 
-    const formattedQuestions = selectedFromBank.slice(0, roundCount).map(q => ({
-      text: q.text,
+    const { data: questions, error } = await supabase
+      .from('question_bank')
+      .select('*')
+      .eq('set_id', selectedSetId);
+
+    if (error || !questions || questions.length === 0) {
+      alert('Error al cargar las preguntas del set');
+      return;
+    }
+
+    const formattedQuestions = questions.map(q => ({
+      text: q.question_text,
       answers: q.answers,
-      correctIndex: q.correctAnswerIndex,
+      correctIndex: q.correct_answer_index,
     }));
+
+    const roundCount = questions.length;
 
     onCreate(battleName, roundCount, groupCount, formattedQuestions, studentsPerGroup);
     setBattleName('');
-    setRoundCount(10);
     setGroupCount(4);
     setStudentsPerGroup(4);
-    setSelectedQuestionIds(new Set());
+    setSelectedSetId('');
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
@@ -97,22 +123,7 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Rondas (5-20)
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  max="20"
-                  value={roundCount}
-                  onChange={(e) => setRoundCount(Number(e.target.value))}
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-400 dark:bg-slate-700 dark:text-slate-100"
-                  disabled={isLoading}
-                />
-              </div>
-
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
                   Grupos (1-10)
@@ -146,26 +157,47 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
 
             <div>
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                Seleccionar Preguntas del Banco ({selectedQuestionIds.size} seleccionadas)
+                Seleccionar Set de Preguntas
               </h3>
-              <div className="max-h-48 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-600 rounded-lg p-3">
-                {existingQuestions.length === 0 ? (
-                  <p className="text-slate-500 dark:text-slate-400 text-center py-4">No hay preguntas en el banco</p>
-                ) : (
-                  existingQuestions.map(q => (
-                    <label key={q.id} className="flex items-start space-x-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 p-2 rounded">
+              {questionSets.length === 0 ? (
+                <div className="text-center py-8 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                  <p className="text-slate-500 dark:text-slate-400 mb-3">No hay sets de preguntas</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">
+                    Crea un set desde el Banco de Preguntas primero
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto border border-slate-200 dark:border-slate-600 rounded-lg p-3">
+                  {questionSets.map(set => (
+                    <label
+                      key={set.id}
+                      className={`flex items-start space-x-3 cursor-pointer p-3 rounded-lg transition ${
+                        selectedSetId === set.id
+                          ? 'bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-500'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-2 border-transparent'
+                      }`}
+                    >
                       <input
-                        type="checkbox"
-                        checked={selectedQuestionIds.has(q.id)}
-                        onChange={() => handleToggleQuestion(q.id)}
+                        type="radio"
+                        name="selectedSet"
+                        checked={selectedSetId === set.id}
+                        onChange={() => setSelectedSetId(set.id)}
                         className="mt-1"
                         disabled={isLoading}
                       />
-                      <span className="text-sm text-slate-700 dark:text-slate-200">{q.text}</span>
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-800 dark:text-slate-100">{set.set_name}</p>
+                        {set.description && (
+                          <p className="text-sm text-slate-600 dark:text-slate-400">{set.description}</p>
+                        )}
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          {set.question_count} pregunta{set.question_count !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </label>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -181,7 +213,7 @@ const CreateBattleModal: React.FC<CreateBattleModalProps> = ({ isOpen, onClose, 
             <button
               type="submit"
               className="px-6 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || questionSets.length === 0}
             >
               {isLoading ? 'Creando...' : 'Crear Batalla'}
             </button>

@@ -26,33 +26,11 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedBattleId, setSelectedBattleId] = useState<string | null>(null);
     const [showQuestionBank, setShowQuestionBank] = useState(false);
-    const [questionBank, setQuestionBank] = useState<Question[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        loadQuestionBank();
         loadTeacherBattles();
     }, [teacherId]);
-
-    const loadQuestionBank = async () => {
-        const { data, error } = await supabase
-            .from('question_bank')
-            .select('*')
-            .eq('teacher_id', teacherId)
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Error loading question bank:', error);
-        } else {
-            const questions: Question[] = (data || []).map(q => ({
-                id: q.id,
-                text: q.question_text,
-                answers: q.answers,
-                correctAnswer: q.correct_answer_index,
-            }));
-            setQuestionBank(questions);
-        }
-    };
 
     const loadTeacherBattles = async () => {
         const { data: battles, error } = await supabase
@@ -201,7 +179,7 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onCreate={handleCreateBattle}
-                existingQuestions={questionBank}
+                teacherId={teacherId}
                 isLoading={isLoading}
             />
         </div>
