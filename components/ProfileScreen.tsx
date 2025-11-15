@@ -89,59 +89,66 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Profile Content */}
-      <main className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
-        <div className="w-full max-w-2xl">
-          {/* Avatar */}
-          <div className="flex flex-col items-center pt-4">
-            <div className="relative w-28 h-28 mb-3">
-              <img src={user.imageUrl} alt={user.name} className="w-full h-full rounded-full border-4 border-white dark:border-slate-700 shadow-lg" />
-            </div>
-
-            {/* User Info */}
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.name}</h2>
-            <div className="flex items-center space-x-3 mt-3">
-                <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition shadow-sm text-sm">
-                    <ion-icon name="create-outline"></ion-icon>
-                    <span>Editar</span>
-                </button>
-                <button onClick={onLogout} className="flex items-center space-x-2 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold px-4 py-2 rounded-full hover:bg-red-200 dark:hover:bg-red-900/60 transition shadow-sm text-sm">
-                    <ion-icon name="log-out-outline"></ion-icon>
-                    <span>Salir</span>
-                </button>
+      <main className="flex-1 flex flex-col items-center px-4 overflow-hidden">
+        <div className="w-full max-w-2xl h-full flex flex-col">
+          {/* Avatar and User Info - Compact */}
+          <div className="flex items-center justify-between py-3 flex-shrink-0">
+            <div className="flex items-center space-x-3">
+              <div className="relative w-16 h-16">
+                <img src={user.imageUrl} alt={user.name} className="w-full h-full rounded-full border-2 border-white dark:border-slate-700 shadow-md" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{user.name}</h2>
+                <div className="flex space-x-2 mt-1">
+                  <button onClick={() => setIsEditModalOpen(true)} className="text-xs bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-3 py-1 rounded-full border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition">
+                      Editar
+                  </button>
+                  <button onClick={onLogout} className="text-xs bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 font-semibold px-3 py-1 rounded-full hover:bg-red-200 dark:hover:bg-red-900/60 transition">
+                      Salir
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Achievements Section */}
-          <div className="w-full mt-6">
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-2">Mis Logros</h3>
-            <div className="flex justify-center flex-wrap gap-3">
-              {user.achievements.map(ach => (
-                <div key={ach.id} className="flex-shrink-0 w-20 text-center">
-                  <div className="bg-white dark:bg-slate-700 rounded-full h-16 w-16 mx-auto flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-600">
-                    <ion-icon name={ach.icon} class="text-3xl text-sky-500 dark:text-sky-400"></ion-icon>
+          {/* Achievements Section - Compact */}
+          <div className="w-full py-3 flex-shrink-0">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Mis Logros</h3>
+            <div className="flex justify-center gap-2">
+              {user.achievements.slice(0, 6).map(ach => (
+                <div key={ach.id} className="flex-shrink-0 text-center">
+                  <div className="bg-white dark:bg-slate-700 rounded-full h-12 w-12 mx-auto flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-600">
+                    <ion-icon name={ach.icon} class="text-2xl text-sky-500 dark:text-sky-400"></ion-icon>
                   </div>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 truncate">{ach.name}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Professor Cards Section */}
-          <div className="w-full mt-6 flex flex-col items-center pb-6">
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 mb-3">Mis Maestros</h3>
+          {/* Professor Cards Section - Takes remaining space */}
+          <div className="flex-1 flex flex-col items-center min-h-0">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 flex-shrink-0">Mis Maestros</h3>
             {isLoadingProfessors ? (
-              <div className="h-64 flex items-center justify-center">
+              <div className="flex-1 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-500"></div>
               </div>
             ) : (
-              <>
-                <div className="carousel-container w-full">
-                  <div className="carousel-track">
+              <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0">
+                <div style={{ perspective: '1000px', height: '280px' }} className="flex items-center justify-center w-full flex-shrink-0">
+                  <div style={{ position: 'relative', width: '220px', height: '280px', transformStyle: 'preserve-3d' }}>
                     {professors.map((prof, index) => (
                       <div
-                        className="carousel-item"
                         key={prof.id}
-                        style={getCardStyle(index)}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease',
+                          cursor: 'pointer',
+                          ...getCardStyle(index)
+                        }}
                         onClick={() => {
                             if (index === activeCardIndex) {
                               if (!prof.locked) setSelectedProfessor(prof);
@@ -150,23 +157,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                             }
                         }}
                       >
-                        <ProfessorCard professor={prof} isActive={index === activeCardIndex} />
+                        <div style={{ transform: 'scale(0.85)' }}>
+                          <ProfessorCard professor={prof} isActive={index === activeCardIndex} />
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="thumbnail-gallery mt-4">
+                <div className="flex justify-center items-center gap-2 mt-3 flex-shrink-0">
                   {professors.map((prof, index) => (
                     <div
                       key={prof.id}
-                      className={`thumbnail-item ${index === activeCardIndex ? 'active' : ''}`}
+                      className={`w-10 h-12 rounded-md overflow-hidden cursor-pointer border-2 transition-all ${
+                        index === activeCardIndex
+                          ? 'border-sky-500 scale-110'
+                          : 'border-transparent opacity-60 hover:opacity-100'
+                      }`}
                       onClick={() => setActiveCardIndex(index)}
                     >
-                      <img src={prof.imageUrl} alt={prof.name} />
+                      <img src={prof.imageUrl} alt={prof.name} className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
