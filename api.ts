@@ -38,6 +38,8 @@ export const login = async (authData: AuthData): Promise<User | null> => {
         streak: 0,
         imageUrl: authData.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(authData.name || 'U')}&background=e2e8f0&color=64748b&bold=true&size=128`,
         unlockPoints: 100,
+        achievements: [],
+        notifications: [],
     };
 
     if (authData.role === UserRole.Teacher && authData.subjects) {
