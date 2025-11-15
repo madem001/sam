@@ -110,13 +110,28 @@ export const createFullBattle = async (
   studentsPerGroup?: number
 ): Promise<{ battle: Battle; groups: BattleGroup[] } | null> => {
   try {
+    console.log('🎯 createFullBattle llamado con:', { battleName, questionCount, groupCount, questionsLength: questions.length });
+
     const result = await api.createBattle(battleName, questionCount, groupCount, questions, studentsPerGroup);
+
+    console.log('📦 Resultado de api.createBattle:', result);
+
+    if (!result || !result.battle) {
+      console.error('❌ No se recibió batalla del API');
+      throw new Error('La API no retornó una batalla válida');
+    }
+
     const battle = mapBattleFromAPI(result.battle);
+    console.log('✅ Batalla mapeada:', battle);
+
     const groups = await getBattleGroups(battle.id);
+    console.log('✅ Grupos obtenidos:', groups.length);
+
     return { battle, groups };
-  } catch (error) {
-    console.error('Error creating battle:', error);
-    return null;
+  } catch (error: any) {
+    console.error('💥 Error en createFullBattle:', error);
+    console.error('Stack trace:', error.stack);
+    throw error;
   }
 };
 
