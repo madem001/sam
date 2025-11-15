@@ -48,32 +48,52 @@ export const authApi = {
     if (error) throw error;
   },
 
-  getMe: async () => {
+  getCurrentUser: async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No user logged in');
+    return user;
+  },
 
-    const { data: profile, error } = await supabase
+  getProfile: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
 
     if (error) throw error;
-    return profile;
+    return data;
   },
+};
 
-  updateProfile: async (name?: string, avatar?: string) => {
+export const questionBankApi = {
+  getQuestionSets: async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No user logged in');
-
-    const updates: any = {};
-    if (name) updates.name = name;
-    if (avatar) updates.avatar = avatar;
+    if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
+      .from('question_sets')
+      .select('*')
+      .eq('teacher_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  createQuestionSet: async (setName: string, description: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('question_sets')
+      .insert({
+        teacher_id: user.id,
+        set_name: setName,
+        description,
+      })
       .select()
       .single();
 
@@ -81,12 +101,72 @@ export const authApi = {
     return data;
   },
 
-  getStudents: async () => {
-    const { data, error} = await supabase
-      .from('profiles')
+  getQuestionsBySet: async (setId: string) => {
+    const { data, error } = await supabase
+      .from('question_bank')
       .select('*')
-      .eq('role', 'STUDENT')
-      .order('points', { ascending: false });
+      .eq('set_id', setId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  createQuestion: async (
+    setId: string,
+    questionText: string,
+    answers: string[],
+    correctIndex: number,
+    category?: string,
+    difficulty?: string
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('question_bank')
+      .insert({
+        teacher_id: user.id,
+        set_id: setId,
+        question_text: questionText,
+        answers,
+        correct_answer_index: correctIndex,
+        category,
+        difficulty,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  deleteQuestion: async (questionId: string) => {
+    const { error } = await supabase
+      .from('question_bank')
+      .delete()
+      .eq('id', questionId);
+
+    if (error) throw error;
+  },
+
+  updateQuestion: async (
+    questionId: string,
+    questionText: string,
+    answers: string[],
+    correctIndex: number
+  ) => {
+    const { data, error } = await supabase
+      .from('question_bank')
+      .update({
+        question_text: questionText,
+        answers,
+        correct_answer_index: correctIndex,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', questionId)
+      .select()
+      .single();
 
     if (error) throw error;
     return data;
@@ -106,44 +186,34 @@ export const battleApi = {
     studentsPerGroup?: number
   ) => {
     try {
-      console.log('🚀 Iniciando creación de batalla:', { name, roundCount, groupCount, questionsCount: questions.length });
+      console.log('🚀 CREANDO BATALLA:', { name, roundCount, groupCount, questionsCount: questions.length });
 
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.error('❌ Error obteniendo usuario:', userError);
-        throw new Error('Error de autenticación: ' + userError.message);
-      }
-      if (!user) {
-        console.error('❌ No hay usuario autenticado');
-        throw new Error('No estás autenticado. Por favor inicia sesión.');
+      if (userError || !user) {
+        throw new Error('No autenticado');
       }
 
-      console.log('✅ Usuario autenticado:', user.id);
+      console.log('✅ Usuario:', user.id);
 
       const battleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      console.log('🎲 Código de batalla generado:', battleCode);
-
-      const battleData = {
-        name,
-        teacher_id: user.id,
-        question_count: roundCount,
-        battle_code: battleCode,
-        students_per_group: studentsPerGroup || 4,
-        status: 'waiting',
-        current_question_index: 0,
-      };
-
-      console.log('📝 Insertando batalla:', battleData);
 
       const { data: battle, error: battleError } = await supabase
         .from('battles')
-        .insert(battleData)
+        .insert({
+          name,
+          teacher_id: user.id,
+          question_count: roundCount,
+          battle_code: battleCode,
+          students_per_group: studentsPerGroup || 4,
+          status: 'waiting',
+          current_question_index: 0,
+        })
         .select()
         .single();
 
       if (battleError) {
-        console.error('❌ Error creando batalla:', battleError);
-        throw new Error('Error al crear batalla: ' + battleError.message);
+        console.error('❌ Error batalla:', battleError);
+        throw battleError;
       }
 
       console.log('✅ Batalla creada:', battle.id);
@@ -157,15 +227,13 @@ export const battleApi = {
         is_full: false,
       }));
 
-      console.log('📝 Insertando', groupCount, 'grupos');
-
       const { error: groupsError } = await supabase
         .from('battle_groups')
         .insert(groupsData);
 
       if (groupsError) {
-        console.error('❌ Error creando grupos:', groupsError);
-        throw new Error('Error al crear grupos: ' + groupsError.message);
+        console.error('❌ Error grupos:', groupsError);
+        throw groupsError;
       }
 
       console.log('✅ Grupos creados');
@@ -182,23 +250,21 @@ export const battleApi = {
         question_order: index,
       }));
 
-      console.log('📝 Insertando', questions.length, 'preguntas');
-
       const { error: questionsError } = await supabase
         .from('battle_questions')
         .insert(questionsData);
 
       if (questionsError) {
-        console.error('❌ Error creando preguntas:', questionsError);
-        throw new Error('Error al crear preguntas: ' + questionsError.message);
+        console.error('❌ Error preguntas:', questionsError);
+        throw questionsError;
       }
 
       console.log('✅ Preguntas creadas');
-      console.log('🎉 BATALLA CREADA EXITOSAMENTE:', battle.id);
+      console.log('🎉 BATALLA COMPLETA');
 
       return { battle };
     } catch (error: any) {
-      console.error('💥 ERROR FATAL EN createBattle:', error);
+      console.error('💥 ERROR TOTAL:', error);
       throw error;
     }
   },
@@ -224,13 +290,35 @@ export const battleApi = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   getBattle: async (battleId: string) => {
     const { data, error } = await supabase
       .from('battles')
-      .select('*')
+      .select(`
+        *,
+        battle_groups (
+          id,
+          group_code,
+          group_name,
+          score,
+          correct_answers,
+          is_full,
+          group_members (
+            id,
+            student_id,
+            student_name
+          )
+        ),
+        battle_questions (
+          id,
+          question_text,
+          answers,
+          correct_answer_index,
+          question_order
+        )
+      `)
       .eq('id', battleId)
       .single();
 
@@ -238,240 +326,81 @@ export const battleApi = {
     return data;
   },
 
-  getBattleGroups: async (battleId: string) => {
+  updateBattleStatus: async (battleId: string, status: string) => {
     const { data, error } = await supabase
-      .from('battle_groups')
+      .from('battles')
+      .update({ status })
+      .eq('id', battleId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  getBattleByCode: async (battleCode: string) => {
+    const { data, error } = await supabase
+      .from('battles')
       .select(`
         *,
-        group_members (
+        battle_groups (
           id,
-          student_id,
-          student_name,
-          joined_at
+          group_code,
+          group_name,
+          is_full
         )
       `)
-      .eq('battle_id', battleId)
-      .order('score', { ascending: false });
-
-    if (error) throw error;
-    return data;
-  },
-
-  getBattleQuestions: async (battleId: string) => {
-    const { data, error } = await supabase
-      .from('battle_questions')
-      .select('*')
-      .eq('battle_id', battleId)
-      .order('question_order', { ascending: true });
-
-    if (error) throw error;
-    return data;
-  },
-
-  getBattleAnswers: async (battleId: string) => {
-    const { data, error } = await supabase
-      .from('battle_answers')
-      .select('*')
-      .eq('battle_id', battleId)
-      .order('answered_at', { ascending: true });
+      .eq('battle_code', battleCode.toUpperCase())
+      .single();
 
     if (error) throw error;
     return data;
   },
 
   joinGroup: async (groupCode: string, studentId: string, studentName: string) => {
-    const { data: groups, error: groupError } = await supabase
+    const { data: group, error: groupError } = await supabase
       .from('battle_groups')
-      .select('*, battles!inner(students_per_group, id)')
-      .eq('group_code', groupCode);
+      .select('*')
+      .eq('group_code', groupCode.toUpperCase())
+      .single();
 
-    if (groupError || !groups || groups.length === 0) {
-      throw new Error('Código de grupo inválido');
-    }
+    if (groupError) throw groupError;
+    if (group.is_full) throw new Error('El grupo está lleno');
 
-    const group = groups[0];
-    const battleId = group.battles.id;
-
-    const { data: existingMember } = await supabase
-      .from('group_members')
-      .select('*, battle_groups!inner(battle_id)')
-      .eq('student_id', studentId)
-      .eq('battle_groups.battle_id', battleId)
-      .maybeSingle();
-
-    if (existingMember) {
-      const { data: currentGroup } = await supabase
-        .from('battle_groups')
-        .select('*')
-        .eq('id', existingMember.group_id)
-        .single();
-
-      return {
-        group: currentGroup,
-        message: 'Ya estás en un grupo de esta batalla'
-      };
-    }
-
-    let targetGroup = group;
-
-    if (group.is_full) {
-      const { data: availableGroups } = await supabase
-        .from('battle_groups')
-        .select('*, battles!inner(students_per_group)')
-        .eq('battle_id', battleId)
-        .eq('is_full', false);
-
-      if (!availableGroups || availableGroups.length === 0) {
-        throw new Error('Todos los grupos están llenos');
-      }
-
-      targetGroup = availableGroups[Math.floor(Math.random() * availableGroups.length)];
-    }
-
-    const { error: insertError } = await supabase
+    const { error: memberError } = await supabase
       .from('group_members')
       .insert({
-        group_id: targetGroup.id,
+        group_id: group.id,
         student_id: studentId,
         student_name: studentName,
       });
 
-    if (insertError) throw insertError;
+    if (memberError) throw memberError;
 
-    const { count } = await supabase
+    const { data: members } = await supabase
       .from('group_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('group_id', targetGroup.id);
+      .select('*')
+      .eq('group_id', group.id);
 
-    if (count && count >= targetGroup.battles.students_per_group) {
+    const { data: battle } = await supabase
+      .from('battles')
+      .select('students_per_group')
+      .eq('id', group.battle_id)
+      .single();
+
+    if (members && battle && members.length >= battle.students_per_group) {
       await supabase
         .from('battle_groups')
         .update({ is_full: true })
-        .eq('id', targetGroup.id);
+        .eq('id', group.id);
     }
 
-    const { data: finalGroup } = await supabase
-      .from('battle_groups')
-      .select('*')
-      .eq('id', targetGroup.id)
-      .single();
-
-    return {
-      group: finalGroup,
-      message: 'Te has unido al grupo exitosamente'
-    };
+    return group;
   },
+};
 
-  submitAnswer: async (
-    battleId: string,
-    groupId: string,
-    questionId: string,
-    answerIndex: number,
-    responseTimeMs: number
-  ) => {
-    const { data: question, error: questionError } = await supabase
-      .from('battle_questions')
-      .select('correct_answer_index')
-      .eq('id', questionId)
-      .single();
-
-    if (questionError) throw new Error('Pregunta no encontrada');
-
-    const isCorrect = answerIndex === question.correct_answer_index;
-
-    const { error: insertError } = await supabase
-      .from('battle_answers')
-      .insert({
-        battle_id: battleId,
-        group_id: groupId,
-        question_id: questionId,
-        answer_index: answerIndex,
-        is_correct: isCorrect,
-        response_time_ms: responseTimeMs,
-      });
-
-    if (insertError) {
-      if (insertError.code === '23505') {
-        throw new Error('Este grupo ya respondió esta pregunta');
-      }
-      throw insertError;
-    }
-
-    if (isCorrect) {
-      const { data: currentGroup } = await supabase
-        .from('battle_groups')
-        .select('score, correct_answers')
-        .eq('id', groupId)
-        .single();
-
-      if (currentGroup) {
-        await supabase
-          .from('battle_groups')
-          .update({
-            score: currentGroup.score + 100,
-            correct_answers: currentGroup.correct_answers + 1,
-          })
-          .eq('id', groupId);
-      }
-    }
-
-    return { isCorrect, pointsEarned: isCorrect ? 100 : 0 };
-  },
-
-  startBattle: async (battleId: string) => {
-    const { data, error } = await supabase
-      .from('battles')
-      .update({
-        status: 'active',
-        started_at: new Date().toISOString(),
-      })
-      .eq('id', battleId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  nextQuestion: async (battleId: string) => {
-    const { data: battle, error: fetchError } = await supabase
-      .from('battles')
-      .select('current_round_index, round_count')
-      .eq('id', battleId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    const nextIndex = (battle.current_round_index || 0) + 1;
-    const isFinished = nextIndex >= battle.round_count;
-
-    const updates: any = {
-      current_round_index: nextIndex,
-    };
-
-    if (isFinished) {
-      updates.status = 'finished';
-      updates.finished_at = new Date().toISOString();
-    }
-
-    const { data, error } = await supabase
-      .from('battles')
-      .update(updates)
-      .eq('id', battleId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  getGroupMembers: async (groupId: string) => {
-    const { data, error } = await supabase
-      .from('group_members')
-      .select('*')
-      .eq('group_id', groupId);
-
-    if (error) throw error;
-    return data;
-  },
+export default {
+  auth: authApi,
+  questionBank: questionBankApi,
+  battle: battleApi,
 };
