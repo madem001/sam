@@ -1,0 +1,258 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Screen, User, UserRole, TeacherScreen, CustomModule, AuthData, Student, Notification } from './types';
+import LoginScreen from './components/LoginScreen';
+import ProfileScreen from './components/ProfileScreen';
+import BottomNav from './components/BottomNav';
+import AchievementsScreen from './components/AchievementsScreen';
+import BattleLobbyScreen from './components/BattleLobbyScreen';
+import QuestionScreen from './components/QuestionScreen';
+import TriviaScreen from './components/TriviaScreen';
+import WinnerScreen from './components/WinnerScreen';
+import LoserScreen from './components/LoserScreen';
+import TeacherDashboard from './components/teacher/TeacherDashboard';
+import JoinBattleScreen from './components/JoinBattleScreen';
+import LoadingScreen from './components/LoadingScreen';
+import * as api from './api';
+
+const App: React.FC = () => {
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [activeScreen, setActiveScreen] = useState<Screen | string>(Screen.Profile);
+  const [lastPointsWon, setLastPointsWon] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [joinBattleCode, setJoinBattleCode] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  
+  const [enabledModules, setEnabledModules] = useState<Set<Screen | TeacherScreen>>(
+    new Set([
+        Screen.Profile, Screen.JoinBattle, Screen.Achievements, Screen.Questions,
+        TeacherScreen.Dashboard, TeacherScreen.BattleManager, TeacherScreen.QuestionBank, TeacherScreen.StudentList, TeacherScreen.Profile,
+    ])
+  );
+  const [customModules, setCustomModules] = useState<CustomModule[]>([]);
+  
+  const appContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = prefersDark ? 'dark' : 'light';
+    setTheme(initialTheme);
+    document.documentElement.className = initialTheme;
+
+    const loadingTimer = setTimeout(() => setIsAppLoading(false), 3000);
+    
+    // Cargar todos los usuarios al iniciar la app
+    api.getAllUsers().then(users => {
+      setAllUsers(users);
+    });
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
+  
+  useEffect(() => {
+    document.documentElement.className = theme;
+  }, [theme]);
+  
+  useEffect(() => {
+    if (user) {
+        const updatedUser = allUsers.find(u => u.id === user.id);
+        if (updatedUser && JSON.stringify(updatedUser) !== JSON.stringify(user)) {
+            setUser(updatedUser);
+        }
+    }
+  }, [allUsers, user]);
+
+  const handleToggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
+
+  const handleLoginSuccess = async (authData: AuthData) => {
+    setIsLoading(true);
+    const loggedInUser = await api.login(authData);
+    
+    if (loggedInUser) {
+        setUser(loggedInUser);
+        if (loggedInUser.role === UserRole.Student) {
+            setActiveScreen(Screen.Profile);
+        }
+        setIsAuthenticated(true);
+    } else {
+        alert("No user found for this role.");
+    }
+    
+    setIsLoading(false);
+  };
+  
+  const handleLogout = () => {
+      setIsAuthenticated(false);
+      setUser(null);
+  };
+
+  const handleUserUpdate = (updatedData: Partial<User>) => {
+    setUser(prevUser => (prevUser ? { ...prevUser, ...updatedData } : null));
+    // También actualizamos la "base de datos" local
+    setAllUsers(prevAllUsers => prevAllUsers.map(u => u.id === user?.id ? { ...u, ...updatedData } : u));
+    // En una app real, esto sería una llamada a api.updateUser(user.id, updatedData)
+  };
+
+  const sendBattleInvitations = (studentIds: string[], roomCode: string, battleName: string, inviterName: string) => {
+    // Esta lógica simula el envío. En un backend real, el servidor manejaría esto.
+    // Aquí actualizamos el estado local para reflejar las notificaciones.
+    setAllUsers(currentUsers => {
+        return currentUsers.map(u => {
+            if (studentIds.includes(u.id)) {
+                const newNotification: Notification = {
+                    id: `notif-${Date.now()}-${u.id}`,
+                    message: `El ${inviterName} te ha invitado a la batalla "${battleName}".`,
+                    read: false,
+                    type: 'battle_invite',
+                    payload: { battleName, roomCode, inviter: inviterName }
+                };
+                return {
+                    ...u,
+                    notifications: [newNotification, ...(u.notifications || [])]
+                };
+            }
+            return u;
+        });
+    });
+    alert(`Invitaciones enviadas a ${studentIds.length} estudiante(s).`);
+  };
+
+  const handleJoinFromNotification = (code: string) => {
+    setJoinBattleCode(code);
+    setActiveScreen(Screen.JoinBattle);
+  };
+
+  const handleMarkNotificationsRead = (notificationIds: string[]) => {
+      if (!user) return;
+      const idsToMark = new Set(notificationIds);
+      const updatedNotifications = (user.notifications || []).map(n => 
+          idsToMark.has(n.id) ? { ...n, read: true } : n
+      );
+      handleUserUpdate({ notifications: updatedNotifications });
+  };
+
+  const handleGameWin = (points: number) => {
+    setLastPointsWon(points);
+    setActiveScreen(Screen.Winner);
+  };
+
+  const handleGameLose = () => {
+    setLastPointsWon(0);
+    setActiveScreen(Screen.Loser);
+  };
+
+  const handleReturnToProfile = () => {
+    setActiveScreen(Screen.Profile);
+    setTimeout(() => setLastPointsWon(0), 2000);
+  };
+
+  const handleStartTrivia = () => {
+    setActiveScreen(Screen.Trivia);
+  };
+
+  const handleQuestionGameComplete = (score: number) => {
+    if (score > 0) {
+      handleStartTrivia();
+    } else {
+      handleGameLose();
+    }
+  };
+
+  const renderStudentContent = () => {
+    if (!user) return null;
+    let content;
+    switch (activeScreen) {
+      case Screen.Profile:
+        content = (
+            <ProfileScreen 
+                user={user} 
+                lastPointsWon={lastPointsWon} 
+                onLogout={handleLogout} 
+                onUpdateUser={handleUserUpdate} 
+                onJoinFromNotification={handleJoinFromNotification}
+                onMarkAsRead={handleMarkNotificationsRead}
+                theme={theme}
+                onToggleTheme={handleToggleTheme}
+            />
+        );
+        break;
+      case Screen.JoinBattle:
+        content = <JoinBattleScreen onJoinSuccess={() => setActiveScreen(Screen.BattleLobby)} onBack={() => setActiveScreen(Screen.Profile)} initialCode={joinBattleCode} onCodeUsed={() => setJoinBattleCode(null)} />;
+        break;
+      case Screen.BattleLobby:
+        content = <BattleLobbyScreen onBack={() => setActiveScreen(Screen.JoinBattle)} />;
+        break;
+      case Screen.Achievements:
+        content = <AchievementsScreen user={user} theme={theme} onBack={() => setActiveScreen(Screen.Profile)} />;
+        break;
+      case Screen.Questions:
+        content = <QuestionScreen onGameComplete={handleQuestionGameComplete} onBack={() => setActiveScreen(Screen.Profile)} />;
+        break;
+      case Screen.Trivia:
+        content = <TriviaScreen onWin={handleGameWin} onLose={handleGameLose} onBack={() => setActiveScreen(Screen.Questions)} />;
+        break;
+      case Screen.Winner:
+        content = <WinnerScreen points={lastPointsWon} onContinue={handleReturnToProfile} />;
+        break;
+      case Screen.Loser:
+        content = <LoserScreen onContinue={handleReturnToProfile} />;
+        break;
+      default:
+        const customModule = customModules.find(m => m.id === activeScreen && m.role === UserRole.Student && enabledModules.has(m.id as any));
+        if (customModule) {
+             content = <BattleLobbyScreen onBack={() => setActiveScreen(Screen.Profile)} />;
+        } else {
+            content = <ProfileScreen user={user} onLogout={handleLogout} onUpdateUser={handleUserUpdate} onJoinFromNotification={handleJoinFromNotification} onMarkAsRead={handleMarkNotificationsRead} theme={theme} onToggleTheme={handleToggleTheme} />;
+        }
+        break;
+    }
+    return <div key={activeScreen} className="h-full">{content}</div>;
+  };
+
+  const renderAuthenticatedContent = () => {
+      if (!user) return null;
+
+      switch(user.role) {
+          case UserRole.Teacher:
+              const students = allUsers.filter(u => u.role === UserRole.Student);
+              return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={students} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} theme={theme} onToggleTheme={handleToggleTheme} />;
+          case UserRole.Student:
+              return (
+                <>
+                    <main className="flex-grow overflow-y-auto pb-24">
+                        {renderStudentContent()}
+                    </main>
+                    <BottomNav activeScreen={activeScreen as Screen} setActiveScreen={setActiveScreen} enabledModules={enabledModules} customModules={customModules} />
+                </>
+              );
+          default:
+            return null;
+      }
+  }
+  
+  const renderAppContent = () => {
+      if (isAppLoading) {
+        return <LoadingScreen />;
+      }
+      if (isLoading) {
+          return (
+              <div className="flex justify-center items-center h-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 dark:border-sky-400"></div>
+              </div>
+          );
+      }
+      return isAuthenticated && user ? renderAuthenticatedContent() : <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  return (
+    <div ref={appContainerRef} className="relative w-full max-w-md h-screen mx-auto bg-white dark:bg-slate-900 shadow-2xl overflow-hidden flex flex-col overflow-x-hidden transition-colors duration-300">
+      {renderAppContent()}
+    </div>
+  );
+};
+
+export default App;

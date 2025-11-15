@@ -1,0 +1,8 @@
+{
+  "name": "EduBattle Arena",
+  "description": "A gamified learning application for students to join battles, track achievements, and view professor stats in an interactive way.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
