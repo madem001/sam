@@ -36,13 +36,14 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
         const { data: battles, error } = await supabase
             .from('battles')
             .select('*')
-            .eq('teacher_id', teacherId)
             .order('created_at', { ascending: false });
 
         if (error) {
             console.error('Error loading battles:', error);
             return;
         }
+
+        console.log('Batallas cargadas:', battles);
 
         const roomsData: BattleRoom[] = [];
         for (const battle of battles || []) {
@@ -51,16 +52,19 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                 .select('*')
                 .eq('battle_id', battle.id);
 
+            console.log(`Batalla ${battle.name} - Código: ${battle.battle_code}`);
+
             roomsData.push({
                 id: battle.id,
                 name: battle.name,
                 questionCount: battle.question_count,
-                battleCode: battle.battle_code || 'N/A',
+                battleCode: battle.battle_code || 'SIN-CODIGO',
                 groupCount: (groups || []).length,
                 status: battle.status,
             });
         }
 
+        console.log('Rooms procesadas:', roomsData);
         setRooms(roomsData);
     };
 
