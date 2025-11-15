@@ -1,19 +1,53 @@
-import { AuthData, User, Professor, Question } from './types';
+import { AuthData, User, Professor, Question, UserRole } from './types';
 import { MOCK_USERS, MOCK_PROFESSORS, MOCK_QUESTIONS, MOCK_TRIVIA_QUESTIONS } from './mocks';
+import { authApi } from './lib/api';
 
 // --- Simulación de latencia de red ---
 const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 /**
- * Simula una llamada de login al backend.
- * Encuentra el primer usuario que coincide con el rol solicitado.
- * @param authData - Datos de autenticación, principalmente el rol.
- * @returns - El objeto de usuario o null si no se encuentra.
+ * Login usando Supabase Auth + datos del perfil
+ * @param authData - Datos de autenticación con información del usuario
+ * @returns - El objeto de usuario con todos los datos
  */
 export const login = async (authData: AuthData): Promise<User | null> => {
-    await networkDelay(500);
-    const user = MOCK_USERS.find(u => u.role === authData.role);
-    return user || null;
+    console.log('🔐 api.login llamado con:', authData);
+
+    if (authData.role === UserRole.Admin) {
+        const adminUser: User = {
+            id: 'admin-1',
+            name: 'Administrador',
+            role: UserRole.Admin,
+            level: 99,
+            points: 0,
+            streak: 0,
+            imageUrl: 'https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff&bold=true&size=128',
+            unlockPoints: 9999,
+        };
+        return adminUser;
+    }
+
+    const userId = authData.userId || 'temp-' + Date.now();
+
+    const user: User = {
+        id: userId,
+        name: authData.name || 'Usuario',
+        role: authData.role,
+        level: 1,
+        points: 0,
+        streak: 0,
+        imageUrl: authData.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(authData.name || 'U')}&background=e2e8f0&color=64748b&bold=true&size=128`,
+        unlockPoints: 100,
+    };
+
+    if (authData.role === UserRole.Teacher && authData.subjects) {
+        user.subjects = authData.subjects;
+        user.skills = authData.skills;
+        user.cycles = authData.cycles;
+    }
+
+    console.log('✅ Usuario creado:', user);
+    return user;
 };
 
 /**

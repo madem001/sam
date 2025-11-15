@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole, AuthData } from '../types';
+import { authApi } from '../lib/api';
 
 interface LoginScreenProps {
   onLoginSuccess: (authData: AuthData) => void;
@@ -100,8 +101,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setView('login');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (isAdminLogin) {
         if (email === 'eddmi@gmail.com' && password === 'app2025*') {
             onLoginSuccess({ role: UserRole.Admin });
@@ -110,21 +112,59 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         }
         return;
     }
-    
-    const authData: AuthData = { role };
-    if (view === 'register') {
-        authData.name = name;
+
+    try {
+      if (view === 'register') {
+        console.log('📝 Registrando usuario:', { email, name, role });
+
+        const roleValue = role === UserRole.Teacher ? 'TEACHER' : 'STUDENT';
+        await authApi.register(email, password, name, roleValue);
+
+        const profile = await authApi.getProfile();
+        console.log('✅ Perfil creado:', profile);
+
+        const authData: AuthData = {
+          role,
+          name,
+          userId: profile?.id,
+        };
+
         if (imagePreview) {
           authData.imageUrl = imagePreview;
         }
-        if (role === UserRole.Teacher) {
-            authData.subjects = [subject];
-            authData.skills = skills.split(',').map(s => s.trim());
-            authData.cycles = cycles.split(',').map(c => c.trim());
-        }
-    }
 
-    onLoginSuccess(authData);
+        if (role === UserRole.Teacher) {
+          authData.subjects = [subject];
+          authData.skills = skills.split(',').map(s => s.trim());
+          authData.cycles = cycles.split(',').map(c => c.trim());
+        }
+
+        onLoginSuccess(authData);
+      } else {
+        console.log('🔐 Iniciando sesión:', email);
+
+        await authApi.login(email, password);
+        const profile = await authApi.getProfile();
+
+        if (!profile) {
+          alert('No se encontró el perfil del usuario');
+          return;
+        }
+
+        console.log('✅ Perfil recuperado:', profile);
+
+        const authData: AuthData = {
+          role: profile.role === 'TEACHER' ? UserRole.Teacher : UserRole.Student,
+          name: profile.name,
+          userId: profile.id,
+        };
+
+        onLoginSuccess(authData);
+      }
+    } catch (error: any) {
+      console.error('❌ Error en autenticación:', error);
+      alert(error.message || 'Error en la autenticación');
+    }
   };
   
   const getTitle = () => {
