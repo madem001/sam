@@ -231,13 +231,24 @@ const App: React.FC = () => {
   };
 
   const renderAuthenticatedContent = () => {
-      if (!user) return null;
+      console.log('🎨 renderAuthenticatedContent - user:', user);
+      console.log('🎨 isAuthenticated:', isAuthenticated);
+      console.log('🎨 activeScreen:', activeScreen);
+
+      if (!user) {
+        console.log('❌ No hay usuario');
+        return null;
+      }
+
+      console.log('🎨 User role:', user.role, 'Comparando con Student:', UserRole.Student, 'Son iguales:', user.role === UserRole.Student);
 
       switch(user.role) {
           case UserRole.Teacher:
+              console.log('👨‍🏫 Renderizando Teacher Dashboard');
               const students = allUsers.filter(u => u.role === UserRole.Student);
               return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={students} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} theme={theme} onToggleTheme={handleToggleTheme} />;
           case UserRole.Student:
+              console.log('👨‍🎓 Renderizando Student Screen');
               return (
                 <>
                     <main className="flex-grow overflow-y-auto pb-24">
@@ -246,23 +257,39 @@ const App: React.FC = () => {
                     <BottomNav activeScreen={activeScreen as Screen} setActiveScreen={setActiveScreen} enabledModules={enabledModules} customModules={customModules} />
                 </>
               );
+          case UserRole.Admin:
+              console.log('👨‍💼 Renderizando Admin Screen');
+              const allStudents = allUsers.filter(u => u.role === UserRole.Student);
+              return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={allStudents} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} theme={theme} onToggleTheme={handleToggleTheme} />;
           default:
+            console.log('❌ Role no reconocido:', user.role);
             return null;
       }
   }
   
   const renderAppContent = () => {
+      console.log('🖼️ renderAppContent - isAppLoading:', isAppLoading, 'isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
+
       if (isAppLoading) {
+        console.log('⏳ Mostrando LoadingScreen (app cargando)');
         return <LoadingScreen />;
       }
       if (isLoading) {
+          console.log('⏳ Mostrando spinner (isLoading)');
           return (
               <div className="flex justify-center items-center h-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 dark:border-sky-400"></div>
               </div>
           );
       }
-      return isAuthenticated && user ? renderAuthenticatedContent() : <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+
+      if (isAuthenticated && user) {
+        console.log('✅ Usuario autenticado, renderizando contenido');
+        return renderAuthenticatedContent();
+      } else {
+        console.log('🔐 Mostrando LoginScreen');
+        return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+      }
   }
 
   return (

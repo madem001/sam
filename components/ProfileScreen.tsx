@@ -18,6 +18,8 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateUser, onJoinFromNotification, onMarkAsRead, theme, onToggleTheme }) => {
+  console.log('👤 ProfileScreen renderizado con user:', user);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
