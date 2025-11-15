@@ -6,6 +6,7 @@ export interface Battle {
   name: string;
   teacher_id: string;
   question_count: number;
+  battle_code?: string;
   status: 'waiting' | 'active' | 'finished';
   current_question_index: number;
   created_at: string;
@@ -43,13 +44,14 @@ export interface GroupMember {
 const mapBattleFromAPI = (data: any): Battle => ({
   id: data.id,
   name: data.name,
-  teacher_id: data.teacherId,
-  question_count: data.roundCount || data.questionCount,
+  teacher_id: data.teacher_id || data.teacherId,
+  question_count: data.question_count || data.roundCount || data.questionCount,
+  battle_code: data.battle_code,
   status: data.status.toLowerCase(),
-  current_question_index: data.currentRoundIndex !== undefined ? data.currentRoundIndex : data.currentQuestionIndex,
-  created_at: data.createdAt,
-  started_at: data.startedAt,
-  finished_at: data.finishedAt,
+  current_question_index: data.current_question_index !== undefined ? data.current_question_index : (data.currentRoundIndex !== undefined ? data.currentRoundIndex : data.currentQuestionIndex),
+  created_at: data.created_at || data.createdAt,
+  started_at: data.started_at || data.startedAt,
+  finished_at: data.finished_at || data.finishedAt,
 });
 
 const mapGroupFromAPI = (data: any): BattleGroup => ({

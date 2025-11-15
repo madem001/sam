@@ -180,6 +180,7 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
     setSetName('');
     setSetDescription('');
     setNewQuestions([{ question_text: '', answers: ['', '', '', ''], correct_answer_index: 0 }]);
+    setShowCreateModal(false);
     loadSets();
   };
 

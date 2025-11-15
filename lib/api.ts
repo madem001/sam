@@ -108,15 +108,18 @@ export const battleApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    const battleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
     const { data: battle, error: battleError } = await supabase
       .from('battles')
       .insert({
         name,
         teacher_id: user.id,
-        round_count: roundCount,
+        question_count: roundCount,
+        battle_code: battleCode,
         students_per_group: studentsPerGroup || 4,
         status: 'waiting',
-        current_round_index: 0,
+        current_question_index: 0,
       })
       .select()
       .single();

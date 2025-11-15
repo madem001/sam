@@ -104,6 +104,12 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
           </div>
         </div>
 
+        <div className="bg-gradient-to-r from-sky-500 to-blue-600 p-6 rounded-xl shadow-lg text-white text-center">
+          <p className="text-sm font-semibold mb-2 opacity-90">CÓDIGO DE BATALLA</p>
+          <p className="text-4xl font-black tracking-wider mb-1">{(battle as any).battle_code || 'N/A'}</p>
+          <p className="text-xs opacity-75">Los estudiantes usan este código para unirse</p>
+        </div>
+
         {isWaiting && (
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
             <p className="text-slate-600 dark:text-slate-400 mb-4">La batalla está lista. Los estudiantes pueden unirse con sus códigos de grupo.</p>
