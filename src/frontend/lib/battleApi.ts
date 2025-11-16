@@ -1,5 +1,5 @@
 import { battleApi as api } from './api';
-import { supabase } from './supabase';
+// import { supabase } from './supabase'; // DESHABILITADO - Usar backend local
 
 export interface Battle {
   id: string;

@@ -6,7 +6,7 @@ import ProfessorCard from '../shared/ProfessorCard';
 import ProfessorDetailOverlay from '../shared/ProfessorDetailOverlay';
 import ProfessorCardDetailModal from '../shared/ProfessorCardDetailModal';
 import { professorCardsApi, authApi } from '../../lib/api';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase'; // DESHABILITADO - Ver GUIA_CONEXION_BACKEND.md
 
 interface ProfileScreenProps {
   user: User;

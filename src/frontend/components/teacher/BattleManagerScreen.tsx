@@ -3,7 +3,7 @@ import { Question, User } from '../../types/types';
 import CreateBattleModal from './CreateBattleModal';
 import BattleControlScreen from './BattleControlScreen';
 import QuestionBankScreen from './QuestionBankScreen';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase'; // DESHABILITADO - Ver GUIA_CONEXION_BACKEND.md
 import * as battleApi from '../../lib/battleApi';
 
 interface BattleRoom {

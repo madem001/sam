@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types/types';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase'; // DESHABILITADO - Ver GUIA_CONEXION_BACKEND.md
 
 interface Achievement {
   id: string;

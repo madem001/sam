@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as battleApi from '../../lib/battleApi';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase'; // DESHABILITADO - Ver GUIA_CONEXION_BACKEND.md
 
 interface BattleControlScreenProps {
   battleId: string;

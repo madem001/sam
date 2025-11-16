@@ -13,7 +13,7 @@ import TeacherDashboard from './src/frontend/components/teacher/TeacherDashboard
 import JoinBattleScreen from './src/frontend/components/student/JoinBattleScreen';
 import LoadingScreen from './src/frontend/components/shared/LoadingScreen';
 import AllForAllScreen from './src/frontend/components/student/AllForAllScreen';
-import { supabase } from './src/frontend/lib/supabase';
+// import { supabase } from './src/frontend/lib/supabase'; // DESHABILITADO - Usar backend local
 import * as api from './api';
 
 const App: React.FC = () => {
@@ -90,37 +90,38 @@ const App: React.FC = () => {
     }
   }, [allUsers, user]);
 
-  useEffect(() => {
-    if (!user || !isAuthenticated) return;
+  // DESHABILITADO - Usar WebSocket local en lugar de Supabase Realtime
+  // useEffect(() => {
+  //   if (!user || !isAuthenticated) return;
 
-    const channel = supabase.channel('online-users', {
-      config: {
-        presence: {
-          key: 'user_id',
-        },
-      },
-    });
+  //   const channel = supabase.channel('online-users', {
+  //     config: {
+  //       presence: {
+  //         key: 'user_id',
+  //       },
+  //     },
+  //   });
 
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        console.log('👥 Presencia sincronizada');
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            user_id: user.id,
-            name: user.name,
-            role: user.role,
-            online_at: new Date().toISOString(),
-          });
-          console.log('✅ Presencia reportada para:', user.name);
-        }
-      });
+  //   channel
+  //     .on('presence', { event: 'sync' }, () => {
+  //       console.log('👥 Presencia sincronizada');
+  //     })
+  //     .subscribe(async (status) => {
+  //       if (status === 'SUBSCRIBED') {
+  //         await channel.track({
+  //           user_id: user.id,
+  //           name: user.name,
+  //           role: user.role,
+  //           online_at: new Date().toISOString(),
+  //         });
+  //         console.log('✅ Presencia reportada para:', user.name);
+  //       }
+  //     });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, isAuthenticated]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [user, isAuthenticated]);
 
 
   const handleLoginSuccess = async (authData: AuthData) => {
