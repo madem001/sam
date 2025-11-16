@@ -335,7 +335,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               <div className="space-y-4">
                 <div
                   ref={cardContainerRef}
-                  style={{ perspective: '1400px', height: '440px' }}
+                  style={{ perspective: '1400px', height: '520px' }}
                   className="flex items-center justify-center w-full relative select-none"
                   onMouseMove={handleDragMove}
                   onMouseUp={handleDragEnd}
@@ -343,7 +343,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                   onTouchMove={handleDragMove}
                   onTouchEnd={handleDragEnd}
                 >
-                  <div style={{ position: 'relative', width: '280px', height: '400px', transformStyle: 'preserve-3d' }}>
+                  <div style={{ position: 'relative', width: '340px', height: '480px', transformStyle: 'preserve-3d' }}>
                     {professors.map((prof, index) => (
                       <div
                         key={prof.id}

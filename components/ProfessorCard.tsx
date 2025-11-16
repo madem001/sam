@@ -61,19 +61,21 @@ const ProfessorCard: React.FC<ProfessorCardProps> = ({ professor, onClick, isAct
   const unlockIconClasses = isUnlocking ? 'animate-unlock-icon-pop' : '';
 
   return (
-    <div 
+    <div
       ref={cardRef}
-      className={`relative w-64 h-80 rounded-3xl shadow-lg overflow-hidden transition-transform duration-300 ${isInteractive ? 'tilt-card' : ''}`}
+      className={`relative w-full h-full rounded-3xl shadow-lg overflow-hidden transition-transform duration-300 ${isInteractive ? 'tilt-card' : ''}`}
       onClick={onClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      style={{ imageRendering: 'crisp-edges' }}
     >
       <div className={isInteractive ? 'tilt-card-inner' : ''}>
         {/* Background Image & Color Filter */}
-        <img 
-          src={professor.imageUrl} 
-          alt={professor.name} 
+        <img
+          src={professor.imageUrl}
+          alt={professor.name}
           className={`w-full h-full object-cover transition-all duration-500 ${isLocked && !isUnlocking ? 'grayscale' : ''} ${unlockImageClasses} ${isInteractive ? 'tilt-card-bg' : ''}`}
+          style={{ imageRendering: '-webkit-optimize-contrast' }}
         />
         
         {/* Gradient Overlay */}
