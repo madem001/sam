@@ -75,6 +75,10 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
     }
   };
 
+  const isWaiting = battle?.status === 'waiting';
+  const isActive = battle?.status === 'active';
+  const isFinished = battle?.status === 'finished';
+
   useEffect(() => {
     if (!battle || !isActive || !currentQuestion || isAdvancing) return;
 
@@ -123,10 +127,6 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
       </div>
     );
   }
-
-  const isWaiting = battle.status === 'waiting';
-  const isActive = battle.status === 'active';
-  const isFinished = battle.status === 'finished';
 
   return (
     <div className="relative h-full overflow-y-auto">
