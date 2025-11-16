@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
-import EditProfileModal from '../EditProfileModal';
+import EditTeacherProfileModal from './EditTeacherProfileModal';
 import { supabase } from '../../lib/supabase';
 import { authApi } from '../../lib/api';
 
@@ -45,11 +45,20 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
     }
   };
 
-  const handleSaveProfile = async (updatedData: { name: string; imageUrl: string }) => {
+  const handleSaveProfile = async (updatedData: {
+    name: string;
+    imageUrl: string;
+    subjects: string[];
+    skills: string[];
+    cycles: string[];
+  }) => {
     try {
       await authApi.updateProfile(user.id, {
         name: updatedData.name,
         avatar: updatedData.imageUrl,
+        subjects: updatedData.subjects,
+        skills: updatedData.skills,
+        cycles: updatedData.cycles,
       });
       setEditableUser(prev => ({ ...prev, ...updatedData }));
       setIsEditModalOpen(false);
@@ -248,7 +257,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
         </div>
       </main>
 
-      <EditProfileModal
+      <EditTeacherProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         user={editableUser}

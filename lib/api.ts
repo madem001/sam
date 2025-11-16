@@ -111,7 +111,13 @@ export const authApi = {
     return data;
   },
 
-  updateProfile: async (userId: string, updates: { name?: string; avatar?: string }) => {
+  updateProfile: async (userId: string, updates: {
+    name?: string;
+    avatar?: string;
+    subjects?: string[];
+    skills?: string[];
+    cycles?: string[];
+  }) => {
     console.log('✏️ Actualizando perfil:', userId, updates);
 
     const updateData: any = {
@@ -125,6 +131,9 @@ export const authApi = {
         updateData.avatar_base64 = updates.avatar;
       }
     }
+    if (updates.subjects !== undefined) updateData.subjects = updates.subjects;
+    if (updates.skills !== undefined) updateData.skills = updates.skills;
+    if (updates.cycles !== undefined) updateData.cycles = updates.cycles;
 
     const { error } = await supabase
       .from('profiles')
@@ -136,7 +145,7 @@ export const authApi = {
       throw error;
     }
 
-    console.log('✅ Perfil actualizado exitosamente (con base64)');
+    console.log('✅ Perfil actualizado exitosamente');
   },
 };
 
