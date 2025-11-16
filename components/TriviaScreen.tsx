@@ -104,15 +104,15 @@ const TriviaScreen: React.FC<TriviaScreenProps> = ({ onWin, onLose, onBack }) =>
 
   if (isLoading) {
     return (
-        <div className="flex justify-center items-center h-full bg-slate-50 dark:bg-slate-800">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="flex justify-center items-center h-full bg-gradient-to-br from-teal-50 to-emerald-50 dark:bg-slate-800">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
         </div>
     );
   }
 
   if (!currentQuestion) {
       return (
-          <div className="flex flex-col justify-center items-center h-full bg-slate-50 dark:bg-slate-800 text-center p-4">
+          <div className="flex flex-col justify-center items-center h-full bg-gradient-to-br from-teal-50 to-emerald-50 dark:bg-slate-800 text-center p-4">
               <h1 className="text-2xl font-bold text-slate-700 dark:text-slate-200">¡Trivia completada!</h1>
               <p className="text-slate-500 dark:text-slate-400 mt-2">Calculando tus resultados...</p>
           </div>
@@ -120,7 +120,7 @@ const TriviaScreen: React.FC<TriviaScreenProps> = ({ onWin, onLose, onBack }) =>
   }
 
   return (
-    <div className="relative flex flex-col h-full p-6 bg-slate-50 dark:bg-slate-800">
+    <div className="relative flex flex-col h-full p-6 bg-gradient-to-br from-teal-50 to-emerald-50 dark:bg-slate-800">
         <button
             onClick={onBack}
             className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-600/80 transition-colors shadow-md"
@@ -131,7 +131,7 @@ const TriviaScreen: React.FC<TriviaScreenProps> = ({ onWin, onLose, onBack }) =>
         </button>
 
       <div className="animate-stagger" style={{ '--stagger-delay': '100ms' } as React.CSSProperties}>
-        <p className="text-center text-sky-600 dark:text-sky-400 font-bold">Ronda {round + 1} / {questions.length}</p>
+        <p className="text-center text-teal-700 dark:text-teal-400 font-bold">Ronda {round + 1} / {questions.length}</p>
         
         {/* Timer Bar */}
         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 my-3">

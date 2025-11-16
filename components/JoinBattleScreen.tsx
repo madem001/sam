@@ -117,7 +117,7 @@ const JoinBattleScreen: React.FC<JoinBattleScreenProps> = ({ onBack, studentId, 
                 <div className="battle-portal">
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center">Unirse a Grupo</h1>
                     <p className="text-slate-600 dark:text-slate-300 mt-2 text-center">Introduce el código de tu grupo</p>
-                    <div className="mt-6 w-20 h-20 rounded-full glass-effect flex items-center justify-center text-sky-800 dark:text-sky-300 mx-auto">
+                    <div className="mt-6 w-20 h-20 rounded-full glass-effect flex items-center justify-center text-teal-800 dark:text-teal-300 mx-auto">
                         <ion-icon name="people-outline" class="text-5xl"></ion-icon>
                     </div>
                 </div>

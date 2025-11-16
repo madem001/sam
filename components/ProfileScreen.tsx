@@ -228,7 +228,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden relative">
+    <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
       {/* Compact Header */}
       <header className="absolute top-0 right-0 z-20 flex items-center justify-end px-6 py-4 gap-2">
         <button
