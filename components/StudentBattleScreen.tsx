@@ -41,31 +41,44 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   }, [battleId]);
 
   const loadBattleData = async () => {
-    console.log('📥 StudentBattleScreen: Cargando datos de batalla...');
+    console.log('📥 [STUDENT] Cargando datos de batalla...');
     try {
       const battleData = await battleApi.getBattleState(battleId);
-      console.log('✅ StudentBattleScreen: Batalla cargada:', battleData);
+      console.log('✅ [STUDENT] Batalla cargada:', {
+        name: battleData?.name,
+        status: battleData?.status,
+        currentQuestionIndex: battleData?.current_question_index,
+        totalQuestions: battleData?.question_count
+      });
 
       if (battleData) {
         setBattle(battleData);
         const questionsData = await battleApi.getBattleQuestions(battleId);
-        console.log('✅ StudentBattleScreen: Preguntas cargadas:', questionsData.length);
+        console.log('✅ [STUDENT] Preguntas cargadas:', questionsData.length);
         setQuestions(questionsData);
 
         if (questionsData.length > 0 && battleData.status === 'active') {
           const currentQ = questionsData[battleData.current_question_index];
           if (currentQ) {
-            setCurrentQuestion(currentQ);
-            setStartTime(Date.now());
-            setHasAnswered(false);
-            setSelectedAnswer(null);
+            console.log('📝 [STUDENT] Pregunta actual:', {
+              index: battleData.current_question_index,
+              text: currentQ.question_text.substring(0, 50) + '...'
+            });
+
+            if (!currentQuestion || currentQuestion.id !== currentQ.id) {
+              console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
+              setCurrentQuestion(currentQ);
+              setStartTime(Date.now());
+              setHasAnswered(false);
+              setSelectedAnswer(null);
+            }
           }
         }
       }
       await loadGroups();
-      console.log('✅ StudentBattleScreen: Datos completos cargados');
+      console.log('✅ [STUDENT] Datos completos cargados');
     } catch (error) {
-      console.error('❌ StudentBattleScreen: Error cargando datos:', error);
+      console.error('❌ [STUDENT] Error cargando datos:', error);
     }
   };
 
@@ -81,18 +94,29 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   const handleAnswerSelect = async (answerIndex: number) => {
     if (hasAnswered || !currentQuestion) return;
 
+    console.log('✅ [STUDENT] Respuesta seleccionada:', {
+      answerIndex,
+      isCorrect: answerIndex === currentQuestion.correct_answer_index
+    });
+
     setSelectedAnswer(answerIndex);
     setHasAnswered(true);
 
     const responseTime = Date.now() - startTime;
-    await battleApi.submitAnswer(
-      battleId,
-      groupId,
-      currentQuestion.id,
-      answerIndex,
-      currentQuestion.correct_answer_index,
-      responseTime
-    );
+
+    try {
+      await battleApi.submitAnswer(
+        battleId,
+        groupId,
+        currentQuestion.id,
+        answerIndex,
+        currentQuestion.correct_answer_index,
+        responseTime
+      );
+      console.log('✅ [STUDENT] Respuesta enviada exitosamente');
+    } catch (error) {
+      console.error('❌ [STUDENT] Error enviando respuesta:', error);
+    }
 
     await loadGroups();
   };

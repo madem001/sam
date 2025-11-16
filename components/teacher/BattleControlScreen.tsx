@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as battleApi from '../../lib/battleApi';
+import { supabase } from '../../lib/supabase';
 
 interface BattleControlScreenProps {
   battleId: string;
@@ -12,6 +13,7 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   const [questions, setQuestions] = useState<battleApi.BattleQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<battleApi.BattleQuestion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdvancing, setIsAdvancing] = useState(false);
 
   useEffect(() => {
     loadBattleData();
@@ -57,13 +59,62 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   };
 
   const handleNextQuestion = async () => {
-    const success = await battleApi.nextQuestion(battleId);
-    if (success) {
-      await loadBattleData();
-    } else {
+    try {
+      console.log('⏭️ [CONTROL] Avanzando a siguiente pregunta...');
+      const success = await battleApi.nextQuestion(battleId);
+      if (success) {
+        console.log('✅ [CONTROL] Pregunta avanzada exitosamente');
+        await loadBattleData();
+      } else {
+        console.error('❌ [CONTROL] Error al avanzar pregunta');
+        alert('Error al avanzar a la siguiente pregunta');
+      }
+    } catch (error) {
+      console.error('❌ [CONTROL] Error en handleNextQuestion:', error);
       alert('Error al avanzar a la siguiente pregunta');
     }
   };
+
+  useEffect(() => {
+    if (!battle || !isActive || !currentQuestion || isAdvancing) return;
+
+    const checkAutoAdvance = async () => {
+      try {
+        const totalGroups = groups.length;
+        if (totalGroups === 0) return;
+
+        const { data: answers, error } = await supabase
+          .from('battle_answers')
+          .select('group_id')
+          .eq('battle_id', battleId)
+          .eq('question_id', currentQuestion.id);
+
+        if (error) {
+          console.error('❌ [AUTO-ADVANCE] Error consultando respuestas:', error);
+          return;
+        }
+
+        const uniqueGroupsAnswered = new Set(answers?.map(a => a.group_id) || []).size;
+
+        if (uniqueGroupsAnswered >= totalGroups && !isAdvancing) {
+          console.log('🎯 [AUTO-ADVANCE] ¡Todos respondieron! Avanzando en 2 segundos...');
+          setIsAdvancing(true);
+
+          setTimeout(async () => {
+            console.log('⏭️ [AUTO-ADVANCE] Avanzando automáticamente...');
+            await handleNextQuestion();
+            setIsAdvancing(false);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('❌ [AUTO-ADVANCE] Error en checkAutoAdvance:', error);
+      }
+    };
+
+    const interval = setInterval(checkAutoAdvance, 1500);
+
+    return () => clearInterval(interval);
+  }, [battle, isActive, currentQuestion, groups, battleId, isAdvancing]);
 
   if (isLoading || !battle) {
     return (
@@ -142,21 +193,19 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
                 </div>
               ))}
             </div>
-            {battle.current_question_index < battle.question_count - 1 ? (
-              <button
-                onClick={handleNextQuestion}
-                className="w-full py-3 bg-sky-500 text-white font-bold rounded-lg shadow-md hover:bg-sky-600 transition-colors"
-              >
-                Siguiente Pregunta
-              </button>
-            ) : (
-              <button
-                onClick={handleNextQuestion}
-                className="w-full py-3 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600 transition-colors"
-              >
-                Finalizar Batalla
-              </button>
-            )}
+            <div className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/30 dark:to-blue-900/30 p-4 rounded-lg border-2 border-sky-300 dark:border-sky-700">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-pulse">
+                  <ion-icon name="hourglass-outline" class="text-2xl text-sky-600 dark:text-sky-400"></ion-icon>
+                </div>
+                <p className="text-sky-800 dark:text-sky-300 font-semibold">
+                  Esperando respuestas de los estudiantes...
+                </p>
+              </div>
+              <p className="text-sm text-sky-700 dark:text-sky-400 text-center mt-2">
+                La pregunta avanzará automáticamente cuando todos respondan
+              </p>
+            </div>
           </div>
         )}
 
