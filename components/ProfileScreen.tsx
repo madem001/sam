@@ -26,7 +26,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [isLoadingProfessors, setIsLoadingProfessors] = useState(true);
-  const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
+  const [photoExpanded, setPhotoExpanded] = useState(false);
   const [selectedCardForRedemption, setSelectedCardForRedemption] = useState<{
     cardId: string;
     teacherId: string;
@@ -36,6 +36,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     professorTitle: string;
     professorDescription: string;
   } | null>(null);
+  const [profileDragState, setProfileDragState] = useState<{
+    isDragging: boolean;
+    startY: number;
+    currentY: number;
+  }>({
+    isDragging: false,
+    startY: 0,
+    currentY: 0,
+  });
   const [dragState, setDragState] = useState<{
     isDragging: boolean;
     startX: number;
@@ -163,6 +172,45 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     }, 50);
   };
 
+  const handleProfileDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setProfileDragState({
+      isDragging: true,
+      startY: clientY,
+      currentY: 0,
+    });
+  };
+
+  const handleProfileDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!profileDragState.isDragging) return;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const delta = clientY - profileDragState.startY;
+
+    // Solo permitir arrastrar hacia abajo
+    if (delta > 0) {
+      setProfileDragState(prev => ({
+        ...prev,
+        currentY: Math.min(delta, 400), // Límite máximo de expansión
+      }));
+    }
+  };
+
+  const handleProfileDragEnd = () => {
+    if (!profileDragState.isDragging) return;
+
+    const threshold = 100;
+
+    if (profileDragState.currentY > threshold) {
+      setPhotoExpanded(true);
+    }
+
+    setProfileDragState({
+      isDragging: false,
+      startY: 0,
+      currentY: 0,
+    });
+  };
+
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - activeCardIndex;
     const isActive = index === activeCardIndex;
@@ -250,26 +298,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50">
-      {/* Fullscreen Photo Modal */}
-      {isPhotoExpanded && (
-        <div
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
-          onClick={() => setIsPhotoExpanded(false)}
-        >
-          <button
-            onClick={() => setIsPhotoExpanded(false)}
-            className="absolute top-6 right-6 z-10 p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all"
-          >
-            <ion-icon name="close" class="text-2xl"></ion-icon>
-          </button>
-          <img
-            src={user.imageUrl}
-            alt={user.name}
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-      )}
-
       {/* Compact Header */}
       <header className="absolute top-0 right-0 z-20 flex items-center justify-end px-6 py-4 gap-2">
         <button
@@ -288,27 +316,56 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Profile Card - Hero */}
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
             <div
-              className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden cursor-pointer hover:opacity-95 transition-opacity"
-              onClick={() => setIsPhotoExpanded(true)}
+              className="relative bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden transition-all duration-300"
+              style={{
+                height: photoExpanded ? '100vh' : '320px',
+              }}
             >
               <img
                 src={user.imageUrl}
                 alt={user.name}
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full transition-all duration-500"
+                style={{
+                  objectFit: photoExpanded ? 'contain' : 'cover',
+                  objectPosition: photoExpanded ? 'center' : 'top',
+                }}
               />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-                <div className="bg-white/30 backdrop-blur-sm rounded-full p-3">
-                  <ion-icon name="expand-outline" class="text-3xl text-white"></ion-icon>
-                </div>
-              </div>
+
+              {/* Close button when expanded */}
+              {photoExpanded && (
+                <button
+                  onClick={() => setPhotoExpanded(false)}
+                  className="absolute top-6 right-6 z-10 p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all"
+                >
+                  <ion-icon name="close" class="text-2xl"></ion-icon>
+                </button>
+              )}
             </div>
 
             {/* Profile Info Section with Curved Top */}
-            <div className="relative bg-white -mt-10 rounded-t-[3rem] p-5 pt-8 text-center shadow-2xl">
+            <div
+              className="relative bg-white rounded-t-[3rem] p-5 pt-8 text-center shadow-2xl transition-all duration-500 select-none cursor-grab active:cursor-grabbing"
+              style={{
+                marginTop: photoExpanded ? '0px' : '-40px',
+                transform: `translateY(${profileDragState.currentY}px)`,
+                opacity: photoExpanded ? 0 : 1,
+                pointerEvents: photoExpanded ? 'none' : 'auto',
+                transition: profileDragState.isDragging ? 'none' : 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
+              onMouseDown={handleProfileDragStart}
+              onMouseMove={handleProfileDragMove}
+              onMouseUp={handleProfileDragEnd}
+              onMouseLeave={handleProfileDragEnd}
+              onTouchStart={handleProfileDragStart}
+              onTouchMove={handleProfileDragMove}
+              onTouchEnd={handleProfileDragEnd}
+            >
+              {/* Drag Indicator */}
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 rounded-full"></div>
               <h1 className="text-2xl font-bold text-slate-800 mb-1">{user.name}</h1>
               <p className="text-sm text-slate-500 mb-4 flex items-center justify-center">
                 <ion-icon name="location-outline" class="text-base mr-1"></ion-icon>
