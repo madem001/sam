@@ -162,41 +162,41 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const selectedColorOption = COLOR_OPTIONS.find(c => c.value === wordColor);
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide p-0">
-      <div className="w-full max-w-full p-4 md:p-6">
-        <div className="mb-6 animate-fade-in">
+    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-0">
+      <div className="h-full w-full overflow-y-auto scrollbar-hide px-6 py-4 pb-24">
+        <div className="mb-4 animate-fade-in">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-              <ion-icon name="color-palette" class="text-2xl text-white"></ion-icon>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <ion-icon name="color-palette" class="text-xl text-white"></ion-icon>
             </div>
             <div>
-              <h1 className="text-3xl font-black text-slate-800">
+              <h1 className="text-2xl font-black text-slate-800">
                 All for All
               </h1>
-              <p className="text-slate-600">Panel de Control del Profesor</p>
+              <p className="text-sm text-slate-600">Panel de Control del Profesor</p>
             </div>
           </div>
         </div>
 
         {!activeGame ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/40 animate-scale-in">
-            <div className="flex items-center gap-3 mb-6">
-              <ion-icon name="settings-outline" class="text-3xl text-purple-600"></ion-icon>
-              <h2 className="text-2xl font-bold text-slate-800">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/40 animate-scale-in">
+            <div className="flex items-center gap-2 mb-4">
+              <ion-icon name="settings-outline" class="text-2xl text-purple-600"></ion-icon>
+              <h2 className="text-xl font-bold text-slate-800">
                 Configurar Nueva Ronda
               </h2>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
-                  <ion-icon name="text-outline" class="text-xl"></ion-icon>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
+                  <ion-icon name="text-outline" class="text-lg"></ion-icon>
                   Palabra a Mostrar
                 </label>
                 <select
                   value={wordText}
                   onChange={(e) => setWordText(e.target.value)}
-                  className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-purple-500 outline-none transition-all font-semibold text-lg bg-white shadow-sm hover:shadow-md"
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-purple-500 outline-none transition-all font-semibold text-base bg-white shadow-sm hover:shadow-md"
                 >
                   {COLOR_OPTIONS.map((color) => (
                     <option key={color.value} value={color.name}>
@@ -207,8 +207,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
-                  <ion-icon name="brush-outline" class="text-xl"></ion-icon>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
+                  <ion-icon name="brush-outline" class="text-lg"></ion-icon>
                   Color del Texto
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -216,7 +216,7 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                     <button
                       key={color.value}
                       onClick={() => setWordColor(color.value)}
-                      className={`relative py-5 px-2 rounded-2xl font-bold text-white text-sm transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                      className={`relative py-4 px-2 rounded-2xl font-bold text-white text-xs transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                         wordColor === color.value
                           ? 'ring-4 ring-slate-900 scale-105'
                           : 'hover:scale-105'
@@ -234,22 +234,22 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
-                  <ion-icon name="help-circle-outline" class="text-xl"></ion-icon>
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
+                  <ion-icon name="help-circle-outline" class="text-lg"></ion-icon>
                   Respuesta Correcta
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setCorrectAnswer('text')}
-                    className={`relative py-6 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                    className={`relative py-4 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                       correctAnswer === 'text'
                         ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-white scale-105'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    <ion-icon name="chatbox-ellipses-outline" class="text-2xl mb-1"></ion-icon>
-                    <div className="text-sm">Lo que dice</div>
-                    <div className="text-xs opacity-80">el texto</div>
+                    <ion-icon name="chatbox-ellipses-outline" class="text-xl mb-1"></ion-icon>
+                    <div className="text-xs">Lo que dice</div>
+                    <div className="text-[10px] opacity-80">el texto</div>
                     {correctAnswer === 'text' && (
                       <div className="absolute -top-2 -right-2 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
                         <ion-icon name="checkmark" class="text-white"></ion-icon>
@@ -258,15 +258,15 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                   </button>
                   <button
                     onClick={() => setCorrectAnswer('color')}
-                    className={`relative py-6 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                    className={`relative py-4 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                       correctAnswer === 'color'
                         ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-white scale-105'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    <ion-icon name="color-fill-outline" class="text-2xl mb-1"></ion-icon>
-                    <div className="text-sm">El color</div>
-                    <div className="text-xs opacity-80">del texto</div>
+                    <ion-icon name="color-fill-outline" class="text-xl mb-1"></ion-icon>
+                    <div className="text-xs">El color</div>
+                    <div className="text-[10px] opacity-80">del texto</div>
                     {correctAnswer === 'color' && (
                       <div className="absolute -top-2 -right-2 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
                         <ion-icon name="checkmark" class="text-white"></ion-icon>
@@ -276,34 +276,34 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border-2 border-slate-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg">
-                    <ion-icon name="eye-outline" class="text-xl text-white"></ion-icon>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border-2 border-slate-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg">
+                    <ion-icon name="eye-outline" class="text-lg text-white"></ion-icon>
                   </div>
                   <div>
-                    <p className="text-lg font-black text-slate-800">Vista Previa</p>
-                    <p className="text-xs text-slate-500">Como verán los estudiantes</p>
+                    <p className="text-base font-black text-slate-800">Vista Previa</p>
+                    <p className="text-[10px] text-slate-500">Como verán los estudiantes</p>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 rounded-2xl p-8 text-center shadow-2xl mb-4 border-4 border-slate-700 overflow-hidden">
+                <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 rounded-2xl p-12 text-center shadow-2xl mb-3 border-4 border-slate-700 overflow-hidden min-h-[180px] flex items-center justify-center">
                   <p
-                    className="text-5xl font-black tracking-tight drop-shadow-2xl break-words"
+                    className="text-7xl font-black tracking-tight drop-shadow-2xl break-words leading-tight max-w-full"
                     style={{ color: wordColor }}
                   >
                     {wordText}
                   </p>
                 </div>
 
-                <div className="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center shadow-md">
-                      <ion-icon name="checkmark-circle" class="text-xl text-white"></ion-icon>
+                <div className="bg-white rounded-xl p-3 shadow-md border border-slate-200">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center shadow-md">
+                      <ion-icon name="checkmark-circle" class="text-base text-white"></ion-icon>
                     </div>
                     <div className="text-left">
-                      <p className="text-xs text-slate-500 font-medium">Respuesta correcta</p>
-                      <p className="text-lg font-black text-slate-800">
+                      <p className="text-[10px] text-slate-500 font-medium">Respuesta correcta</p>
+                      <p className="text-base font-black text-slate-800">
                         {correctAnswer === 'text' ? wordText : COLOR_OPTIONS.find(c => c.value === wordColor)?.name}
                       </p>
                     </div>
