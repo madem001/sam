@@ -18,44 +18,26 @@ enum BattleStatus {
   FINISHED
 }
 
-enum RedemptionStatus {
-  PENDING
-  APPROVED
-  COMPLETED
-  CANCELLED
-}
-
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String
-  name         String
-  role         UserRole
-  avatar       String?
-  avatarBase64 String?  @db.Text
-  points       Int      @default(0)
-  level        Int      @default(1)
-  streak       Int      @default(0)
-  unlockPoints Int      @default(100)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  avatar    String?
+  points    Int      @default(0)
+  level     Int      @default(1)
+  streak    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  battles             Battle[]
-  groupMembers        GroupMember[]
-  achievements        Achievement[]
-  notifications       Notification[]
-  professorCards      ProfessorCard[]       @relation("TeacherCards")
-  studentCards        StudentProfessorCard[]
-  studentPoints       StudentProfessorPoint[]
-  questionSets        QuestionSet[]
-  questions           Question[]
-  rewards             ProfessorReward[]
-  redemptions         RewardRedemption[]    @relation("StudentRedemptions")
-  teacherRedemptions  RewardRedemption[]    @relation("TeacherRedemptions")
+  battles        Battle[]
+  groupMembers   GroupMember[]
+  achievements   Achievement[]
+  notifications  Notification[]
 
   @@index([email])
   @@index([role])
-  @@map("profiles")
 }
 
 model Battle {
@@ -63,15 +45,10 @@ model Battle {
   name                  String
   teacherId             String
   teacher               User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  questionCount         Int          @default(5)
-  roundCount            Int          @default(10)
+  roundCount            Int
   studentsPerGroup      Int          @default(4)
-  battleCode            String?      @unique
   status                BattleStatus @default(WAITING)
-  currentQuestionIndex  Int          @default(0)
   currentRoundIndex     Int          @default(0)
-  questionTimeLimit     Int          @default(60)
-  questionStartedAt     DateTime?
   createdAt             DateTime     @default(now())
   startedAt             DateTime?
   finishedAt            DateTime?
@@ -81,204 +58,75 @@ model Battle {
   answers               BattleAnswer[]
 
   @@index([teacherId])
-  @@index([battleCode])
   @@index([status])
   @@index([createdAt])
-  @@map("battles")
 }
 
 model BattleGroup {
-  id                    String   @id @default(cuid())
-  battleId              String
-  battle                Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
-  groupCode             String   @unique
-  groupName             String
-  score                 Int      @default(0)
-  correctAnswers        Int      @default(0)
-  wrongAnswers          Int      @default(0)
-  isFull                Boolean  @default(false)
-  isEliminated          Boolean  @default(false)
-  currentQuestionIndex  Int      @default(0)
-  createdAt             DateTime @default(now())
+  id             String   @id @default(cuid())
+  battleId       String
+  battle         Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupCode      String   @unique
+  groupName      String
+  score          Int      @default(0)
+  correctAnswers Int      @default(0)
+  isFull         Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
-  members               GroupMember[]
-  answers               BattleAnswer[]
+  members        GroupMember[]
+  answers        BattleAnswer[]
 
   @@index([battleId])
   @@index([groupCode])
-  @@map("battle_groups")
 }
 
 model GroupMember {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   groupId     String
   group       BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   studentId   String
-  student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentName String
-  joinedAt    DateTime    @default(now())
+  joinedAt    DateTime @default(now())
 
   @@unique([groupId, studentId])
   @@index([groupId])
   @@index([studentId])
-  @@map("group_members")
 }
 
 model BattleQuestion {
-  id                 String   @id @default(cuid())
-  battleId           String
-  battle             Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
-  questionText       String
-  answers            Json
-  correctAnswerIndex Int
-  questionOrder      Int
-  createdAt          DateTime @default(now())
+  id                  String   @id @default(cuid())
+  battleId            String
+  battle              Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  questionText        String
+  answers             Json
+  correctAnswerIndex  Int
+  questionOrder       Int
+  createdAt           DateTime @default(now())
 
-  battleAnswers      BattleAnswer[]
+  battleAnswers       BattleAnswer[]
 
   @@index([battleId])
   @@index([questionOrder])
-  @@map("battle_questions")
 }
 
 model BattleAnswer {
-  id             String         @id @default(cuid())
-  battleId       String
-  battle         Battle         @relation(fields: [battleId], references: [id], onDelete: Cascade)
-  groupId        String
-  group          BattleGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  questionId     String
-  question       BattleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answerIndex    Int
-  isCorrect      Boolean
-  responseTimeMs Int?
-  answeredAt     DateTime       @default(now())
+  id              String   @id @default(cuid())
+  battleId        String
+  battle          Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupId         String
+  group           BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        BattleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerIndex     Int
+  isCorrect       Boolean
+  responseTimeMs  Int?
+  answeredAt      DateTime @default(now())
 
   @@unique([questionId, groupId])
   @@index([battleId])
   @@index([groupId])
   @@index([questionId])
-  @@map("battle_answers")
-}
-
-model QuestionSet {
-  id          String   @id @default(cuid())
-  teacherId   String
-  teacher     User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  setName     String
-  description String?
-  createdAt   DateTime @default(now())
-
-  questions   Question[]
-
-  @@index([teacherId])
-  @@map("question_sets")
-}
-
-model Question {
-  id                 String       @id @default(cuid())
-  teacherId          String
-  teacher            User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  setId              String?
-  set                QuestionSet? @relation(fields: [setId], references: [id], onDelete: SetNull)
-  questionText       String
-  answers            String[]
-  correctAnswerIndex Int
-  category           String?
-  difficulty         String?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-
-  @@index([teacherId])
-  @@index([setId])
-  @@map("question_bank")
-}
-
-model ProfessorCard {
-  id           String   @id @default(uuid())
-  teacherId    String
-  teacher      User     @relation("TeacherCards", fields: [teacherId], references: [id], onDelete: Cascade)
-  name         String
-  title        String   @default("")
-  description  String   @default("")
-  imageUrl     String?
-  avatarBase64 String?  @db.Text
-  unlockPoints Int      @default(100)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  studentCards StudentProfessorCard[]
-
-  @@index([teacherId])
-  @@map("professor_cards")
-}
-
-model StudentProfessorCard {
-  id         String    @id @default(uuid())
-  studentId  String
-  student    User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  cardId     String
-  card       ProfessorCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  unlocked   Boolean   @default(false)
-  unlockedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@unique([studentId, cardId])
-  @@index([studentId])
-  @@index([cardId])
-  @@map("student_professor_cards")
-}
-
-model StudentProfessorPoint {
-  id          String   @id @default(cuid())
-  studentId   String
-  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  professorId String
-  points      Int      @default(0)
-  unlocked    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([studentId, professorId])
-  @@index([studentId])
-  @@index([professorId])
-  @@map("student_professor_points")
-}
-
-model ProfessorReward {
-  id             String   @id @default(uuid())
-  teacherId      String
-  teacher        User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  title          String
-  description    String   @default("")
-  pointsRequired Int
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-
-  redemptions    RewardRedemption[]
-
-  @@index([teacherId])
-  @@index([isActive])
-  @@map("professor_rewards")
-}
-
-model RewardRedemption {
-  id          String            @id @default(uuid())
-  studentId   String
-  student     User              @relation("StudentRedemptions", fields: [studentId], references: [id], onDelete: Cascade)
-  rewardId    String
-  reward      ProfessorReward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-  teacherId   String
-  teacher     User              @relation("TeacherRedemptions", fields: [teacherId], references: [id], onDelete: Cascade)
-  pointsSpent Int
-  status      RedemptionStatus  @default(PENDING)
-  redeemedAt  DateTime          @default(now())
-
-  @@index([studentId])
-  @@index([teacherId])
-  @@index([rewardId])
-  @@index([status])
-  @@map("student_reward_redemptions")
 }
 
 model Achievement {
@@ -291,7 +139,6 @@ model Achievement {
   unlockedAt  DateTime @default(now())
 
   @@index([userId])
-  @@map("achievements")
 }
 
 model Notification {
@@ -306,5 +153,4 @@ model Notification {
 
   @@index([userId])
   @@index([read])
-  @@map("notifications")
 }
