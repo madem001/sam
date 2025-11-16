@@ -251,11 +251,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-6 pb-6">
-        <div className="max-w-2xl mx-auto space-y-8">
-
-          {/* Profile Card - Hero */}
-          <div className="glass-card-modern overflow-visible p-0">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {/* Profile Card - Hero */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <div className="glass-card-modern overflow-visible p-0 -mx-6">
             {/* Profile Image Section */}
             <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600">
               <img
@@ -306,8 +305,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               </div>
             </div>
           </div>
+        </div>
 
-
+        <div className="max-w-2xl mx-auto px-6 space-y-8">
           {/* Achievements Section */}
           {user.achievements && user.achievements.length > 0 && (
             <div className="glass-card-modern p-6">
