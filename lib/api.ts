@@ -103,6 +103,10 @@ export const authApi = {
       return null;
     }
 
+    if (data && data.avatar_base64) {
+      data.avatar = data.avatar_base64;
+    }
+
     console.log('✅ Perfil obtenido:', data);
     return data;
   },
@@ -115,7 +119,12 @@ export const authApi = {
     };
 
     if (updates.name !== undefined) updateData.name = updates.name;
-    if (updates.avatar !== undefined) updateData.avatar = updates.avatar;
+    if (updates.avatar !== undefined) {
+      updateData.avatar = updates.avatar;
+      if (updates.avatar.startsWith('data:image')) {
+        updateData.avatar_base64 = updates.avatar;
+      }
+    }
 
     const { error } = await supabase
       .from('profiles')
@@ -127,7 +136,7 @@ export const authApi = {
       throw error;
     }
 
-    console.log('✅ Perfil actualizado exitosamente');
+    console.log('✅ Perfil actualizado exitosamente (con base64)');
   },
 };
 
@@ -147,6 +156,7 @@ export const professorCardsApi = {
           title,
           description,
           image_url,
+          avatar_base64,
           unlock_points
         )
       `)
@@ -155,6 +165,14 @@ export const professorCardsApi = {
     if (error) {
       console.error('❌ Error obteniendo cartas:', error);
       return [];
+    }
+
+    if (data) {
+      data.forEach((item: any) => {
+        if (item.card && item.card.avatar_base64) {
+          item.card.image_url = item.card.avatar_base64;
+        }
+      });
     }
 
     console.log('✅ Cartas obtenidas:', data);
