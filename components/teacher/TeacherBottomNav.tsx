@@ -19,11 +19,12 @@ const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="relative flex-1 flex flex-col items-center justify-center py-4 transition-all duration-300"
+      className="relative flex-1 flex flex-col items-center justify-center py-4"
     >
       <ion-icon
         name={iconName}
-        class={`text-2xl transition-all duration-300 ${isActive ? 'opacity-0' : 'text-gray-600'}`}
+        class={`text-2xl ${isActive ? 'invisible' : 'text-gray-600'}`}
+        style={{ transition: 'none' }}
       ></ion-icon>
     </button>
   );
