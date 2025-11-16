@@ -339,7 +339,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div ref={appContainerRef} className="relative w-full max-w-md h-screen mx-auto bg-white dark:bg-slate-900 shadow-2xl overflow-hidden flex flex-col overflow-x-hidden transition-colors duration-300">
+    <div ref={appContainerRef} className="relative w-full max-w-md h-screen mx-auto shadow-2xl overflow-hidden flex flex-col overflow-x-hidden transition-colors duration-300">
       {renderAppContent()}
     </div>
   );
