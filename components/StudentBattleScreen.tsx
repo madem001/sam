@@ -73,27 +73,31 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
     const myGroupData = groupsData.find(g => g.id === groupId);
     if (myGroupData) {
       setMyGroup(myGroupData);
+    }
+  };
 
-      if (questions.length > 0 && battle?.status === 'active' && !myGroupData.is_eliminated) {
-        const currentQ = questions[myGroupData.current_question_index];
-        if (currentQ) {
-          console.log('📝 [STUDENT] Pregunta actual del grupo:', {
-            index: myGroupData.current_question_index,
-            text: currentQ.question_text.substring(0, 50) + '...'
-          });
+  useEffect(() => {
+    if (!myGroup || !battle || !questions.length) return;
 
-          if (!currentQuestion || currentQuestion.id !== currentQ.id) {
-            console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
-            setCurrentQuestion(currentQ);
-            setStartTime(Date.now());
-            setHasAnswered(false);
-            setSelectedAnswer(null);
-            setTimeRemaining(60);
-          }
+    if (battle.status === 'active' && !myGroup.is_eliminated) {
+      const currentQ = questions[myGroup.current_question_index];
+      if (currentQ) {
+        console.log('📝 [STUDENT] Pregunta actual del grupo:', {
+          index: myGroup.current_question_index,
+          text: currentQ.question_text.substring(0, 50) + '...'
+        });
+
+        if (!currentQuestion || currentQuestion.id !== currentQ.id) {
+          console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
+          setCurrentQuestion(currentQ);
+          setStartTime(Date.now());
+          setHasAnswered(false);
+          setSelectedAnswer(null);
+          setTimeRemaining(60);
         }
       }
     }
-  };
+  }, [myGroup, battle, questions]);
 
   useEffect(() => {
     if (!battle || !currentQuestion || hasAnswered || battle.status !== 'active') {

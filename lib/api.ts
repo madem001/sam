@@ -821,6 +821,46 @@ export const battleApi = {
       return false;
     }
   },
+
+  restartBattle: async (battleId: string) => {
+    try {
+      console.log('🔄 [API] Reiniciando batalla:', battleId);
+
+      await supabase
+        .from('battle_answers')
+        .delete()
+        .eq('battle_id', battleId);
+
+      await supabase
+        .from('battle_groups')
+        .update({
+          score: 0,
+          correct_answers: 0,
+          wrong_answers: 0,
+          is_eliminated: false,
+          current_question_index: 0,
+        })
+        .eq('battle_id', battleId);
+
+      const now = new Date().toISOString();
+      await supabase
+        .from('battles')
+        .update({
+          status: 'waiting',
+          current_question_index: 0,
+          started_at: null,
+          finished_at: null,
+          question_started_at: null,
+        })
+        .eq('id', battleId);
+
+      console.log('✅ [API] Batalla reiniciada exitosamente');
+      return true;
+    } catch (error) {
+      console.error('❌ Error restarting battle:', error);
+      return false;
+    }
+  },
 };
 
 export default {

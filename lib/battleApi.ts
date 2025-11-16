@@ -262,6 +262,16 @@ export const nextQuestionForGroup = async (groupId: string, battleId: string): P
   }
 };
 
+export const restartBattle = async (battleId: string): Promise<boolean> => {
+  try {
+    await api.restartBattle(battleId);
+    return true;
+  } catch (error) {
+    console.error('Error restarting battle:', error);
+    return false;
+  }
+};
+
 export const getBattleState = async (battleId: string): Promise<Battle | null> => {
   try {
     const battle = await api.getBattleState(battleId);

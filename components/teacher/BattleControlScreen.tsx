@@ -61,6 +61,21 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
     }
   };
 
+  const handleRestartBattle = async () => {
+    if (!confirm('¿Reiniciar la batalla? Se borrarán todos los resultados actuales.')) {
+      return;
+    }
+    console.log('🔄 [TEACHER] Reiniciando batalla:', battleId);
+    const success = await battleApi.restartBattle(battleId);
+    if (success) {
+      console.log('✅ [TEACHER] Batalla reiniciada exitosamente');
+      await loadBattleData();
+    } else {
+      console.error('❌ [TEACHER] Error al reiniciar batalla');
+      alert('Error al reiniciar la batalla');
+    }
+  };
+
   const handleNextQuestion = async () => {
     try {
       console.log('⏭️ [CONTROL] Avanzando a siguiente pregunta...');
@@ -217,6 +232,25 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
             <ion-icon name="trophy" class="text-6xl mb-2"></ion-icon>
             <h2 className="text-2xl font-bold">Batalla Finalizada</h2>
             <p className="mt-2 opacity-90">Revisa el ranking final a continuación</p>
+            <button
+              onClick={handleRestartBattle}
+              className="mt-4 px-6 py-2 bg-white text-green-600 font-bold rounded-lg shadow-md hover:bg-slate-100 transition-colors"
+            >
+              <ion-icon name="refresh-outline" class="mr-2"></ion-icon>
+              Reiniciar Batalla
+            </button>
+          </div>
+        )}
+
+        {(isActive || isWaiting) && (
+          <div className="flex justify-center">
+            <button
+              onClick={handleRestartBattle}
+              className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+            >
+              <ion-icon name="refresh-outline" class="mr-2"></ion-icon>
+              Reiniciar Batalla
+            </button>
           </div>
         )}
 
