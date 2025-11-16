@@ -266,9 +266,9 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                 <p className="text-sm font-bold text-slate-700 mb-4">Vista Previa</p>
 
-                <div className="bg-slate-900 rounded-xl p-16 text-center mb-4 min-h-[200px] flex items-center justify-center">
+                <div className="bg-slate-900 rounded-xl p-8 mb-4 h-[180px] flex items-center justify-center overflow-hidden">
                   <p
-                    className="text-8xl font-black tracking-tight break-words leading-none"
+                    className="text-5xl font-black tracking-tight leading-tight text-center"
                     style={{ color: wordColor }}
                   >
                     {wordText}
@@ -323,9 +323,9 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                 </button>
               </div>
 
-              <div className="bg-slate-900 rounded-xl p-16 text-center min-h-[220px] flex items-center justify-center">
+              <div className="bg-slate-900 rounded-xl p-8 h-[200px] flex items-center justify-center overflow-hidden">
                 <p
-                  className="text-9xl font-black tracking-tight"
+                  className="text-6xl font-black tracking-tight leading-tight text-center"
                   style={{ color: activeGame.word_color }}
                 >
                   {activeGame.word_text}
