@@ -171,7 +171,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     }
 
     let baseTranslateX = offset * 45;
-    let baseScale = 1 - Math.abs(offset) * 0.12;
+    let baseScale = isActive ? 1.1 : 1 - Math.abs(offset) * 0.15;
     let baseRotate = offset * 2;
 
     if (isActive && dragState.isDragging) {
@@ -243,12 +243,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden -mt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Profile Card - Hero */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
-            <div className="relative h-80 bg-gradient-to-br from-teal-600 to-emerald-500">
+            <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-900">
               <img
                 src={user.imageUrl}
                 alt={user.name}
@@ -257,7 +257,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             </div>
 
             {/* Profile Info Section with Curved Top */}
-            <div className="relative bg-white -mt-10 rounded-t-[3rem] p-6 pt-10 text-center shadow-2xl">
+            <div className="relative bg-white -mt-10 rounded-t-[3rem] p-5 pt-8 text-center shadow-2xl">
               <h1 className="text-2xl font-bold text-slate-800 mb-1">{user.name}</h1>
               <p className="text-sm text-slate-500 mb-4 flex items-center justify-center">
                 <ion-icon name="location-outline" class="text-base mr-1"></ion-icon>
@@ -265,7 +265,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               </p>
 
               {/* Stats Row */}
-              <div className="flex justify-around mb-5 pb-5 border-b border-slate-200">
+              <div className="flex justify-around mb-4 pb-4 border-b border-slate-200">
                 <div>
                   <div className="text-2xl font-bold text-slate-800">{professors.filter(p => !p.locked).length}</div>
                   <div className="text-xs text-slate-500">Cartas</div>
@@ -284,7 +284,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               <div className="flex gap-3">
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-1 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
                 >
                   Editar
                 </button>
@@ -299,7 +299,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto px-6 space-y-8">
+        <div className="max-w-2xl mx-auto px-6 space-y-4">
           {/* Achievements Section */}
           {user.achievements && user.achievements.length > 0 && (
             <div className="glass-card-modern p-6">
@@ -335,7 +335,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               <div className="space-y-4">
                 <div
                   ref={cardContainerRef}
-                  style={{ perspective: '1400px', height: '400px' }}
+                  style={{ perspective: '1400px', height: '440px' }}
                   className="flex items-center justify-center w-full relative select-none"
                   onMouseMove={handleDragMove}
                   onMouseUp={handleDragEnd}
@@ -343,7 +343,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                   onTouchMove={handleDragMove}
                   onTouchEnd={handleDragEnd}
                 >
-                  <div style={{ position: 'relative', width: '280px', height: '380px', transformStyle: 'preserve-3d' }}>
+                  <div style={{ position: 'relative', width: '280px', height: '400px', transformStyle: 'preserve-3d' }}>
                     {professors.map((prof, index) => (
                       <div
                         key={prof.id}
@@ -360,7 +360,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                         onClick={() => handleCardClick(index)}
                       >
                         <div style={{
-                          transform: 'scale(0.9)',
                           filter: index === activeCardIndex ? 'none' : 'brightness(0.85)'
                         }}>
                           <ProfessorCard
@@ -381,7 +380,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                       key={index}
                       className={`h-2 rounded-full transition-all ${
                         index === activeCardIndex
-                          ? 'w-8 bg-sky-500'
+                          ? 'w-8 bg-gray-900'
                           : 'w-2 bg-slate-300'
                       }`}
                       onClick={() => setActiveCardIndex(index)}
@@ -395,7 +394,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                       key={prof.id}
                       className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
                         index === activeCardIndex
-                          ? 'ring-3 ring-sky-500 scale-110 shadow-lg'
+                          ? 'ring-3 ring-gray-900 scale-110 shadow-lg'
                           : 'opacity-60 hover:opacity-100 hover:scale-105'
                       }`}
                       onClick={() => setActiveCardIndex(index)}
