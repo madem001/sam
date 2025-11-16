@@ -14,10 +14,15 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
   const [editableUser, setEditableUser] = useState<User>(user);
   const [unlockPoints, setUnlockPoints] = useState(100);
   const [isEditing, setIsEditing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     loadUnlockPoints();
   }, [user.id]);
+
+  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+    setScrollY(e.currentTarget.scrollTop);
+  };
 
   const loadUnlockPoints = async () => {
     const { data, error } = await supabase
@@ -71,16 +76,24 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
   return (
     <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50">
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main
+        className="flex-1 overflow-y-auto overflow-x-hidden pb-24"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onScroll={handleScroll}
+      >
         {/* Profile Card - Hero */}
         <div className="mb-4">
           <div className="overflow-visible p-0">
-            {/* Profile Image Section */}
-            <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-900">
+            {/* Profile Image Section with Parallax */}
+            <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden">
               <img
                 src={editableUser.imageUrl}
                 alt={editableUser.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-100 ease-out"
+                style={{
+                  transform: `translateY(${Math.min(scrollY * 0.5, 100)}px) scale(${1 + Math.min(scrollY * 0.001, 0.3)})`,
+                  objectPosition: 'center top'
+                }}
               />
             </div>
 
