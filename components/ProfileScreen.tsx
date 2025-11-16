@@ -26,6 +26,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [isLoadingProfessors, setIsLoadingProfessors] = useState(true);
+  const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
   const [selectedCardForRedemption, setSelectedCardForRedemption] = useState<{
     cardId: string;
     teacherId: string;
@@ -249,6 +250,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
 
   return (
     <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50">
+      {/* Fullscreen Photo Modal */}
+      {isPhotoExpanded && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onClick={() => setIsPhotoExpanded(false)}
+        >
+          <button
+            onClick={() => setIsPhotoExpanded(false)}
+            className="absolute top-6 right-6 z-10 p-3 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all"
+          >
+            <ion-icon name="close" class="text-2xl"></ion-icon>
+          </button>
+          <img
+            src={user.imageUrl}
+            alt={user.name}
+            className="max-w-full max-h-full object-contain"
+          />
+        </div>
+      )}
+
       {/* Compact Header */}
       <header className="absolute top-0 right-0 z-20 flex items-center justify-end px-6 py-4 gap-2">
         <button
@@ -270,12 +291,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
         <div className="mb-4">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
-            <div className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden">
+            <div
+              className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden cursor-pointer hover:opacity-95 transition-opacity"
+              onClick={() => setIsPhotoExpanded(true)}
+            >
               <img
                 src={user.imageUrl}
                 alt={user.name}
                 className="w-full h-full object-cover object-top"
               />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+                <div className="bg-white/30 backdrop-blur-sm rounded-full p-3">
+                  <ion-icon name="expand-outline" class="text-3xl text-white"></ion-icon>
+                </div>
+              </div>
             </div>
 
             {/* Profile Info Section with Curved Top */}
