@@ -84,23 +84,33 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   const handleButtonPress = async (buttonColor: string) => {
     if (!game || hasResponded) return;
 
+    console.log('Button pressed:', buttonColor);
+    console.log('Game:', game);
+
     const isCorrect =
       (game.correct_answer === 'color' && buttonColor === game.word_color) ||
       (game.correct_answer === 'text' && buttonColor === game.word_text.toLowerCase());
 
-    const { error } = await supabase
+    console.log('Is correct:', isCorrect);
+
+    const { data, error } = await supabase
       .from('all_for_all_responses')
       .insert({
         game_id: game.id,
         student_id: userId,
         button_pressed: buttonColor,
         is_correct: isCorrect,
-      });
+      })
+      .select();
+
+    console.log('Insert result:', data, 'Error:', error);
 
     if (!error) {
       setHasResponded(true);
       setResponseStatus(isCorrect ? 'correct' : 'incorrect');
       setTimeout(() => setResponseStatus(null), 3000);
+    } else {
+      console.error('Error inserting response:', error);
     }
   };
 

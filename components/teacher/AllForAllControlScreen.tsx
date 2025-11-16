@@ -20,7 +20,7 @@ interface Response {
   points_awarded: number;
   student: {
     name: string;
-    avatar_url?: string;
+    avatar_base64?: string;
   };
 }
 
@@ -69,14 +69,18 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const loadResponses = async () => {
     if (!activeGame) return;
 
-    const { data } = await supabase
+    console.log('Loading responses for game:', activeGame.id);
+
+    const { data, error } = await supabase
       .from('all_for_all_responses')
       .select(`
         *,
-        student:profiles!all_for_all_responses_student_id_fkey(name, avatar_url)
+        student:profiles!all_for_all_responses_student_id_fkey(name, avatar_base64)
       `)
       .eq('game_id', activeGame.id)
       .order('rank_position', { ascending: true });
+
+    console.log('Responses loaded:', data, 'Error:', error);
 
     if (data) {
       setResponses(data as any);
