@@ -29,21 +29,37 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   const unreadCount = user.notifications?.filter(n => !n.read).length || 0;
 
   useEffect(() => {
-    if (user.id) {
-      professorCardsApi.getStudentCards(user.id).then(cards => {
-        const mappedProfessors: Professor[] = cards.map((c: any) => ({
-          id: c.card.id,
-          name: c.card.name,
-          subject: c.card.title,
-          description: c.card.description,
-          imageUrl: c.card.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.card.name)}&background=3b82f6&color=fff&bold=true&size=128`,
-          locked: !c.unlocked,
-          unlockPoints: c.card.unlock_points,
-        }));
+    const loadCards = async () => {
+      if (!user.id) return;
+
+      try {
+        console.log('🎴 [PROFILE] Cargando cartas para estudiante:', user.id);
+        const cards = await professorCardsApi.getStudentCards(user.id);
+        console.log('🎴 [PROFILE] Cartas recibidas:', cards.length);
+
+        const mappedProfessors: Professor[] = cards.map((c: any) => {
+          console.log('🎴 [PROFILE] Carta:', c.card?.name, 'Image:', c.card?.image_url);
+          return {
+            id: c.card.id,
+            name: c.card.name,
+            subject: c.card.title,
+            description: c.card.description,
+            imageUrl: c.card.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.card.name)}&background=3b82f6&color=fff&bold=true&size=128`,
+            locked: !c.unlocked,
+            unlockPoints: c.card.unlock_points,
+          };
+        });
+
+        console.log('✅ [PROFILE] Cartas mapeadas:', mappedProfessors);
         setProfessors(mappedProfessors);
         setIsLoadingProfessors(false);
-      });
-    }
+      } catch (error) {
+        console.error('❌ [PROFILE] Error cargando cartas:', error);
+        setIsLoadingProfessors(false);
+      }
+    };
+
+    loadCards();
   }, [user.id]);
 
   const handleOpenNotifications = () => {

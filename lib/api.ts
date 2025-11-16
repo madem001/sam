@@ -402,91 +402,135 @@ export const battleApi = {
   },
 
   joinBattleWithCode: async (battleCode: string, studentId: string, studentName: string) => {
-    console.log('🔍 Buscando batalla con código:', battleCode);
+    try {
+      console.log('🔍 [JOIN] Buscando batalla con código:', battleCode);
 
-    const { data: battle, error: battleError } = await supabase
-      .from('battles')
-      .select('*')
-      .eq('battle_code', battleCode.toUpperCase())
-      .maybeSingle();
+      const { data: battle, error: battleError } = await supabase
+        .from('battles')
+        .select('*')
+        .eq('battle_code', battleCode.toUpperCase())
+        .maybeSingle();
 
-    console.log('Battle query result:', { battle, battleError });
+      console.log('📦 [JOIN] Battle query result:', { battle, battleError });
 
-    if (battleError || !battle) {
-      console.log('❌ Batalla no encontrada');
-      throw new Error('Batalla no encontrada');
-    }
-
-    console.log('✅ Batalla encontrada:', battle.name, 'ID:', battle.id);
-
-    const { data: allGroups, error: groupsError } = await supabase
-      .from('battle_groups')
-      .select('*')
-      .eq('battle_id', battle.id);
-
-    console.log('Groups query result:', { allGroups, groupsError });
-
-    if (groupsError || !allGroups || allGroups.length === 0) {
-      console.log('❌ No hay grupos en esta batalla');
-      throw new Error('No hay grupos disponibles');
-    }
-
-    console.log('📊 Grupos encontrados:', allGroups.length);
-
-    let selectedGroup = null;
-
-    for (const group of allGroups) {
-      if (group.is_full) {
-        console.log(`⛔ Grupo ${group.group_name} está lleno`);
-        continue;
+      if (battleError) {
+        console.error('❌ [JOIN] Error en query de batalla:', battleError);
+        throw new Error('Error al buscar la batalla: ' + battleError.message);
       }
 
-      const { data: members } = await supabase
+      if (!battle) {
+        console.log('❌ [JOIN] Batalla no encontrada con código:', battleCode);
+        throw new Error('Batalla no encontrada. Verifica el código.');
+      }
+
+      console.log('✅ [JOIN] Batalla encontrada:', battle.name, 'ID:', battle.id, 'Status:', battle.status);
+
+      const { data: allGroups, error: groupsError } = await supabase
+        .from('battle_groups')
+        .select('*')
+        .eq('battle_id', battle.id);
+
+      console.log('📦 [JOIN] Groups query result:', { allGroups, groupsError });
+
+      if (groupsError) {
+        console.error('❌ [JOIN] Error en query de grupos:', groupsError);
+        throw new Error('Error al buscar grupos: ' + groupsError.message);
+      }
+
+      if (!allGroups || allGroups.length === 0) {
+        console.log('❌ [JOIN] No hay grupos en esta batalla');
+        throw new Error('No hay grupos disponibles en esta batalla');
+      }
+
+      console.log('📊 [JOIN] Grupos encontrados:', allGroups.length);
+
+      let selectedGroup = null;
+
+      for (const group of allGroups) {
+        if (group.is_full) {
+          console.log(`⛔ [JOIN] Grupo ${group.group_name} está lleno`);
+          continue;
+        }
+
+        const { data: members, error: membersError } = await supabase
+          .from('group_members')
+          .select('*')
+          .eq('group_id', group.id);
+
+        if (membersError) {
+          console.error('❌ [JOIN] Error consultando miembros:', membersError);
+          continue;
+        }
+
+        const memberCount = members?.length || 0;
+        console.log(`👥 [JOIN] Grupo ${group.group_name}: ${memberCount}/${battle.students_per_group} miembros`);
+
+        if (memberCount < battle.students_per_group) {
+          selectedGroup = group;
+          break;
+        }
+      }
+
+      if (!selectedGroup) {
+        selectedGroup = allGroups[0];
+        console.log('⚠️ [JOIN] Usando primer grupo por defecto:', selectedGroup.group_name);
+      } else {
+        console.log('✅ [JOIN] Grupo seleccionado:', selectedGroup.group_name, 'ID:', selectedGroup.id);
+      }
+
+      console.log('💾 [JOIN] Insertando estudiante en grupo...');
+      const { error: insertError } = await supabase.from('group_members').insert({
+        group_id: selectedGroup.id,
+        student_id: studentId,
+        student_name: studentName,
+      });
+
+      if (insertError) {
+        console.error('❌ [JOIN] Error insertando miembro:', insertError);
+        throw new Error('No se pudo unir al grupo: ' + insertError.message);
+      }
+
+      console.log('✅ [JOIN] Estudiante agregado exitosamente al grupo');
+
+      const { data: updatedMembers } = await supabase
         .from('group_members')
         .select('*')
-        .eq('group_id', group.id);
+        .eq('group_id', selectedGroup.id);
 
-      const memberCount = members?.length || 0;
-      console.log(`👥 Grupo ${group.group_name}: ${memberCount}/${battle.students_per_group} miembros`);
-
-      if (memberCount < battle.students_per_group) {
-        selectedGroup = group;
-        break;
+      if (updatedMembers && updatedMembers.length >= battle.students_per_group) {
+        console.log('🔒 [JOIN] Grupo alcanzó capacidad máxima, marcando como lleno');
+        await supabase
+          .from('battle_groups')
+          .update({ is_full: true })
+          .eq('id', selectedGroup.id);
       }
+
+      console.log('🎉 [JOIN] UNIÓN EXITOSA - Grupo:', selectedGroup.group_name, 'Batalla:', battle.name);
+
+      return {
+        group: {
+          id: selectedGroup.id,
+          battle_id: battle.id,
+          groupCode: selectedGroup.group_code,
+          groupName: selectedGroup.group_name,
+          score: selectedGroup.score,
+          correctAnswers: selectedGroup.correct_answers,
+          createdAt: selectedGroup.created_at
+        },
+        battle: {
+          id: battle.id,
+          name: battle.name,
+          teacherId: battle.teacher_id,
+          questionCount: battle.question_count,
+          status: battle.status,
+          currentQuestionIndex: battle.current_question_index,
+          createdAt: battle.created_at
+        }
+      };
+    } catch (error: any) {
+      console.error('💥 [JOIN] Error completo:', error);
+      throw error;
     }
-
-    if (!selectedGroup) {
-      selectedGroup = allGroups[0];
-      console.log('⚠️ Usando primer grupo por defecto:', selectedGroup.group_name);
-    } else {
-      console.log('✅ Grupo seleccionado:', selectedGroup.group_name);
-    }
-
-    const { error: insertError } = await supabase.from('group_members').insert({
-      group_id: selectedGroup.id,
-      student_id: studentId,
-      student_name: studentName,
-    });
-
-    if (insertError) {
-      console.error('❌ Error insertando miembro:', insertError);
-      throw new Error('No se pudo unir al grupo');
-    }
-
-    const { data: updatedMembers } = await supabase
-      .from('group_members')
-      .select('*')
-      .eq('group_id', selectedGroup.id);
-
-    if (updatedMembers && updatedMembers.length >= battle.students_per_group) {
-      console.log('🔒 Marcando grupo como lleno');
-      await supabase
-        .from('battle_groups')
-        .update({ is_full: true })
-        .eq('id', selectedGroup.id);
-    }
-
-    return { group: selectedGroup, battle };
   },
 
   joinGroup: async (groupCode: string, studentId: string, studentName: string) => {

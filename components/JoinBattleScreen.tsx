@@ -54,29 +54,38 @@ const JoinBattleScreen: React.FC<JoinBattleScreenProps> = ({ onBack, studentId, 
         }
 
         setIsJoining(true);
-        console.log('🎮 Intentando unirse con código:', fullCode);
+        console.log('🎮 [UI] Intentando unirse con código:', fullCode);
+        console.log('🎮 [UI] Student ID:', studentId, 'Name:', studentName);
 
         try {
             const result = await battleApi.joinBattleWithCode(fullCode, studentId, studentName);
-            console.log('📦 Resultado de joinBattleWithCode:', result);
+            console.log('📦 [UI] Resultado completo de joinBattleWithCode:', JSON.stringify(result, null, 2));
 
             if (result.success && result.group) {
-                console.log('✅ Unido exitosamente al grupo:', result.group.group_name);
-                console.log('🎯 Configurando joined group - GroupID:', result.group.id, 'BattleID:', result.group.battle_id);
+                console.log('✅ [UI] Unido exitosamente!');
+                console.log('✅ [UI] Grupo:', result.group.group_name);
+                console.log('✅ [UI] Battle:', result.battle?.name);
+                console.log('🎯 [UI] Configurando joined group:');
+                console.log('   - GroupID:', result.group.id);
+                console.log('   - BattleID:', result.group.battle_id);
+
                 setJoinedGroup({
                     groupId: result.group.id,
                     battleId: result.group.battle_id,
                 });
+
+                console.log('🎯 [UI] Estado actualizado, debería mostrar StudentBattleScreen');
             } else {
-                console.log('❌ Join falló:', result.message);
+                console.log('❌ [UI] Join falló:', result.message);
                 alert(result.message || 'Error al unirse a la batalla');
             }
         } catch (error: any) {
-            console.error('❌ Error joining battle:', error);
-            alert(error.message || 'No se pudo unir a la batalla');
+            console.error('❌ [UI] Error joining battle:', error);
+            console.error('❌ [UI] Error stack:', error.stack);
+            alert(error.message || 'No se pudo unir a la batalla. Por favor, intenta de nuevo.');
+        } finally {
+            setIsJoining(false);
         }
-
-        setIsJoining(false);
     };
 
     if (joinedGroup) {
