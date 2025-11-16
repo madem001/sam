@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Professor, Achievement } from '../types';
 import EditProfileModal from './EditProfileModal';
 import NotificationsPanel from './NotificationsPanel';
@@ -34,6 +34,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     professorName: string;
     points: number;
   } | null>(null);
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+  }>({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+  });
+
+  const cardContainerRef = useRef<HTMLDivElement>(null);
   const unreadCount = user.notifications?.filter(n => !n.read).length || 0;
 
   useEffect(() => {
@@ -95,25 +110,121 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     }
   };
 
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    setDragState({
+      isDragging: true,
+      startX: clientX,
+      startY: clientY,
+      currentX: 0,
+      currentY: 0,
+    });
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!dragState.isDragging) return;
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    setDragState(prev => ({
+      ...prev,
+      currentX: clientX - prev.startX,
+      currentY: clientY - prev.startY,
+    }));
+  };
+
+  const handleDragEnd = () => {
+    if (!dragState.isDragging) return;
+
+    const threshold = 100;
+    const absX = Math.abs(dragState.currentX);
+
+    if (absX > threshold) {
+      if (dragState.currentX > 0 && activeCardIndex > 0) {
+        setActiveCardIndex(prev => prev - 1);
+      } else if (dragState.currentX < 0 && activeCardIndex < professors.length - 1) {
+        setActiveCardIndex(prev => prev + 1);
+      }
+    }
+
+    setDragState({
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      currentX: 0,
+      currentY: 0,
+    });
+  };
+
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - activeCardIndex;
+    const isActive = index === activeCardIndex;
     const isVisible = Math.abs(offset) < 3;
 
     if (!isVisible) {
-        return { opacity: 0, transform: `translateX(${offset > 0 ? 100 : -100}%) scale(0.7)`, pointerEvents: 'none' };
+        return {
+          opacity: 0,
+          transform: `translateX(${offset > 0 ? 100 : -100}%) scale(0.7)`,
+          pointerEvents: 'none'
+        };
     }
 
-    const translateX = offset * 40;
-    const scale = 1 - Math.abs(offset) * 0.15;
+    let baseTranslateX = offset * 45;
+    let baseScale = 1 - Math.abs(offset) * 0.12;
+    let baseRotate = offset * 2;
+
+    if (isActive && dragState.isDragging) {
+      const dragRotate = dragState.currentX * 0.02;
+      return {
+        transform: `translateX(calc(${baseTranslateX}% + ${dragState.currentX}px))
+                    translateY(${dragState.currentY}px)
+                    scale(${baseScale})
+                    rotate(${dragRotate}deg)`,
+        zIndex: 100,
+        opacity: 1,
+        cursor: 'grabbing',
+        transition: 'none',
+      };
+    }
+
     const zIndex = 100 - Math.abs(offset);
-    const opacity = 1 - Math.abs(offset) * 0.3;
+    const opacity = isActive ? 1 : 0.6 - Math.abs(offset) * 0.15;
 
     return {
-        transform: `translateX(${translateX}%) scale(${scale})`,
-        zIndex,
-        opacity,
-        cursor: 'pointer'
+      transform: `translateX(${baseTranslateX}%) scale(${baseScale}) rotate(${baseRotate}deg)`,
+      zIndex,
+      opacity,
+      cursor: isActive ? 'grab' : 'pointer',
+      transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease',
     };
+  };
+
+  const handleCardClick = async (index: number) => {
+    if (dragState.isDragging) return;
+
+    const prof = professors[index];
+    if (index === activeCardIndex) {
+      if (!prof.locked) {
+        const { data: pointsData } = await supabase
+          .from('student_professor_points')
+          .select('points')
+          .eq('student_id', user.id)
+          .eq('professor_id', prof.id)
+          .maybeSingle();
+
+        setSelectedCardForRedemption({
+          cardId: prof.cardId || '',
+          teacherId: prof.id,
+          professorName: prof.name,
+          points: pointsData?.points || 0,
+        });
+      }
+    } else {
+      setActiveCardIndex(index);
+    }
   };
 
   return (
@@ -209,6 +320,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
               <ion-icon name="people" class="text-xl mr-2 text-blue-500"></ion-icon>
               Mis Maestros
+              <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 font-normal">
+                Desliza las cartas →
+              </span>
             </h3>
 
             {isLoadingProfessors ? (
@@ -222,9 +336,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Card Display */}
-                <div style={{ perspective: '1000px', height: '280px' }} className="flex items-center justify-center w-full">
-                  <div style={{ position: 'relative', width: '220px', height: '280px', transformStyle: 'preserve-3d' }}>
+                <div
+                  ref={cardContainerRef}
+                  style={{ perspective: '1200px', height: '320px' }}
+                  className="flex items-center justify-center w-full relative select-none"
+                  onMouseMove={handleDragMove}
+                  onMouseUp={handleDragEnd}
+                  onMouseLeave={handleDragEnd}
+                  onTouchMove={handleDragMove}
+                  onTouchEnd={handleDragEnd}
+                >
+                  <div style={{ position: 'relative', width: '240px', height: '320px', transformStyle: 'preserve-3d' }}>
                     {professors.map((prof, index) => (
                       <div
                         key={prof.id}
@@ -234,33 +356,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                           left: 0,
                           width: '100%',
                           height: '100%',
-                          transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease',
-                          cursor: 'pointer',
                           ...getCardStyle(index)
                         }}
-                        onClick={async () => {
-                            if (index === activeCardIndex) {
-                              if (!prof.locked) {
-                                const { data: pointsData } = await supabase
-                                  .from('student_professor_points')
-                                  .select('points')
-                                  .eq('student_id', user.id)
-                                  .eq('professor_id', prof.id)
-                                  .maybeSingle();
-
-                                setSelectedCardForRedemption({
-                                  cardId: prof.cardId || '',
-                                  teacherId: prof.id,
-                                  professorName: prof.name,
-                                  points: pointsData?.points || 0,
-                                });
-                              }
-                            } else {
-                                setActiveCardIndex(index);
-                            }
-                        }}
+                        onMouseDown={index === activeCardIndex ? handleDragStart : undefined}
+                        onTouchStart={index === activeCardIndex ? handleDragStart : undefined}
+                        onClick={() => handleCardClick(index)}
                       >
-                        <div style={{ transform: 'scale(0.85)' }}>
+                        <div style={{
+                          transform: 'scale(0.9)',
+                          filter: index === activeCardIndex ? 'none' : 'brightness(0.85)'
+                        }}>
                           <ProfessorCard
                             professor={prof}
                             isActive={index === activeCardIndex}
@@ -273,7 +378,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                   </div>
                 </div>
 
-                {/* Thumbnails */}
+                <div className="flex justify-center items-center gap-2">
+                  {professors.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`h-2 rounded-full transition-all ${
+                        index === activeCardIndex
+                          ? 'w-8 bg-sky-500'
+                          : 'w-2 bg-slate-300 dark:bg-slate-600'
+                      }`}
+                      onClick={() => setActiveCardIndex(index)}
+                    />
+                  ))}
+                </div>
+
                 <div className="flex justify-center items-center gap-2 flex-wrap">
                   {professors.map((prof, index) => (
                     <button
