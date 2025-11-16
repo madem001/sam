@@ -162,8 +162,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const selectedColorOption = COLOR_OPTIONS.find(c => c.value === wordColor);
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24">
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide">
+      <div className="max-w-full mx-auto px-4 py-6">
         <div className="mb-8 animate-fade-in">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
