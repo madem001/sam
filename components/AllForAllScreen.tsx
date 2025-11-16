@@ -61,56 +61,27 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   };
 
   const loadActiveGame = async () => {
-    console.log('🔍 [STUDENT] Cargando juego activo...');
+    console.log('🔍 [STUDENT] Cargando juego activo de cualquier profesor...');
     setIsLoading(true);
-
-    const { data: myProfessors, error: profError } = await supabase
-      .from('student_professor_points')
-      .select('professor_id')
-      .eq('student_id', userId);
-
-    console.log('📋 [STUDENT] Query profesores:', { myProfessors, profError });
-
-    if (profError || !myProfessors || myProfessors.length === 0) {
-      console.log('⚠️ [STUDENT] No tengo profesores asignados');
-      setGame(null);
-      setHasResponded(false);
-      setIsLoading(false);
-      return;
-    }
-
-    const professorIds = myProfessors.map(p => p.professor_id);
-    console.log('👨‍🏫 [STUDENT] Mis profesores:', professorIds);
 
     const { data: onlinePresence, error: presenceError } = await supabase
       .from('teacher_presence')
       .select('teacher_id, game_id, is_online, last_heartbeat')
       .eq('is_online', true)
-      .in('teacher_id', professorIds);
+      .not('game_id', 'is', null);
 
-    console.log('📡 [STUDENT] Presencia:', { onlinePresence, presenceError });
+    console.log('📡 [STUDENT] Presencia de profesores:', { onlinePresence, presenceError });
 
     if (!onlinePresence || onlinePresence.length === 0) {
-      console.log('⏳ [STUDENT] Ninguno de mis profesores está en línea');
+      console.log('⏳ [STUDENT] No hay profesores en línea con juegos activos');
       setGame(null);
       setHasResponded(false);
       setIsLoading(false);
       return;
     }
 
-    const onlineTeachers = onlinePresence.map(p => p.teacher_id);
     const activeGameIds = onlinePresence.map(p => p.game_id).filter(id => id !== null);
-
-    console.log('✅ [STUDENT] Profesores en línea:', onlineTeachers);
-    console.log('🎮 [STUDENT] Game IDs de presencia:', activeGameIds);
-
-    if (activeGameIds.length === 0) {
-      console.log('⚠️ [STUDENT] No hay game_ids en la presencia');
-      setGame(null);
-      setHasResponded(false);
-      setIsLoading(false);
-      return;
-    }
+    console.log('🎮 [STUDENT] Game IDs activos:', activeGameIds);
 
     const { data, error } = await supabase
       .from('all_for_all_games')
@@ -121,14 +92,14 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       .limit(1)
       .maybeSingle();
 
-    console.log('📦 [STUDENT] Resultado de búsqueda de juegos:', { data, error });
+    console.log('📦 [STUDENT] Resultado de búsqueda:', { data, error });
 
     if (data) {
-      console.log('✅ [STUDENT] Juego activo encontrado:', JSON.stringify(data, null, 2));
+      console.log('✅ [STUDENT] Juego encontrado:', JSON.stringify(data, null, 2));
       setGame(data);
       await checkIfResponded(data.id);
     } else {
-      console.log('⏳ [STUDENT] No hay juego activo de profesores en línea');
+      console.log('⏳ [STUDENT] No hay juegos activos disponibles');
       setGame(null);
       setHasResponded(false);
     }
