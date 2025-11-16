@@ -159,19 +159,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           </div>
 
           {/* Achievements Section */}
-          <div className="w-full flex-shrink-0 mb-4">
-            <h3 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-2 text-center">Mis Logros</h3>
-            <div className="flex justify-center flex-wrap gap-3">
-              {user.achievements.map(ach => (
-                <div key={ach.id} className="flex-shrink-0 w-16 text-center">
-                  <div className="bg-white dark:bg-slate-700 rounded-full h-14 w-14 mx-auto flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-600">
-                    <ion-icon name={ach.icon} class="text-2xl text-sky-500 dark:text-sky-400"></ion-icon>
+          {user.achievements && user.achievements.length > 0 && (
+            <div className="w-full flex-shrink-0 mb-4">
+              <h3 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-2 text-center">Mis Logros</h3>
+              <div className="flex justify-center flex-wrap gap-3">
+                {user.achievements.map(ach => (
+                  <div key={ach.id} className="flex-shrink-0 w-16 text-center">
+                    <div className="bg-white dark:bg-slate-700 rounded-full h-14 w-14 mx-auto flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-600">
+                      <ion-icon name={ach.icon} class="text-2xl text-sky-500 dark:text-sky-400"></ion-icon>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 truncate">{ach.name}</p>
                   </div>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 truncate">{ach.name}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Professor Cards Section */}
           <div className="flex-1 flex flex-col items-center min-h-0 justify-center">
