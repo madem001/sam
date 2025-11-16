@@ -733,32 +733,24 @@ export const battleApi = {
 
       if (answerError) throw answerError;
 
-      const { data: battle } = await supabase
-        .from('battles')
-        .select('question_count')
-        .eq('id', battleId)
-        .maybeSingle();
-
       const { data: group } = await supabase
         .from('battle_groups')
         .select('score, correct_answers, wrong_answers, is_eliminated')
         .eq('id', groupId)
         .maybeSingle();
 
-      if (group && battle) {
+      if (group) {
         if (isCorrect) {
-          const basePointsPerQuestion = 200 / battle.question_count;
-          const speedBonus = Math.max(1 - (responseTime / 60000), 0) * 0.5;
-          const points = Math.round(basePointsPerQuestion * (1 + speedBonus));
+          const tempPoints = Math.max(1000 - responseTime, 100);
 
           await supabase
             .from('battle_groups')
             .update({
-              score: group.score + points,
+              score: group.score + tempPoints,
               correct_answers: group.correct_answers + 1,
             })
             .eq('id', groupId);
-          console.log('✅ [API] Respuesta correcta, puntos otorgados:', points);
+          console.log('✅ [API] Respuesta correcta, puntos temporales:', tempPoints);
         } else {
           const newWrongAnswers = group.wrong_answers + 1;
           const shouldEliminate = newWrongAnswers >= 2;
@@ -925,6 +917,32 @@ export const battleApi = {
     } catch (error) {
       console.error('❌ Error restarting battle:', error);
       return false;
+    }
+  },
+
+  calculateFinalPoints: async (battleId: string, groupId: string): Promise<number> => {
+    try {
+      const { data: allGroups } = await supabase
+        .from('battle_groups')
+        .select('id, score, is_eliminated')
+        .eq('battle_id', battleId)
+        .order('score', { ascending: false });
+
+      if (!allGroups) return 0;
+
+      const activeGroups = allGroups.filter(g => !g.is_eliminated);
+      const groupRank = activeGroups.findIndex(g => g.id === groupId);
+
+      if (groupRank === -1) return 0;
+
+      const pointsByRank = [200, 150, 100];
+      const points = pointsByRank[groupRank] || 50;
+
+      console.log('🏆 [API] Puntos finales calculados:', { groupRank: groupRank + 1, points });
+      return points;
+    } catch (error) {
+      console.error('❌ Error calculating final points:', error);
+      return 0;
     }
   },
 };

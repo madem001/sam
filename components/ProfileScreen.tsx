@@ -4,7 +4,9 @@ import EditProfileModal from './EditProfileModal';
 import NotificationsPanel from './NotificationsPanel';
 import ProfessorCard from './ProfessorCard';
 import ProfessorDetailOverlay from './ProfessorDetailOverlay';
+import ProfessorCardDetailModal from './ProfessorCardDetailModal';
 import { professorCardsApi, authApi } from '../lib/api';
+import { supabase } from '../lib/supabase';
 
 interface ProfileScreenProps {
   user: User;
@@ -26,6 +28,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [isLoadingProfessors, setIsLoadingProfessors] = useState(true);
+  const [selectedCardForRedemption, setSelectedCardForRedemption] = useState<{
+    cardId: string;
+    teacherId: string;
+    professorName: string;
+    points: number;
+  } | null>(null);
   const unreadCount = user.notifications?.filter(n => !n.read).length || 0;
 
   useEffect(() => {
@@ -186,9 +194,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                           cursor: 'pointer',
                           ...getCardStyle(index)
                         }}
-                        onClick={() => {
+                        onClick={async () => {
                             if (index === activeCardIndex) {
-                              if (!prof.locked) setSelectedProfessor(prof);
+                              if (!prof.locked) {
+                                const { data: pointsData } = await supabase
+                                  .from('student_professor_points')
+                                  .select('points')
+                                  .eq('student_id', user.id)
+                                  .eq('professor_id', prof.id)
+                                  .maybeSingle();
+
+                                setSelectedCardForRedemption({
+                                  cardId: prof.cardId || '',
+                                  teacherId: prof.id,
+                                  professorName: prof.name,
+                                  points: pointsData?.points || 0,
+                                });
+                              }
                             } else {
                                 setActiveCardIndex(index);
                             }
@@ -223,6 +245,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </main>
       
       {selectedProfessor && <ProfessorDetailOverlay professor={selectedProfessor} onClose={() => setSelectedProfessor(null)} />}
+      {selectedCardForRedemption && (
+        <ProfessorCardDetailModal
+          cardId={selectedCardForRedemption.cardId}
+          professorName={selectedCardForRedemption.professorName}
+          teacherId={selectedCardForRedemption.teacherId}
+          studentId={user.id}
+          currentPoints={selectedCardForRedemption.points}
+          onClose={() => setSelectedCardForRedemption(null)}
+          onRedeem={async () => {
+            const cards = await professorCardsApi.getStudentCards(user.id);
+            setProfessors(cards);
+          }}
+        />
+      )}
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} user={user} onSave={handleSaveProfile} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={user.notifications || []} onJoinBattle={onJoinFromNotification} />
     </div>

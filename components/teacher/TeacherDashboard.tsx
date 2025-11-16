@@ -7,6 +7,7 @@ import BattleManagerScreen from './BattleManagerScreen';
 import QuestionBankScreen from './QuestionBankScreen';
 import StudentListScreen from './StudentListScreen';
 import BattleLobbyScreen from '../BattleLobbyScreen';
+import RewardsManagementScreen from './RewardsManagementScreen';
 
 interface TeacherDashboardProps {
   user: User;
@@ -42,6 +43,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         break;
       case TeacherScreen.Profile:
         content = <TeacherProfileScreen user={user} onLogout={onLogout} theme={theme} onToggleTheme={onToggleTheme} />;
+        break;
+      case 'rewards':
+        content = <RewardsManagementScreen teacherId={user.id} onBack={handleBack} />;
         break;
       default:
         const customModule = customModules.find(m => m.id === activeScreen);

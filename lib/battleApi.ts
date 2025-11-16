@@ -280,6 +280,15 @@ export const addPointsToProfessorCard = async (studentId: string, teacherId: str
   }
 };
 
+export const calculateFinalPoints = async (battleId: string, groupId: string): Promise<number> => {
+  try {
+    return await api.calculateFinalPoints(battleId, groupId);
+  } catch (error) {
+    console.error('Error calculating final points:', error);
+    return 0;
+  }
+};
+
 export const getBattleState = async (battleId: string): Promise<Battle | null> => {
   try {
     const battle = await api.getBattleState(battleId);

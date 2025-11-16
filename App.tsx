@@ -25,10 +25,10 @@ const App: React.FC = () => {
   const [joinBattleCode, setJoinBattleCode] = useState<string | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   
-  const [enabledModules, setEnabledModules] = useState<Set<Screen | TeacherScreen>>(
+  const [enabledModules, setEnabledModules] = useState<Set<Screen | TeacherScreen | string>>(
     new Set([
         Screen.Profile, Screen.JoinBattle, Screen.Achievements, Screen.Questions,
-        TeacherScreen.Dashboard, TeacherScreen.BattleManager, TeacherScreen.QuestionBank, TeacherScreen.StudentList, TeacherScreen.Profile,
+        TeacherScreen.Dashboard, TeacherScreen.BattleManager, TeacherScreen.QuestionBank, TeacherScreen.StudentList, TeacherScreen.Profile, 'rewards',
     ])
   );
   const [customModules, setCustomModules] = useState<CustomModule[]>([]);

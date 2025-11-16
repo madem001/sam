@@ -194,16 +194,16 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           await loadGroups();
         } else {
           console.log('🏁 [STUDENT] Grupo completó todas las preguntas');
-          const updatedGroups = await battleApi.getBattleGroups(battleId);
-          const finalGroup = updatedGroups.find(g => g.id === groupId);
-          if (finalGroup) {
-            setFinalScore(finalGroup.score);
-            setShowEndGamePopup(true);
 
-            const teacherId = battle?.teacher_id || '';
-            if (teacherId) {
-              await battleApi.addPointsToProfessorCard(studentId, teacherId, finalGroup.score);
-            }
+          const finalPoints = await battleApi.calculateFinalPoints(battleId, groupId);
+          console.log('🏆 [STUDENT] Puntos finales calculados:', finalPoints);
+
+          setFinalScore(finalPoints);
+          setShowEndGamePopup(true);
+
+          const teacherId = battle?.teacher_id || '';
+          if (teacherId && finalPoints > 0) {
+            await battleApi.addPointsToProfessorCard(studentId, teacherId, finalPoints);
           }
         }
       }, 2000);
