@@ -32,6 +32,7 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
       battleSub.unsubscribe();
       groupsSub.unsubscribe();
       clearInterval(pollingInterval);
+      terminateBattleOnExit();
     };
   }, [battleId]);
 
@@ -52,6 +53,28 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   const loadGroups = async () => {
     const groupsData = await battleApi.getBattleGroups(battleId);
     setGroups(groupsData);
+  };
+
+  const terminateBattleOnExit = async () => {
+    console.log('🚪 [TEACHER] Saliendo de la pantalla de control, terminando batalla...');
+
+    const { data: currentBattle } = await supabase
+      .from('battles')
+      .select('id, status')
+      .eq('id', battleId)
+      .maybeSingle();
+
+    if (currentBattle && (currentBattle.status === 'in_progress' || currentBattle.status === 'waiting')) {
+      console.log('🛑 [TEACHER] Terminando batalla:', currentBattle.id);
+
+      await supabase
+        .from('battles')
+        .update({
+          status: 'completed',
+          ended_at: new Date().toISOString(),
+        })
+        .eq('id', currentBattle.id);
+    }
   };
 
   const handleStartBattle = async () => {

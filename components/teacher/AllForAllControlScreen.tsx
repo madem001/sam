@@ -48,7 +48,10 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   useEffect(() => {
     loadActiveGame();
     const interval = setInterval(loadActiveGame, 2000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      terminateGameOnExit();
+    };
   }, []);
 
   useEffect(() => {
@@ -99,6 +102,31 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
         game_id: null,
       })
       .eq('teacher_id', teacherId);
+  };
+
+  const terminateGameOnExit = async () => {
+    console.log('🚪 [TEACHER] Saliendo de la pantalla, terminando juego activo...');
+
+    const { data: currentGame } = await supabase
+      .from('all_for_all_games')
+      .select('id')
+      .eq('teacher_id', teacherId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (currentGame) {
+      console.log('🛑 [TEACHER] Terminando juego:', currentGame.id);
+
+      await clearPresence();
+
+      await supabase
+        .from('all_for_all_games')
+        .update({
+          is_active: false,
+          ended_at: new Date().toISOString(),
+        })
+        .eq('id', currentGame.id);
+    }
   };
 
   const loadActiveGame = async () => {
