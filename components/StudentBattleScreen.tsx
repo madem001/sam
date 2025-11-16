@@ -25,6 +25,8 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   const [startTime, setStartTime] = useState<number>(0);
   const [myGroup, setMyGroup] = useState<battleApi.BattleGroup | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(60);
+  const [showEndGamePopup, setShowEndGamePopup] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
 
   useEffect(() => {
     loadBattleData();
@@ -192,6 +194,17 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           await loadGroups();
         } else {
           console.log('🏁 [STUDENT] Grupo completó todas las preguntas');
+          const updatedGroups = await battleApi.getBattleGroups(battleId);
+          const finalGroup = updatedGroups.find(g => g.id === groupId);
+          if (finalGroup) {
+            setFinalScore(finalGroup.score);
+            setShowEndGamePopup(true);
+
+            const teacherId = battle?.teacher_id || '';
+            if (teacherId) {
+              await battleApi.addPointsToProfessorCard(studentId, teacherId, finalGroup.score);
+            }
+          }
         }
       }, 2000);
     } catch (error) {
@@ -471,6 +484,36 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           )}
         </div>
       </div>
+
+      {showEndGamePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-3xl shadow-2xl p-8 max-w-md w-full text-white text-center transform animate-bounce-in">
+            <div className="mb-6">
+              <ion-icon name="trophy" class="text-8xl"></ion-icon>
+            </div>
+            <h2 className="text-4xl font-black mb-4">¡Juego Completado!</h2>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
+              <p className="text-lg mb-2 opacity-90">Puntos Obtenidos</p>
+              <p className="text-6xl font-black">{finalScore}</p>
+              <p className="text-sm mt-2 opacity-75">de 200 puntos posibles</p>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4 mb-6">
+              <p className="text-sm">
+                🎴 Los puntos se han agregado a la carta de tu profesor
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setShowEndGamePopup(false);
+                onBack();
+              }}
+              className="w-full bg-white text-green-600 font-bold py-3 px-6 rounded-xl hover:bg-slate-100 transition-colors text-lg"
+            >
+              Continuar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

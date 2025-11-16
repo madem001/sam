@@ -198,6 +198,63 @@ export const professorCardsApi = {
 
     console.log('✅ Carta desbloqueada exitosamente');
   },
+
+  addPointsToProfessorCard: async (studentId: string, teacherId: string, points: number) => {
+    console.log('➕ Agregando puntos a carta del profesor:', { studentId, teacherId, points });
+
+    const { data: card } = await supabase
+      .from('professor_cards')
+      .select('id')
+      .eq('teacher_id', teacherId)
+      .maybeSingle();
+
+    if (!card) {
+      console.log('⚠️ No se encontró carta del profesor');
+      return;
+    }
+
+    const { data: studentCard } = await supabase
+      .from('student_professor_cards')
+      .select('id, unlocked')
+      .eq('student_id', studentId)
+      .eq('card_id', card.id)
+      .maybeSingle();
+
+    if (!studentCard) {
+      await supabase
+        .from('student_professor_cards')
+        .insert({
+          student_id: studentId,
+          card_id: card.id,
+          unlocked: false,
+        });
+    }
+
+    const { data: pointsRecord } = await supabase
+      .from('student_professor_points')
+      .select('points')
+      .eq('student_id', studentId)
+      .eq('professor_id', teacherId)
+      .maybeSingle();
+
+    if (pointsRecord) {
+      await supabase
+        .from('student_professor_points')
+        .update({ points: pointsRecord.points + points })
+        .eq('student_id', studentId)
+        .eq('professor_id', teacherId);
+    } else {
+      await supabase
+        .from('student_professor_points')
+        .insert({
+          student_id: studentId,
+          professor_id: teacherId,
+          points: points,
+        });
+    }
+
+    console.log('✅ Puntos agregados a carta del profesor');
+  },
 };
 
 export const questionBankApi = {
@@ -676,15 +733,24 @@ export const battleApi = {
 
       if (answerError) throw answerError;
 
+      const { data: battle } = await supabase
+        .from('battles')
+        .select('question_count')
+        .eq('id', battleId)
+        .maybeSingle();
+
       const { data: group } = await supabase
         .from('battle_groups')
         .select('score, correct_answers, wrong_answers, is_eliminated')
         .eq('id', groupId)
         .maybeSingle();
 
-      if (group) {
+      if (group && battle) {
         if (isCorrect) {
-          const points = Math.max(100 - Math.floor(responseTime / 100), 10);
+          const basePointsPerQuestion = 200 / battle.question_count;
+          const speedBonus = Math.max(1 - (responseTime / 60000), 0) * 0.5;
+          const points = Math.round(basePointsPerQuestion * (1 + speedBonus));
+
           await supabase
             .from('battle_groups')
             .update({

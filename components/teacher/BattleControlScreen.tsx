@@ -24,9 +24,14 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
       loadGroups();
     });
 
+    const pollingInterval = setInterval(() => {
+      loadGroups();
+    }, 1000);
+
     return () => {
       battleSub.unsubscribe();
       groupsSub.unsubscribe();
+      clearInterval(pollingInterval);
     };
   }, [battleId]);
 

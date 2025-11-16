@@ -272,6 +272,14 @@ export const restartBattle = async (battleId: string): Promise<boolean> => {
   }
 };
 
+export const addPointsToProfessorCard = async (studentId: string, teacherId: string, points: number): Promise<void> => {
+  try {
+    await api.professorCardsApi.addPointsToProfessorCard(studentId, teacherId, points);
+  } catch (error) {
+    console.error('Error adding points to professor card:', error);
+  }
+};
+
 export const getBattleState = async (battleId: string): Promise<Battle | null> => {
   try {
     const battle = await api.getBattleState(battleId);
