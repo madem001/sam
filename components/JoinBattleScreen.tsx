@@ -115,9 +115,9 @@ const JoinBattleScreen: React.FC<JoinBattleScreenProps> = ({ onBack, studentId, 
 
             <div className="animate-stagger" style={{ '--stagger-delay': '100ms' } as React.CSSProperties}>
                 <div className="battle-portal">
-                    <h1 className="text-3xl font-bold text-slate-800 text-center">Unirse a Grupo</h1>
-                    <p className="text-slate-600 mt-2 text-center">Introduce el código de tu grupo</p>
-                    <div className="mt-6 w-20 h-20 rounded-full glass-effect flex items-center justify-center text-teal-800 mx-auto">
+                    <h1 className="text-3xl font-bold text-gray-900 text-center">Unirse a Grupo</h1>
+                    <p className="text-gray-600 mt-2 text-center">Introduce el código de tu grupo</p>
+                    <div className="mt-6 w-20 h-20 rounded-full glass-effect flex items-center justify-center text-gray-700 mx-auto">
                         <ion-icon name="people-outline" class="text-5xl"></ion-icon>
                     </div>
                 </div>
@@ -146,7 +146,7 @@ const JoinBattleScreen: React.FC<JoinBattleScreenProps> = ({ onBack, studentId, 
                 <div className="animate-stagger" style={{ '--stagger-delay': '300ms' } as React.CSSProperties}>
                     <button
                         type="submit"
-                        className="w-full mt-6 py-4 text-white font-bold rounded-lg shadow-lg bg-sky-500/80 hover:bg-sky-500/100 dark:hover:bg-sky-500/90 glass-effect disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full mt-6 py-4 text-white font-bold rounded-lg shadow-lg bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={isJoining}
                     >
                         {isJoining ? 'Uniéndose...' : 'Unirse al Grupo'}

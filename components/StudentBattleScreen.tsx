@@ -225,7 +225,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   if (!battle) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       </div>
     );
   }
@@ -243,7 +243,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   });
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-teal-50 to-emerald-50 dark:to-slate-800">
+    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:to-slate-800">
       <button
         onClick={onBack}
         className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-lg"
@@ -260,7 +260,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
               <div className={`inline-block px-6 py-2 rounded-full shadow-lg ${
                 myGroup.is_eliminated
                   ? 'bg-gradient-to-r from-red-500 to-red-600'
-                  : 'bg-gradient-to-r from-teal-600 to-emerald-600'
+                  : 'bg-gradient-to-r from-gray-800 to-gray-900'
               } text-white`}>
                 <p className="font-bold text-lg">
                   {myGroup.is_eliminated ? '💀 ELIMINADO' : myGroup.group_name}
@@ -279,7 +279,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         {isWaiting && (
           <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
             <div className="animate-pulse">
-              <ion-icon name="hourglass-outline" class="text-6xl text-sky-500 mb-4"></ion-icon>
+              <ion-icon name="hourglass-outline" class="text-6xl text-gray-700 mb-4"></ion-icon>
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Esperando Inicio</h2>
             <p className="text-slate-600">El maestro iniciará la batalla pronto...</p>
@@ -453,7 +453,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                     group.is_eliminated
                       ? 'bg-red-100 opacity-60'
                       : group.id === groupId
-                      ? 'bg-sky-100 border-2 border-sky-500'
+                      ? 'bg-gray-200 border-2 border-gray-900'
                       : idx === 0
                       ? 'bg-amber-50'
                       : 'bg-slate-50'

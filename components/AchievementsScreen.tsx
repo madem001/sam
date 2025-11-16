@@ -4,10 +4,10 @@ import ParallaxAvatar from './ParallaxAvatar';
 
 const iconColors: { [key: string]: string } = {
     'flame-outline': '#f97316', // orange-500
-    'color-palette-outline': '#8b5cf6', // violet-500
-    'help-circle-outline': '#0ea5e9', // sky-500
-    'id-card-outline': '#14b8a6', // teal-500
-    'trending-up-outline': '#ec4899', // pink-500
+    'color-palette-outline': '#6b7280', // gray-500
+    'help-circle-outline': '#4b5563', // gray-600
+    'id-card-outline': '#374151', // gray-700
+    'trending-up-outline': '#1f2937', // gray-800
     'checkmark-done-circle-outline': '#22c55e', // green-500
 };
 
