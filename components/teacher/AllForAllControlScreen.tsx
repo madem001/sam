@@ -162,8 +162,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const selectedColorOption = COLOR_OPTIONS.find(c => c.value === wordColor);
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide -m-4 md:-m-6 p-4 md:p-6">
-      <div className="w-full">
+    <div className="h-full w-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide -m-4 md:-m-6 pl-4 md:pl-6 pr-4 md:pr-6 pt-4 md:pt-6">
+      <div className="w-full max-w-full">
         <div className="mb-6 animate-fade-in">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
@@ -287,9 +287,9 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 rounded-2xl p-16 text-center shadow-2xl mb-4 border-4 border-slate-700">
+                <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 rounded-2xl p-8 text-center shadow-2xl mb-4 border-4 border-slate-700 overflow-hidden">
                   <p
-                    className="text-8xl font-black tracking-tight drop-shadow-2xl"
+                    className="text-5xl font-black tracking-tight drop-shadow-2xl break-words"
                     style={{ color: wordColor }}
                   >
                     {wordText}
