@@ -23,7 +23,7 @@ const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
     >
       <ion-icon
         name={iconName}
-        class={`text-2xl transition-all duration-300 ${isActive ? 'text-white scale-110' : 'text-slate-600'}`}
+        class={`text-2xl transition-all duration-300 ${isActive ? 'text-white scale-110' : 'text-emerald-600'}`}
       ></ion-icon>
     </button>
   );
@@ -60,18 +60,18 @@ const TeacherBottomNav: React.FC<TeacherBottomNavProps> = ({ activeScreen, setAc
       {activeIndex !== -1 && (
         <div
           key={activeScreen}
-          className="absolute transition-all duration-500 ease-out"
+          className="absolute transition-all duration-500 ease-out z-20"
           style={{
             left: `calc(${(activeIndex / navItems.length) * 100}% + ${50 / navItems.length}% - 28px)`,
-            top: '-28px',
+            top: '-14px',
           }}
         >
           <div className="relative">
             {/* Ball with bounce animation */}
             <div
-              className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-xl flex items-center justify-center"
+              className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-2xl flex items-center justify-center"
               style={{
-                animation: 'bounce-tab 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                animation: 'bounce-tab 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
               }}
             >
               <ion-icon
@@ -79,16 +79,22 @@ const TeacherBottomNav: React.FC<TeacherBottomNavProps> = ({ activeScreen, setAc
                 class="text-3xl text-white"
               ></ion-icon>
             </div>
-            {/* Shadow */}
+            {/* Shadow under ball */}
             <div
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/20 rounded-full blur-sm animate-pulse"
+              className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-12 h-2 bg-black/15 rounded-full blur-sm"
             ></div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation Bar */}
-      <div className="bg-white border-t border-slate-200 rounded-t-3xl shadow-2xl">
+      {/* Bottom Navigation Bar with dunk effect */}
+      <div
+        key={`bar-${activeScreen}`}
+        className="bg-white border-t border-slate-200 rounded-t-3xl shadow-2xl overflow-hidden"
+        style={{
+          animation: 'dunk-effect 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
+        }}
+      >
         <div className="flex justify-around items-center h-20 px-4">
           {navItems.map(item => (
             <NavItem
