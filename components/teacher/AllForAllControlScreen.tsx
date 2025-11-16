@@ -276,25 +276,38 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl p-6 border-2 border-slate-300">
-                <div className="flex items-center gap-2 mb-3">
-                  <ion-icon name="eye-outline" class="text-xl text-slate-600"></ion-icon>
-                  <p className="text-sm font-bold text-slate-700">Vista Previa</p>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border-2 border-slate-200">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center shadow-lg">
+                    <ion-icon name="eye-outline" class="text-xl text-white"></ion-icon>
+                  </div>
+                  <div>
+                    <p className="text-lg font-black text-slate-800">Vista Previa</p>
+                    <p className="text-xs text-slate-500">Como verán los estudiantes</p>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-12 text-center shadow-2xl mb-4">
+
+                <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 rounded-2xl p-16 text-center shadow-2xl mb-4 border-4 border-slate-700">
                   <p
-                    className="text-7xl font-black tracking-tight drop-shadow-2xl"
+                    className="text-8xl font-black tracking-tight drop-shadow-2xl"
                     style={{ color: wordColor }}
                   >
                     {wordText}
                   </p>
                 </div>
-                <div className="flex items-center justify-center gap-2 text-sm">
-                  <ion-icon name="ribbon-outline" class="text-lg text-green-600"></ion-icon>
-                  <span className="text-slate-600">Respuesta correcta:</span>
-                  <span className="font-black text-slate-800">
-                    {correctAnswer === 'text' ? wordText : COLOR_OPTIONS.find(c => c.value === wordColor)?.name}
-                  </span>
+
+                <div className="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center shadow-md">
+                      <ion-icon name="checkmark-circle" class="text-xl text-white"></ion-icon>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs text-slate-500 font-medium">Respuesta correcta</p>
+                      <p className="text-lg font-black text-slate-800">
+                        {correctAnswer === 'text' ? wordText : COLOR_OPTIONS.find(c => c.value === wordColor)?.name}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
