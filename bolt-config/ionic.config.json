@@ -1,8 +1,0 @@
-{
-  "name": "EduBattle Arena",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "react",
-  "id": "edubattle-arena"
-}
