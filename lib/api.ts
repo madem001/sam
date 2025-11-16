@@ -103,6 +103,77 @@ export const authApi = {
     console.log('✅ Perfil obtenido:', data);
     return data;
   },
+
+  updateProfile: async (userId: string, updates: { name?: string; avatar?: string }) => {
+    console.log('✏️ Actualizando perfil:', userId, updates);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: updates.name,
+        avatar: updates.avatar,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('❌ Error actualizando perfil:', error);
+      throw error;
+    }
+
+    console.log('✅ Perfil actualizado exitosamente');
+  },
+};
+
+export const professorCardsApi = {
+  getStudentCards: async (studentId: string) => {
+    console.log('🎴 Obteniendo cartas para estudiante:', studentId);
+
+    const { data, error } = await supabase
+      .from('student_professor_cards')
+      .select(`
+        id,
+        unlocked,
+        unlocked_at,
+        card:professor_cards (
+          id,
+          name,
+          title,
+          description,
+          image_url,
+          unlock_points
+        )
+      `)
+      .eq('student_id', studentId);
+
+    if (error) {
+      console.error('❌ Error obteniendo cartas:', error);
+      return [];
+    }
+
+    console.log('✅ Cartas obtenidas:', data);
+    return data || [];
+  },
+
+  unlockCard: async (studentId: string, cardId: string) => {
+    console.log('🔓 Desbloqueando carta:', cardId, 'para estudiante:', studentId);
+
+    const { error } = await supabase
+      .from('student_professor_cards')
+      .update({
+        unlocked: true,
+        unlocked_at: new Date().toISOString(),
+      })
+      .eq('student_id', studentId)
+      .eq('card_id', cardId);
+
+    if (error) {
+      console.error('❌ Error desbloqueando carta:', error);
+      throw error;
+    }
+
+    console.log('✅ Carta desbloqueada exitosamente');
+  },
 };
 
 export const questionBankApi = {

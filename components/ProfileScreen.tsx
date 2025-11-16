@@ -4,7 +4,7 @@ import EditProfileModal from './EditProfileModal';
 import NotificationsPanel from './NotificationsPanel';
 import ProfessorCard from './ProfessorCard';
 import ProfessorDetailOverlay from './ProfessorDetailOverlay';
-import { getProfessors } from '../api';
+import { professorCardsApi, authApi } from '../lib/api';
 
 interface ProfileScreenProps {
   user: User;
@@ -29,11 +29,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   const unreadCount = user.notifications?.filter(n => !n.read).length || 0;
 
   useEffect(() => {
-    getProfessors().then(data => {
-      setProfessors(data);
-      setIsLoadingProfessors(false);
-    });
-  }, []);
+    if (user.id) {
+      professorCardsApi.getStudentCards(user.id).then(cards => {
+        const mappedProfessors: Professor[] = cards.map((c: any) => ({
+          id: c.card.id,
+          name: c.card.name,
+          subject: c.card.title,
+          description: c.card.description,
+          imageUrl: c.card.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.card.name)}&background=3b82f6&color=fff&bold=true&size=128`,
+          locked: !c.unlocked,
+          unlockPoints: c.card.unlock_points,
+        }));
+        setProfessors(mappedProfessors);
+        setIsLoadingProfessors(false);
+      });
+    }
+  }, [user.id]);
 
   const handleOpenNotifications = () => {
       setIsNotificationsOpen(true);
@@ -43,9 +54,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       }
   };
 
-  const handleSaveProfile = (updatedData: { name: string; imageUrl: string }) => {
-    onUpdateUser(updatedData);
-    setIsEditModalOpen(false);
+  const handleSaveProfile = async (updatedData: { name: string; imageUrl: string }) => {
+    try {
+      await authApi.updateProfile(user.id, {
+        name: updatedData.name,
+        avatar: updatedData.imageUrl,
+      });
+      onUpdateUser(updatedData);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('❌ Error guardando perfil:', error);
+      alert('Error al guardar el perfil');
+    }
   };
   
   const getCardStyle = (index: number): React.CSSProperties => {
