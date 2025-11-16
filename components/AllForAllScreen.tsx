@@ -41,10 +41,30 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   const loadActiveGame = async () => {
     console.log('🔍 [STUDENT] Cargando juego activo...');
     setIsLoading(true);
+
+    const { data: myProfessors, error: profError } = await supabase
+      .from('student_professor_points')
+      .select('professor_id')
+      .eq('student_id', userId);
+
+    if (profError || !myProfessors || myProfessors.length === 0) {
+      console.log('⚠️ [STUDENT] No tengo profesores asignados');
+      setGame(null);
+      setHasResponded(false);
+      setIsLoading(false);
+      return;
+    }
+
+    const professorIds = myProfessors.map(p => p.professor_id);
+    console.log('👨‍🏫 [STUDENT] Mis profesores:', professorIds);
+
     const { data, error } = await supabase
       .from('all_for_all_games')
       .select('*')
       .eq('is_active', true)
+      .in('teacher_id', professorIds)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     console.log('📦 [STUDENT] Resultado de búsqueda:', { data, error });
@@ -54,7 +74,7 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       setGame(data);
       await checkIfResponded(data.id);
     } else {
-      console.log('⏳ [STUDENT] No hay juego activo');
+      console.log('⏳ [STUDENT] No hay juego activo de mis profesores');
       setGame(null);
       setHasResponded(false);
     }
