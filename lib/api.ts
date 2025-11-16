@@ -569,6 +569,167 @@ export const battleApi = {
 
     return group;
   },
+
+  getBattleGroups: async (battleId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('battle_groups')
+        .select('*')
+        .eq('battle_id', battleId)
+        .order('score', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('❌ Error getting battle groups:', error);
+      throw error;
+    }
+  },
+
+  getGroupMembers: async (groupId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('group_members')
+        .select('*')
+        .eq('group_id', groupId);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('❌ Error getting group members:', error);
+      throw error;
+    }
+  },
+
+  getBattleQuestions: async (battleId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('battle_questions')
+        .select('*')
+        .eq('battle_id', battleId)
+        .order('question_order', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('❌ Error getting battle questions:', error);
+      throw error;
+    }
+  },
+
+  getBattleState: async (battleId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('battles')
+        .select('*')
+        .eq('id', battleId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('❌ Error getting battle state:', error);
+      throw error;
+    }
+  },
+
+  submitAnswer: async (
+    battleId: string,
+    groupId: string,
+    questionId: string,
+    answerIndex: number,
+    correctAnswerIndex: number,
+    responseTime: number
+  ) => {
+    try {
+      const isCorrect = answerIndex === correctAnswerIndex;
+
+      const { error: answerError } = await supabase.from('battle_answers').insert({
+        battle_id: battleId,
+        group_id: groupId,
+        question_id: questionId,
+        answer_index: answerIndex,
+        is_correct: isCorrect,
+        response_time: responseTime,
+      });
+
+      if (answerError) throw answerError;
+
+      if (isCorrect) {
+        const { data: group } = await supabase
+          .from('battle_groups')
+          .select('score, correct_answers')
+          .eq('id', groupId)
+          .maybeSingle();
+
+        if (group) {
+          const points = Math.max(100 - Math.floor(responseTime / 100), 10);
+          await supabase
+            .from('battle_groups')
+            .update({
+              score: group.score + points,
+              correct_answers: group.correct_answers + 1,
+            })
+            .eq('id', groupId);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error submitting answer:', error);
+      throw error;
+    }
+  },
+
+  startBattle: async (battleId: string) => {
+    try {
+      const { error } = await supabase
+        .from('battles')
+        .update({
+          status: 'active',
+          started_at: new Date().toISOString(),
+        })
+        .eq('id', battleId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('❌ Error starting battle:', error);
+      return false;
+    }
+  },
+
+  nextQuestion: async (battleId: string) => {
+    try {
+      const { data: battle } = await supabase
+        .from('battles')
+        .select('current_question_index, question_count')
+        .eq('id', battleId)
+        .maybeSingle();
+
+      if (!battle) return false;
+
+      const nextIndex = battle.current_question_index + 1;
+
+      if (nextIndex >= battle.question_count) {
+        await supabase
+          .from('battles')
+          .update({
+            status: 'finished',
+            finished_at: new Date().toISOString(),
+          })
+          .eq('id', battleId);
+      } else {
+        await supabase
+          .from('battles')
+          .update({ current_question_index: nextIndex })
+          .eq('id', battleId);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error advancing question:', error);
+      return false;
+    }
+  },
 };
 
 export default {

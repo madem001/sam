@@ -56,21 +56,21 @@ const mapBattleFromAPI = (data: any): Battle => ({
 
 const mapGroupFromAPI = (data: any): BattleGroup => ({
   id: data.id,
-  battle_id: data.battleId,
-  group_code: data.groupCode,
-  group_name: data.groupName,
+  battle_id: data.battle_id || data.battleId,
+  group_code: data.group_code || data.groupCode,
+  group_name: data.group_name || data.groupName,
   score: data.score,
-  correct_answers: data.correctAnswers,
-  created_at: data.createdAt,
+  correct_answers: data.correct_answers || data.correctAnswers,
+  created_at: data.created_at || data.createdAt,
 });
 
 const mapQuestionFromAPI = (data: any): BattleQuestion => ({
   id: data.id,
-  battle_id: data.battleId,
-  question_text: data.questionText,
+  battle_id: data.battle_id || data.battleId,
+  question_text: data.question_text || data.questionText,
   answers: data.answers,
-  correct_answer_index: data.correctAnswerIndex,
-  question_order: data.questionOrder,
+  correct_answer_index: data.correct_answer_index || data.correctAnswerIndex,
+  question_order: data.question_order || data.questionOrder,
 });
 
 export const createBattle = async (
