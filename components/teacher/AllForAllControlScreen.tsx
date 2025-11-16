@@ -162,9 +162,9 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const selectedColorOption = COLOR_OPTIONS.find(c => c.value === wordColor);
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide">
-      <div className="max-w-full mx-auto px-4 py-6">
-        <div className="mb-8 animate-fade-in">
+    <div className="h-full w-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24 scrollbar-hide -m-4 md:-m-6 p-4 md:p-6">
+      <div className="w-full">
+        <div className="mb-6 animate-fade-in">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
               <ion-icon name="color-palette" class="text-2xl text-white"></ion-icon>
@@ -211,18 +211,18 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                   <ion-icon name="brush-outline" class="text-xl"></ion-icon>
                   Color del Texto
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {COLOR_OPTIONS.map((color) => (
                     <button
                       key={color.value}
                       onClick={() => setWordColor(color.value)}
-                      className={`relative py-5 rounded-2xl font-bold text-white transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                      className={`relative py-5 px-2 rounded-2xl font-bold text-white text-sm transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                         wordColor === color.value
                           ? 'ring-4 ring-slate-900 scale-105'
                           : 'hover:scale-105'
                       } ${color.bg}`}
                     >
-                      {color.name}
+                      <span className="block truncate">{color.name}</span>
                       {wordColor === color.value && (
                         <div className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center">
                           <ion-icon name="checkmark" class="text-sm text-white"></ion-icon>
