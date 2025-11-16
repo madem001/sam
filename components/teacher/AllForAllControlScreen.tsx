@@ -186,6 +186,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   };
 
   const startGame = async () => {
+    console.log('🎮 [TEACHER] Iniciando juego All for All...');
+
     const { data, error } = await supabase
       .from('all_for_all_games')
       .insert({
@@ -199,8 +201,14 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
       .single();
 
     if (data) {
+      console.log('✅ [TEACHER] Juego creado:', data.id);
       setActiveGame(data);
       setResponses([]);
+
+      await updatePresence(data.id);
+      console.log('✅ [TEACHER] Presencia registrada para el juego');
+    } else {
+      console.error('❌ [TEACHER] Error creando juego:', error);
     }
   };
 
