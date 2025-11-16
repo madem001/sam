@@ -25,11 +25,17 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   const [hasResponded, setHasResponded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [responseStatus, setResponseStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
+  const [showPointsPopup, setShowPointsPopup] = useState(false);
 
   useEffect(() => {
     loadActiveGame();
-    const cleanup = subscribeToGames();
-    return cleanup;
+    const cleanupGames = subscribeToGames();
+    const cleanupResponses = subscribeToResponses();
+    return () => {
+      cleanupGames();
+      cleanupResponses();
+    };
   }, []);
 
   const loadActiveGame = async () => {
@@ -88,7 +94,43 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       });
 
     return () => {
-      console.log('🔌 [STUDENT] Desconectando suscripción');
+      console.log('🔌 [STUDENT] Desconectando suscripción juegos');
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const subscribeToResponses = () => {
+    console.log('👂 [STUDENT] Suscribiéndose a cambios en respuestas');
+
+    const channel = supabase
+      .channel('my_responses_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'all_for_all_responses',
+          filter: `student_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log('🔔 [STUDENT] Cambio detectado en mi respuesta:', payload);
+          const newPoints = payload.new?.points_awarded;
+          if (newPoints && newPoints > 0) {
+            console.log('🎉 [STUDENT] ¡Puntos recibidos!:', newPoints);
+            setPointsAwarded(newPoints);
+            setShowPointsPopup(true);
+            setTimeout(() => {
+              setShowPointsPopup(false);
+            }, 4000);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 [STUDENT] Estado de suscripción respuestas:', status);
+      });
+
+    return () => {
+      console.log('🔌 [STUDENT] Desconectando suscripción respuestas');
       supabase.removeChannel(channel);
     };
   };
@@ -164,6 +206,29 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
           responseStatus === 'correct' ? 'bg-green-500' : 'bg-red-500'
         } text-white font-bold text-xl animate-bounce-tab`}>
           {responseStatus === 'correct' ? '¡Correcto!' : 'Incorrecto'}
+        </div>
+      )}
+
+      {showPointsPopup && pointsAwarded && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-sm mx-4 text-center animate-scale-in">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+              <ion-icon name="star" class="text-5xl text-white"></ion-icon>
+            </div>
+            <h2 className="text-3xl font-black text-slate-800 mb-2">¡Puntos Ganados!</h2>
+            <p className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600 mb-4">
+              +{pointsAwarded}
+            </p>
+            <p className="text-slate-600 mb-6">
+              Estos puntos se han sumado a tu tarjeta del profesor
+            </p>
+            <button
+              onClick={() => setShowPointsPopup(false)}
+              className="px-8 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+            >
+              ¡Genial!
+            </button>
+          </div>
         </div>
       )}
 
