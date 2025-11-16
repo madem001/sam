@@ -60,17 +60,17 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
   };
 
   return (
-    <>
-      <main className="flex-grow overflow-y-auto p-4 md:p-6 pb-32 bg-slate-50 dark:bg-slate-900">
+    <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900">
+      <main className="flex-1 overflow-y-auto p-4 md:p-6">
         {renderContent()}
       </main>
-      <TeacherBottomNav 
-        activeScreen={activeScreen} 
-        setActiveScreen={setActiveScreen} 
-        enabledModules={enabledModules} 
-        customModules={customModules} 
+      <TeacherBottomNav
+        activeScreen={activeScreen}
+        setActiveScreen={setActiveScreen}
+        enabledModules={enabledModules}
+        customModules={customModules}
       />
-    </>
+    </div>
   );
 };
 

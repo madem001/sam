@@ -297,7 +297,7 @@ const App: React.FC = () => {
               console.log('👨‍🎓 Renderizando Student Screen');
               return (
                 <>
-                    <main className="flex-grow overflow-y-auto pb-24">
+                    <main className="flex-1 overflow-y-auto">
                         {renderStudentContent()}
                     </main>
                     <BottomNav activeScreen={activeScreen as Screen} setActiveScreen={setActiveScreen} enabledModules={enabledModules} customModules={customModules} />
