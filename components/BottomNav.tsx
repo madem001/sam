@@ -23,7 +23,7 @@ const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
     >
       <ion-icon
         name={iconName}
-        class={`text-2xl transition-all duration-300 ${isActive ? 'text-white scale-110' : 'text-emerald-600'}`}
+        class={`text-2xl transition-all duration-300 ${isActive ? 'opacity-0' : 'text-gray-400'}`}
       ></ion-icon>
     </button>
   );
@@ -53,8 +53,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
 
   if (navItems.length === 0) return null;
 
-  // Calculate notch position based on active index
-  const notchXPercent = activeIndex !== -1
+  const notchCenterX = activeIndex !== -1
     ? (activeIndex / navItems.length) * 100 + (50 / navItems.length)
     : 50;
 
@@ -63,41 +62,63 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
       {/* Floating Active Button */}
       {activeIndex !== -1 && (
         <div
-          key={activeScreen}
-          className="absolute transition-all duration-500 ease-out z-30"
+          className="absolute transition-all duration-700 ease-in-out z-30"
           style={{
-            left: `calc(${(activeIndex / navItems.length) * 100}% + ${50 / navItems.length}% - 32px)`,
-            bottom: '45px',
+            left: `calc(${notchCenterX}% - 30px)`,
+            bottom: '32px',
           }}
         >
-          <div className="relative">
-            {/* Floating ball with white border */}
-            <div className="w-16 h-16 rounded-full bg-white shadow-2xl flex items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center">
-                <ion-icon
-                  name={navItems[activeIndex].iconName}
-                  class="text-3xl text-white"
-                ></ion-icon>
-              </div>
+          <div className="w-[60px] h-[60px] rounded-full bg-white shadow-2xl flex items-center justify-center">
+            <div className="w-[52px] h-[52px] rounded-full bg-black flex items-center justify-center">
+              <ion-icon
+                name={navItems[activeIndex].iconName}
+                class="text-2xl text-white"
+              ></ion-icon>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation Bar with notch */}
-      <div className="relative bg-white shadow-2xl overflow-visible" style={{ height: '80px' }}>
-        {/* Notch cutout using clip-path */}
-        <div
-          className="absolute inset-0 bg-white shadow-lg transition-all duration-500 ease-out"
-          style={{
-            clipPath: activeIndex !== -1
-              ? `path('M 0,25 L ${notchXPercent - 12.5}%,25 Q ${notchXPercent - 10}%,25 ${notchXPercent - 8}%,20 Q ${notchXPercent - 5}%,10 ${notchXPercent - 3}%,5 Q ${notchXPercent}%,0 ${notchXPercent + 3}%,5 Q ${notchXPercent + 5}%,10 ${notchXPercent + 8}%,20 Q ${notchXPercent + 10}%,25 ${notchXPercent + 12.5}%,25 L 100%,25 L 100%,100% L 0,100% Z')`
-              : 'inset(25% 0 0 0 round 0)',
-          }}
-        />
+      {/* Bottom Navigation Bar with curved notch */}
+      <div className="relative" style={{ height: '70px' }}>
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 400 70"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#f8f9fa" />
+            </linearGradient>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="-2" stdDeviation="4" floodOpacity="0.1"/>
+            </filter>
+          </defs>
+
+          <path
+            d={`
+              M 0,18
+              L ${notchCenterX * 4 - 50},18
+              Q ${notchCenterX * 4 - 42},18 ${notchCenterX * 4 - 38},16
+              Q ${notchCenterX * 4 - 32},12 ${notchCenterX * 4 - 28},9
+              Q ${notchCenterX * 4 - 20},3 ${notchCenterX * 4},0
+              Q ${notchCenterX * 4 + 20},3 ${notchCenterX * 4 + 28},9
+              Q ${notchCenterX * 4 + 32},12 ${notchCenterX * 4 + 38},16
+              Q ${notchCenterX * 4 + 42},18 ${notchCenterX * 4 + 50},18
+              L 400,18
+              L 400,70
+              L 0,70
+              Z
+            `}
+            fill="url(#barGradient)"
+            filter="url(#shadow)"
+            className="transition-all duration-700 ease-in-out"
+          />
+        </svg>
 
         {/* Navigation items */}
-        <div className="relative flex justify-around items-center h-full px-4 z-10">
+        <div className="relative flex justify-around items-center h-full px-6 z-10">
           {navItems.map(item => (
             <NavItem
               key={item.screen}
