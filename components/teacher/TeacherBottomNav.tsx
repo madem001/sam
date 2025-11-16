@@ -54,48 +54,51 @@ const TeacherBottomNav: React.FC<TeacherBottomNavProps> = ({ activeScreen, setAc
 
   if (navItems.length === 0) return null;
 
+  // Calculate notch position based on active index
+  const notchXPercent = activeIndex !== -1
+    ? (activeIndex / navItems.length) * 100 + (50 / navItems.length)
+    : 50;
+
   return (
     <div className="absolute bottom-0 left-0 right-0 z-10">
-      {/* Bouncing Ball Indicator */}
+      {/* Floating Active Button */}
       {activeIndex !== -1 && (
         <div
           key={activeScreen}
-          className="absolute transition-all duration-500 ease-out z-20"
+          className="absolute transition-all duration-500 ease-out z-30"
           style={{
-            left: `calc(${(activeIndex / navItems.length) * 100}% + ${50 / navItems.length}% - 28px)`,
-            top: '-14px',
+            left: `calc(${(activeIndex / navItems.length) * 100}% + ${50 / navItems.length}% - 32px)`,
+            bottom: '45px',
           }}
         >
           <div className="relative">
-            {/* Ball with bounce animation */}
-            <div
-              className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-2xl flex items-center justify-center"
-              style={{
-                animation: 'bounce-tab 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-              }}
-            >
-              <ion-icon
-                name={navItems[activeIndex].iconName}
-                class="text-3xl text-white"
-              ></ion-icon>
+            {/* Floating ball with white border */}
+            <div className="w-16 h-16 rounded-full bg-white shadow-2xl flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center">
+                <ion-icon
+                  name={navItems[activeIndex].iconName}
+                  class="text-3xl text-white"
+                ></ion-icon>
+              </div>
             </div>
-            {/* Shadow under ball */}
-            <div
-              className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-12 h-2 bg-black/15 rounded-full blur-sm"
-            ></div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation Bar with dunk effect */}
-      <div
-        key={`bar-${activeScreen}`}
-        className="bg-white border-t border-slate-200 rounded-t-3xl shadow-2xl overflow-hidden"
-        style={{
-          animation: 'dunk-effect 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
-        }}
-      >
-        <div className="flex justify-around items-center h-20 px-4">
+      {/* Bottom Navigation Bar with notch */}
+      <div className="relative bg-white shadow-2xl overflow-visible" style={{ height: '80px' }}>
+        {/* Notch cutout using clip-path */}
+        <div
+          className="absolute inset-0 bg-white shadow-lg transition-all duration-500 ease-out"
+          style={{
+            clipPath: activeIndex !== -1
+              ? `path('M 0,25 L ${notchXPercent - 12.5}%,25 Q ${notchXPercent - 10}%,25 ${notchXPercent - 8}%,20 Q ${notchXPercent - 5}%,10 ${notchXPercent - 3}%,5 Q ${notchXPercent}%,0 ${notchXPercent + 3}%,5 Q ${notchXPercent + 5}%,10 ${notchXPercent + 8}%,20 Q ${notchXPercent + 10}%,25 ${notchXPercent + 12.5}%,25 L 100%,25 L 100%,100% L 0,100% Z')`
+              : 'inset(25% 0 0 0 round 0)',
+          }}
+        />
+
+        {/* Navigation items */}
+        <div className="relative flex justify-around items-center h-full px-4 z-10">
           {navItems.map(item => (
             <NavItem
               key={item.screen}
