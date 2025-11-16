@@ -29,16 +29,36 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   const [showPointsPopup, setShowPointsPopup] = useState(false);
 
   useEffect(() => {
+    cleanupAllChannels();
+
     loadActiveGame();
     const cleanupGames = subscribeToGames();
     const cleanupResponses = subscribeToResponses();
     const cleanupPresence = subscribeToPresence();
+
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 [STUDENT] Refrescando estado del juego...');
+      loadActiveGame();
+    }, 3000);
+
     return () => {
+      clearInterval(refreshInterval);
       cleanupGames();
       cleanupResponses();
       cleanupPresence();
+      cleanupAllChannels();
     };
   }, []);
+
+  const cleanupAllChannels = async () => {
+    console.log('🧹 [STUDENT] Limpiando todos los canales de Realtime...');
+    try {
+      await supabase.removeAllChannels();
+      console.log('✅ [STUDENT] Canales limpiados');
+    } catch (error) {
+      console.error('❌ [STUDENT] Error limpiando canales:', error);
+    }
+  };
 
   const loadActiveGame = async () => {
     console.log('🔍 [STUDENT] Cargando juego activo...');
@@ -48,6 +68,8 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       .from('student_professor_points')
       .select('professor_id')
       .eq('student_id', userId);
+
+    console.log('📋 [STUDENT] Query profesores:', { myProfessors, profError });
 
     if (profError || !myProfessors || myProfessors.length === 0) {
       console.log('⚠️ [STUDENT] No tengo profesores asignados');
@@ -60,11 +82,13 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
     const professorIds = myProfessors.map(p => p.professor_id);
     console.log('👨‍🏫 [STUDENT] Mis profesores:', professorIds);
 
-    const { data: onlinePresence } = await supabase
+    const { data: onlinePresence, error: presenceError } = await supabase
       .from('teacher_presence')
-      .select('teacher_id, game_id')
+      .select('teacher_id, game_id, is_online, last_heartbeat')
       .eq('is_online', true)
       .in('teacher_id', professorIds);
+
+    console.log('📡 [STUDENT] Presencia:', { onlinePresence, presenceError });
 
     if (!onlinePresence || onlinePresence.length === 0) {
       console.log('⏳ [STUDENT] Ninguno de mis profesores está en línea');
@@ -78,22 +102,29 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
     const activeGameIds = onlinePresence.map(p => p.game_id).filter(id => id !== null);
 
     console.log('✅ [STUDENT] Profesores en línea:', onlineTeachers);
-    console.log('🎮 [STUDENT] Juegos activos:', activeGameIds);
+    console.log('🎮 [STUDENT] Game IDs de presencia:', activeGameIds);
+
+    if (activeGameIds.length === 0) {
+      console.log('⚠️ [STUDENT] No hay game_ids en la presencia');
+      setGame(null);
+      setHasResponded(false);
+      setIsLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('all_for_all_games')
       .select('*')
       .eq('is_active', true)
-      .in('teacher_id', onlineTeachers)
-      .in('id', activeGameIds.length > 0 ? activeGameIds : [''])
+      .in('id', activeGameIds)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    console.log('📦 [STUDENT] Resultado de búsqueda:', { data, error });
+    console.log('📦 [STUDENT] Resultado de búsqueda de juegos:', { data, error });
 
     if (data) {
-      console.log('✅ [STUDENT] Juego activo encontrado:', data);
+      console.log('✅ [STUDENT] Juego activo encontrado:', JSON.stringify(data, null, 2));
       setGame(data);
       await checkIfResponded(data.id);
     } else {
