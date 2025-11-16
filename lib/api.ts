@@ -877,7 +877,7 @@ export const battleApi = {
     try {
       const { data: battle } = await supabase
         .from('battles')
-        .select('current_question_index, question_count')
+        .select('current_question_index, question_count, teacher_id')
         .eq('id', battleId)
         .maybeSingle();
 
@@ -894,6 +894,37 @@ export const battleApi = {
           })
           .eq('id', battleId);
         console.log('🏁 [API] Batalla finalizada');
+
+        const { data: groups } = await supabase
+          .from('battle_groups')
+          .select('id, score')
+          .eq('battle_id', battleId)
+          .order('score', { ascending: false });
+
+        if (groups && groups.length > 0) {
+          const winningGroup = groups[0];
+          console.log('🏆 [API] Grupo ganador:', winningGroup);
+
+          const { data: members } = await supabase
+            .from('battle_group_members')
+            .select('student_id, student_name')
+            .eq('group_id', winningGroup.id);
+
+          if (members && members.length > 0) {
+            console.log('👥 [API] Asignando puntos a', members.length, 'estudiantes del grupo ganador');
+
+            for (const member of members) {
+              console.log('➕ [API] Asignando', winningGroup.score, 'puntos a', member.student_name);
+              await professorCardsApi.addPointsToProfessorCard(
+                member.student_id,
+                battle.teacher_id,
+                winningGroup.score
+              );
+            }
+
+            console.log('✅ [API] Puntos asignados a todos los miembros del grupo ganador');
+          }
+        }
       } else {
         await supabase
           .from('battles')
