@@ -1,8 +1,8 @@
 import { supabase } from './supabase';
 
 export const authApi = {
-  register: async (email: string, password: string, name: string, role: 'STUDENT' | 'TEACHER') => {
-    console.log('📝 Registrando en Supabase:', { email, name, role });
+  register: async (email: string, password: string, name: string, role: 'STUDENT' | 'TEACHER', avatar?: string) => {
+    console.log('📝 Registrando en Supabase:', { email, name, role, avatar });
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -26,11 +26,14 @@ export const authApi = {
 
     console.log('📝 Creando perfil para usuario:', authData.user.id);
 
+    const defaultAvatar = avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&bold=true&size=128`;
+
     const { error: profileError } = await supabase.from('profiles').insert({
       id: authData.user.id,
       email,
       name,
       role,
+      avatar: defaultAvatar,
     });
 
     if (profileError) {
@@ -38,7 +41,7 @@ export const authApi = {
       throw profileError;
     }
 
-    console.log('✅ Perfil creado exitosamente');
+    console.log('✅ Perfil creado exitosamente con avatar:', defaultAvatar);
     console.log('✅ Registro completo - user:', authData.user.email, 'session:', !!authData.session);
 
     return { user: authData.user, session: authData.session };

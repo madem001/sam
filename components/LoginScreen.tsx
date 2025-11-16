@@ -118,7 +118,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         console.log('📝 Registrando usuario:', { email, name, role });
 
         const roleValue = role === UserRole.Teacher ? 'TEACHER' : 'STUDENT';
-        await authApi.register(email, password, name, roleValue);
+        await authApi.register(email, password, name, roleValue, imagePreview || undefined);
 
         const profile = await authApi.getProfile();
         console.log('✅ Perfil creado:', profile);

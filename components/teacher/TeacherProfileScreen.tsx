@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import EditProfileModal from '../EditProfileModal';
 import { supabase } from '../../lib/supabase';
+import { authApi } from '../../lib/api';
 
 interface TeacherProfileScreenProps {
   user: User;
@@ -61,9 +62,18 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
     }
   };
 
-  const handleSaveProfile = (updatedData: { name: string; imageUrl: string }) => {
-    setEditableUser(prev => ({ ...prev, ...updatedData }));
-    setIsEditModalOpen(false);
+  const handleSaveProfile = async (updatedData: { name: string; imageUrl: string }) => {
+    try {
+      await authApi.updateProfile(user.id, {
+        name: updatedData.name,
+        avatar: updatedData.imageUrl,
+      });
+      setEditableUser(prev => ({ ...prev, ...updatedData }));
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('❌ Error guardando perfil:', error);
+      alert('Error al guardar el perfil');
+    }
   };
 
   return (
