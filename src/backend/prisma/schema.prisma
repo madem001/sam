@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+}
+
+enum BattleStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  avatar    String?
+  points    Int      @default(0)
+  level     Int      @default(1)
+  streak    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  battles        Battle[]
+  groupMembers   GroupMember[]
+  achievements   Achievement[]
+  notifications  Notification[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Battle {
+  id                    String       @id @default(cuid())
+  name                  String
+  teacherId             String
+  teacher               User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  roundCount            Int
+  studentsPerGroup      Int          @default(4)
+  status                BattleStatus @default(WAITING)
+  currentRoundIndex     Int          @default(0)
+  createdAt             DateTime     @default(now())
+  startedAt             DateTime?
+  finishedAt            DateTime?
+
+  groups                BattleGroup[]
+  questions             BattleQuestion[]
+  answers               BattleAnswer[]
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BattleGroup {
+  id             String   @id @default(cuid())
+  battleId       String
+  battle         Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupCode      String   @unique
+  groupName      String
+  score          Int      @default(0)
+  correctAnswers Int      @default(0)
+  isFull         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  members        GroupMember[]
+  answers        BattleAnswer[]
+
+  @@index([battleId])
+  @@index([groupCode])
+}
+
+model GroupMember {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName String
+  joinedAt    DateTime @default(now())
+
+  @@unique([groupId, studentId])
+  @@index([groupId])
+  @@index([studentId])
+}
+
+model BattleQuestion {
+  id                  String   @id @default(cuid())
+  battleId            String
+  battle              Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  questionText        String
+  answers             Json
+  correctAnswerIndex  Int
+  questionOrder       Int
+  createdAt           DateTime @default(now())
+
+  battleAnswers       BattleAnswer[]
+
+  @@index([battleId])
+  @@index([questionOrder])
+}
+
+model BattleAnswer {
+  id              String   @id @default(cuid())
+  battleId        String
+  battle          Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupId         String
+  group           BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        BattleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerIndex     Int
+  isCorrect       Boolean
+  responseTimeMs  Int?
+  answeredAt      DateTime @default(now())
+
+  @@unique([questionId, groupId])
+  @@index([battleId])
+  @@index([groupId])
+  @@index([questionId])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  icon        String
+  unlockedAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  type      String
+  payload   Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}

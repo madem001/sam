@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Screen, User, UserRole, TeacherScreen, CustomModule, AuthData, Student, Notification } from './types';
-import LoginScreen from './components/LoginScreen';
-import ProfileScreen from './components/ProfileScreen';
-import BottomNav from './components/BottomNav';
-import AchievementsScreen from './components/AchievementsScreen';
-import BattleLobbyScreen from './components/BattleLobbyScreen';
-import QuestionScreen from './components/QuestionScreen';
-import TriviaScreen from './components/TriviaScreen';
-import WinnerScreen from './components/WinnerScreen';
-import LoserScreen from './components/LoserScreen';
-import TeacherDashboard from './components/teacher/TeacherDashboard';
-import JoinBattleScreen from './components/JoinBattleScreen';
-import LoadingScreen from './components/LoadingScreen';
-import AllForAllScreen from './components/AllForAllScreen';
-import { supabase } from './lib/supabase';
+import { Screen, User, UserRole, TeacherScreen, CustomModule, AuthData, Student, Notification } from './src/frontend/types/types';
+import LoginScreen from './src/frontend/components/shared/LoginScreen';
+import ProfileScreen from './src/frontend/components/student/ProfileScreen';
+import BottomNav from './src/frontend/components/shared/BottomNav';
+import AchievementsScreen from './src/frontend/components/student/AchievementsScreen';
+import BattleLobbyScreen from './src/frontend/components/shared/BattleLobbyScreen';
+import QuestionScreen from './src/frontend/components/shared/QuestionScreen';
+import TriviaScreen from './src/frontend/components/student/TriviaScreen';
+import WinnerScreen from './src/frontend/components/shared/WinnerScreen';
+import LoserScreen from './src/frontend/components/shared/LoserScreen';
+import TeacherDashboard from './src/frontend/components/teacher/TeacherDashboard';
+import JoinBattleScreen from './src/frontend/components/student/JoinBattleScreen';
+import LoadingScreen from './src/frontend/components/shared/LoadingScreen';
+import AllForAllScreen from './src/frontend/components/student/AllForAllScreen';
+import { supabase } from './src/frontend/lib/supabase';
 import * as api from './api';
 
 const App: React.FC = () => {

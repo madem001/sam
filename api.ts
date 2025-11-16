@@ -1,6 +1,6 @@
-import { AuthData, User, Professor, Question, UserRole } from './types';
+import { AuthData, User, Professor, Question, UserRole } from './src/frontend/types/types';
 import { MOCK_USERS, MOCK_PROFESSORS, MOCK_QUESTIONS, MOCK_TRIVIA_QUESTIONS } from './mocks';
-import { authApi } from './lib/api';
+import { authApi } from './src/frontend/lib/api';
 
 export { authApi };
 

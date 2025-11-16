@@ -1,0 +1,143 @@
+ESTRUCTURA DEL PROYECTO - EduBattle Arena
+==========================================
+
+📁 Raíz del Proyecto
+├── 📄 README.md                      # Documentación breve y enlaces
+├── 📄 DOCUMENTACION.md               # Documentación completa y detallada
+├── 📄 App.tsx                        # Componente principal de la aplicación
+├── 📄 index.tsx                      # Punto de entrada
+├── 📄 api.ts                         # API mock para desarrollo
+├── 📄 mocks.ts                       # Datos de prueba
+├── 📄 styles.css                     # Estilos globales
+├── 📄 package.json                   # Dependencias del proyecto
+├── 📄 vite.config.ts                 # Configuración de Vite
+├── 📄 tsconfig.json                  # Configuración de TypeScript
+├── 📄 capacitor.config.ts            # Configuración de Capacitor (móvil)
+│
+├── 📁 src/                           # Código fuente
+│   ├── 📁 frontend/                  # Frontend de la aplicación
+│   │   ├── 📁 components/            # Componentes React
+│   │   │   ├── 📁 student/           # ⭐ Componentes de ESTUDIANTES
+│   │   │   │   ├── AllForAllScreen.tsx
+│   │   │   │   ├── JoinBattleScreen.tsx
+│   │   │   │   ├── StudentBattleScreen.tsx
+│   │   │   │   ├── TriviaScreen.tsx
+│   │   │   │   ├── AchievementsScreen.tsx
+│   │   │   │   └── ProfileScreen.tsx
+│   │   │   │
+│   │   │   ├── 📁 teacher/           # ⭐ Componentes de PROFESORES
+│   │   │   │   ├── TeacherDashboard.tsx
+│   │   │   │   ├── DashboardScreen.tsx
+│   │   │   │   ├── BattleManagerScreen.tsx
+│   │   │   │   ├── BattleControlScreen.tsx
+│   │   │   │   ├── AllForAllControlScreen.tsx
+│   │   │   │   ├── StudentListScreen.tsx
+│   │   │   │   ├── QuestionBankScreen.tsx
+│   │   │   │   ├── RewardsManagementScreen.tsx
+│   │   │   │   ├── TeacherProfileScreen.tsx
+│   │   │   │   ├── CreateBattleModal.tsx
+│   │   │   │   ├── EditTeacherProfileModal.tsx
+│   │   │   │   ├── InviteStudentsModal.tsx
+│   │   │   │   └── TeacherBottomNav.tsx
+│   │   │   │
+│   │   │   └── 📁 shared/            # ⭐ Componentes COMPARTIDOS
+│   │   │       ├── LoginScreen.tsx
+│   │   │       ├── LoadingScreen.tsx
+│   │   │       ├── BottomNav.tsx
+│   │   │       ├── WinnerScreen.tsx
+│   │   │       ├── LoserScreen.tsx
+│   │   │       ├── BattleLobbyScreen.tsx
+│   │   │       ├── QuestionScreen.tsx
+│   │   │       ├── EditProfileModal.tsx
+│   │   │       ├── NotificationsPanel.tsx
+│   │   │       ├── ProfessorCard.tsx
+│   │   │       ├── ProfessorCardDetailModal.tsx
+│   │   │       ├── ProfessorDetailOverlay.tsx
+│   │   │       ├── ParallaxAvatar.tsx
+│   │   │       └── PlaceholderScreen.tsx
+│   │   │
+│   │   ├── 📁 lib/                   # Librerías y APIs
+│   │   │   ├── supabase.ts           # Cliente de Supabase
+│   │   │   ├── api.ts                # API general
+│   │   │   ├── battleApi.ts          # API de batallas
+│   │   │   └── achievementsService.ts
+│   │   │
+│   │   └── 📁 types/                 # Definiciones de tipos TypeScript
+│   │       ├── types.ts
+│   │       └── global.d.ts
+│   │
+│   └── 📁 backend/                   # Backend (Node.js - opcional, no usado)
+│       ├── 📄 package.json
+│       ├── 📄 tsconfig.json
+│       ├── 📁 prisma/
+│       │   └── schema.prisma
+│       └── 📁 src/
+│           ├── 📁 config/
+│           ├── 📁 controllers/
+│           ├── 📁 middleware/
+│           ├── 📁 routes/
+│           ├── 📁 services/
+│           ├── 📁 types/
+│           ├── 📁 websocket/
+│           └── server.ts
+│
+├── 📁 bolt-config/                   # ⭐ Archivos de configuración de bolt.new
+│   ├── metadata.json
+│   └── ionic.config.json
+│
+├── 📁 supabase/                      # Migraciones de base de datos
+│   └── 📁 migrations/
+│       ├── 20251115201305_update_battles_for_rounds.sql
+│       ├── 20251115202411_create_profiles_and_question_bank.sql
+│       ├── ... (más de 30 archivos de migración)
+│       └── 20251116212856_create_teacher_presence_system.sql
+│
+├── 📁 public/                        # Archivos estáticos
+│   ├── image.png
+│   ├── image copy.png
+│   └── 1cd89d0e5c5dd10fd16654fe47b84773.gif
+│
+├── 📁 dist/                          # Archivos compilados (generados con npm run build)
+│   ├── index.html
+│   └── assets/
+│
+└── 📁 node_modules/                  # Dependencias instaladas (generadas con npm install)
+
+
+RESUMEN DE ORGANIZACIÓN
+========================
+
+✅ FRONTEND ORGANIZADO:
+   - src/frontend/components/student/  → Pantallas y componentes de estudiantes
+   - src/frontend/components/teacher/  → Pantallas y componentes de profesores
+   - src/frontend/components/shared/   → Componentes compartidos
+   - src/frontend/lib/                 → APIs y utilidades
+   - src/frontend/types/               → Tipos TypeScript
+
+✅ BACKEND ORGANIZADO:
+   - src/backend/                      → Backend completo (opcional, no usado actualmente)
+
+✅ CONFIGURACIÓN BOLT:
+   - bolt-config/                      → Archivos de configuración de bolt.new
+
+✅ DOCUMENTACIÓN:
+   - README.md                         → Guía rápida
+   - DOCUMENTACION.md                  → Documentación completa
+   - ESTRUCTURA.txt                    → Este archivo
+
+✅ BASE DE DATOS:
+   - supabase/migrations/              → Migraciones SQL de Supabase
+
+✅ SIN REFERENCIAS A BOLT EN EL CÓDIGO:
+   - Todo el código fuente está limpio de referencias a bolt.new
+   - Solo quedan archivos de configuración en bolt-config/
+
+
+TOTAL DE ARCHIVOS
+==================
+- Componentes de Estudiante: 6 archivos
+- Componentes de Profesor: 13 archivos
+- Componentes Compartidos: 15 archivos
+- Librerías: 4 archivos
+- Migraciones de Base de Datos: 31 archivos
+- Archivos de Configuración: 8 archivos

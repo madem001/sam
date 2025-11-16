@@ -1,4 +1,4 @@
-import { User, UserRole, Professor, Question } from './types';
+import { User, UserRole, Professor, Question } from './src/frontend/types/types';
 
 export const MOCK_USERS: User[] = [
     {
