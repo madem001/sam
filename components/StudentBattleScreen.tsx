@@ -203,15 +203,21 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           setShowEndGamePopup(true);
 
           const teacherId = battle?.teacher_id || '';
-          console.log('🎯 [STUDENT] Asignando puntos:', {
-            studentId,
-            teacherId,
-            points: finalPoints,
-            professorName: battle?.name
-          });
+
           if (teacherId && finalPoints > 0) {
-            await battleApi.addPointsToProfessorCard(studentId, teacherId, finalPoints);
-            console.log('✅ [STUDENT] Puntos asignados a la carta del profesor');
+            const groupMembers = await battleApi.getGroupMembers(groupId);
+            console.log('👥 [STUDENT] Asignando puntos a todos los miembros del grupo:', groupMembers.length);
+
+            for (const member of groupMembers) {
+              console.log('🎯 [STUDENT] Asignando puntos a:', {
+                studentId: member.student_id,
+                studentName: member.student_name,
+                teacherId,
+                points: finalPoints,
+              });
+              await battleApi.addPointsToProfessorCard(member.student_id, teacherId, finalPoints);
+            }
+            console.log('✅ [STUDENT] Puntos asignados a todos los miembros del grupo');
           } else {
             console.warn('⚠️ [STUDENT] No se pueden asignar puntos:', { teacherId, finalPoints });
           }

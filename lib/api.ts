@@ -1023,24 +1023,43 @@ export const battleApi = {
 
   calculateFinalPoints: async (battleId: string, groupId: string): Promise<number> => {
     try {
-      const { data: allGroups } = await supabase
+      const { data: group } = await supabase
         .from('battle_groups')
-        .select('id, score, is_eliminated')
-        .eq('battle_id', battleId)
-        .order('score', { ascending: false });
+        .select('score, correct_answers, is_eliminated')
+        .eq('id', groupId)
+        .maybeSingle();
 
-      if (!allGroups) return 0;
+      if (!group || group.is_eliminated) {
+        console.log('❌ [API] Grupo no encontrado o eliminado');
+        return 0;
+      }
 
-      const activeGroups = allGroups.filter(g => !g.is_eliminated);
-      const groupRank = activeGroups.findIndex(g => g.id === groupId);
+      const { data: battle } = await supabase
+        .from('battles')
+        .select('question_count')
+        .eq('id', battleId)
+        .maybeSingle();
 
-      if (groupRank === -1) return 0;
+      if (!battle) {
+        console.log('❌ [API] Batalla no encontrada');
+        return 0;
+      }
 
-      const pointsByRank = [200, 150, 100];
-      const points = pointsByRank[groupRank] || 50;
+      const totalQuestions = battle.question_count;
+      const correctAnswers = group.correct_answers;
+      const basePoints = 200;
 
-      console.log('🏆 [API] Puntos finales calculados:', { groupRank: groupRank + 1, points });
-      return points;
+      const pointsPerCorrectAnswer = Math.floor(basePoints / totalQuestions);
+      const finalPoints = correctAnswers * pointsPerCorrectAnswer;
+
+      console.log('🏆 [API] Puntos finales calculados:', {
+        totalQuestions,
+        correctAnswers,
+        pointsPerCorrectAnswer,
+        finalPoints
+      });
+
+      return finalPoints;
     } catch (error) {
       console.error('❌ Error calculating final points:', error);
       return 0;
