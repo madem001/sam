@@ -103,7 +103,7 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
+        <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-colors"

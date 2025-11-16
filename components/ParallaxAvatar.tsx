@@ -40,7 +40,7 @@ const ParallaxAvatar: React.FC<ParallaxAvatarProps> = ({ imageUrl }) => {
     >
       <div className="tilt-card-inner shadow-2xl rounded-full">
         <div 
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-100 to-indigo-200 tilt-card-bg"
+          className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-100 to-emerald-200 tilt-card-bg"
         ></div>
         <img
           src={imageUrl}

@@ -17,7 +17,7 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick }) => {
   const activeClasses = 'text-white -translate-y-4';
-  const inactiveClasses = 'text-indigo-100 dark:text-indigo-300/80 hover:text-white dark:hover:text-white';
+  const inactiveClasses = 'text-teal-100 dark:text-teal-300/80 hover:text-white dark:hover:text-white';
 
   return (
     <button
@@ -60,7 +60,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
   return (
     <div className="absolute bottom-0 left-0 right-0 h-24 text-white z-10">
        {/* Background */}
-      <div className="absolute bottom-0 w-full h-16 bg-indigo-700 dark:bg-slate-800 shadow-2xl"></div>
+      <div className="absolute bottom-0 w-full h-16 bg-teal-700 dark:bg-slate-800 shadow-2xl"></div>
 
       {/* Wave Indicator */}
        {activeIndex !== -1 && (
@@ -72,7 +72,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
                 }}
             >
                 <div className="relative w-full h-full">
-                    <svg viewBox="0 0 100 96" preserveAspectRatio="none" className="w-full h-full text-indigo-700 dark:text-slate-800 drop-shadow-lg" fill="currentColor">
+                    <svg viewBox="0 0 100 96" preserveAspectRatio="none" className="w-full h-full text-teal-700 dark:text-slate-800 drop-shadow-lg" fill="currentColor">
                         <path d="M50 0C25 0 25 32 0 32V96H100V32C75 32 75 0 50 0Z"/>
                     </svg>
                 </div>

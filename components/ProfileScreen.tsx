@@ -256,7 +256,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
         <div className="mb-8">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
-            <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="relative h-80 bg-gradient-to-br from-teal-600 to-emerald-500">
               <img
                 src={user.imageUrl}
                 alt={user.name}
@@ -292,7 +292,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               <div className="flex gap-3">
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
                 >
                   Editar
                 </button>

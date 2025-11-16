@@ -37,7 +37,7 @@ const Card: React.FC<{
 
 const LoadingScreen: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-slate-800 dark:to-slate-900">
       <div className="relative w-64 h-64 flex items-center justify-center mb-12">
         <Card
           number={3}

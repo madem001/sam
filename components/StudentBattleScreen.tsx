@@ -243,7 +243,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   });
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
       <button
         onClick={onBack}
         className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-lg"
@@ -260,7 +260,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
               <div className={`inline-block px-6 py-2 rounded-full shadow-lg ${
                 myGroup.is_eliminated
                   ? 'bg-gradient-to-r from-red-500 to-red-600'
-                  : 'bg-gradient-to-r from-sky-500 to-blue-500'
+                  : 'bg-gradient-to-r from-teal-600 to-emerald-600'
               } text-white`}>
                 <p className="font-bold text-lg">
                   {myGroup.is_eliminated ? '💀 ELIMINADO' : myGroup.group_name}
