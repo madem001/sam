@@ -198,14 +198,33 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                           ...getCardStyle(index)
                         }}
                         onClick={async () => {
+                            console.log('🖱️ [PROFILE] Click en carta:', {
+                              index,
+                              activeCardIndex,
+                              isActive: index === activeCardIndex,
+                              locked: prof.locked,
+                              professorId: prof.id,
+                              cardId: prof.cardId,
+                            });
+
                             if (index === activeCardIndex) {
                               if (!prof.locked) {
-                                const { data: pointsData } = await supabase
+                                console.log('🔍 [PROFILE] Consultando puntos para profesor:', prof.id);
+                                const { data: pointsData, error } = await supabase
                                   .from('student_professor_points')
                                   .select('points')
                                   .eq('student_id', user.id)
                                   .eq('professor_id', prof.id)
                                   .maybeSingle();
+
+                                console.log('📊 [PROFILE] Puntos obtenidos:', pointsData, 'Error:', error);
+
+                                console.log('✅ [PROFILE] Abriendo modal con:', {
+                                  cardId: prof.cardId || '',
+                                  teacherId: prof.id,
+                                  professorName: prof.name,
+                                  points: pointsData?.points || 0,
+                                });
 
                                 setSelectedCardForRedemption({
                                   cardId: prof.cardId || '',
@@ -213,8 +232,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                                   professorName: prof.name,
                                   points: pointsData?.points || 0,
                                 });
+                              } else {
+                                console.log('🔒 [PROFILE] Carta bloqueada, no se puede abrir modal');
                               }
                             } else {
+                                console.log('👉 [PROFILE] Activando carta en índice:', index);
                                 setActiveCardIndex(index);
                             }
                         }}
@@ -254,7 +276,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       
       {selectedProfessor && <ProfessorDetailOverlay professor={selectedProfessor} onClose={() => setSelectedProfessor(null)} />}
       {selectedCardForRedemption && (
-        <ProfessorCardDetailModal
+        <>
+          {console.log('🎴 [PROFILE] Renderizando ProfessorCardDetailModal:', selectedCardForRedemption)}
+          <ProfessorCardDetailModal
           cardId={selectedCardForRedemption.cardId}
           professorName={selectedCardForRedemption.professorName}
           teacherId={selectedCardForRedemption.teacherId}
@@ -266,6 +290,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             setProfessors(cards);
           }}
         />
+        </>
       )}
       <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} user={user} onSave={handleSaveProfile} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={user.notifications || []} onJoinBattle={onJoinFromNotification} />

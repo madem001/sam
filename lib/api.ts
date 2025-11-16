@@ -213,20 +213,22 @@ export const professorCardsApi = {
   },
 
   addPointsToProfessorCard: async (studentId: string, teacherId: string, points: number) => {
-    console.log('➕ Agregando puntos a carta del profesor:', { studentId, teacherId, points });
+    console.log('➕ [POINTS] Agregando puntos:', { studentId, teacherId, points });
 
-    const { data: card } = await supabase
+    const { data: card, error: cardError } = await supabase
       .from('professor_cards')
-      .select('id')
+      .select('id, unlock_points')
       .eq('teacher_id', teacherId)
       .maybeSingle();
 
-    if (!card) {
-      console.log('⚠️ No se encontró carta del profesor');
+    if (cardError || !card) {
+      console.error('❌ [POINTS] Error buscando carta del profesor:', cardError);
       return;
     }
 
-    const { data: studentCard } = await supabase
+    console.log('📋 [POINTS] Carta encontrada:', card);
+
+    const { data: studentCard, error: scError } = await supabase
       .from('student_professor_cards')
       .select('id, unlocked')
       .eq('student_id', studentId)
@@ -234,39 +236,77 @@ export const professorCardsApi = {
       .maybeSingle();
 
     if (!studentCard) {
-      await supabase
+      console.log('🆕 [POINTS] Creando relación estudiante-carta');
+      const { error: insertError } = await supabase
         .from('student_professor_cards')
         .insert({
           student_id: studentId,
           card_id: card.id,
           unlocked: false,
         });
+
+      if (insertError) {
+        console.error('❌ [POINTS] Error creando student_professor_cards:', insertError);
+      }
+    } else {
+      console.log('✅ [POINTS] Relación estudiante-carta ya existe, unlocked:', studentCard.unlocked);
     }
 
-    const { data: pointsRecord } = await supabase
+    const { data: pointsRecord, error: pointsError } = await supabase
       .from('student_professor_points')
       .select('points')
       .eq('student_id', studentId)
       .eq('professor_id', teacherId)
       .maybeSingle();
 
+    let newTotalPoints = points;
+
     if (pointsRecord) {
-      await supabase
+      newTotalPoints = pointsRecord.points + points;
+      console.log('📊 [POINTS] Actualizando puntos:', pointsRecord.points, '+', points, '=', newTotalPoints);
+      const { error: updateError } = await supabase
         .from('student_professor_points')
-        .update({ points: pointsRecord.points + points })
+        .update({ points: newTotalPoints })
         .eq('student_id', studentId)
         .eq('professor_id', teacherId);
+
+      if (updateError) {
+        console.error('❌ [POINTS] Error actualizando puntos:', updateError);
+      }
     } else {
-      await supabase
+      console.log('🆕 [POINTS] Creando registro de puntos:', points);
+      const { error: insertError } = await supabase
         .from('student_professor_points')
         .insert({
           student_id: studentId,
           professor_id: teacherId,
           points: points,
         });
+
+      if (insertError) {
+        console.error('❌ [POINTS] Error insertando puntos:', insertError);
+      }
     }
 
-    console.log('✅ Puntos agregados a carta del profesor');
+    if (newTotalPoints >= card.unlock_points && studentCard && !studentCard.unlocked) {
+      console.log('🔓 [POINTS] Desbloqueando carta! Puntos:', newTotalPoints, '>=', card.unlock_points);
+      const { error: unlockError } = await supabase
+        .from('student_professor_cards')
+        .update({
+          unlocked: true,
+          unlocked_at: new Date().toISOString(),
+        })
+        .eq('student_id', studentId)
+        .eq('card_id', card.id);
+
+      if (unlockError) {
+        console.error('❌ [POINTS] Error desbloqueando carta:', unlockError);
+      } else {
+        console.log('✅ [POINTS] Carta desbloqueada exitosamente!');
+      }
+    }
+
+    console.log('✅ [POINTS] Puntos agregados. Total:', newTotalPoints);
   },
 };
 
