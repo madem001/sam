@@ -254,37 +254,59 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       <main className="flex-1 overflow-y-auto px-6 pb-6">
         <div className="max-w-2xl mx-auto space-y-8">
 
-          {/* Profile Section - Hero */}
-          <div className="text-center pt-2">
-            <div className="relative inline-block mb-4">
-              <div className="w-28 h-28 rounded-full border-4 border-white dark:border-slate-700 shadow-2xl overflow-hidden bg-white">
-                <img
-                  src={user.imageUrl}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-slate-900 shadow-lg"></div>
+          {/* Profile Card - Hero */}
+          <div className="glass-card-modern overflow-hidden">
+            {/* Profile Image Section */}
+            <div className="relative h-64 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <img
+                src={user.imageUrl}
+                alt={user.name}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">{user.name}</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Estudiante EduBattle</p>
+
+            {/* Profile Info Section */}
+            <div className="bg-white dark:bg-slate-800 p-6 text-center">
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">{user.name}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center justify-center">
+                <ion-icon name="location-outline" class="text-base mr-1"></ion-icon>
+                Estudiante EduBattle
+              </p>
+
+              {/* Stats Row */}
+              <div className="flex justify-around mb-5 pb-5 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{professors.filter(p => !p.locked).length}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Cartas</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.achievements?.length || 0}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Logros</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{professors.length}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Maestros</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="flex-1 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-semibold py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 transition-all"
+                >
+                  Salir
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="glass-card-modern p-5 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent mb-2">
-                {professors.filter(p => !p.locked).length}
-              </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Cartas Desbloqueadas</div>
-            </div>
-            <div className="glass-card-modern p-5 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent mb-2">
-                {user.achievements?.length || 0}
-              </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Logros Conseguidos</div>
-            </div>
-          </div>
 
           {/* Achievements Section */}
           {user.achievements && user.achievements.length > 0 && (
@@ -400,23 +422,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="w-full glass-card-modern p-5 flex items-center justify-center space-x-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group"
-            >
-              <ion-icon name="create-outline" class="text-2xl text-sky-500 group-hover:scale-110 transition-transform"></ion-icon>
-              <span className="text-base font-semibold text-slate-700 dark:text-slate-200">Editar Perfil</span>
-            </button>
-            <button
-              onClick={onLogout}
-              className="w-full glass-card-modern p-5 flex items-center justify-center space-x-3 hover:bg-red-50/80 dark:hover:bg-red-900/30 transition-all group"
-            >
-              <ion-icon name="log-out-outline" class="text-2xl text-red-500 group-hover:scale-110 transition-transform"></ion-icon>
-              <span className="text-base font-semibold text-red-600 dark:text-red-400">Cerrar Sesión</span>
-            </button>
-          </div>
 
         </div>
       </main>
