@@ -252,22 +252,22 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
       </button>
 
-      <div className="p-6 space-y-6 pt-16">
+      <div className="p-4 space-y-4 pt-14">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-800">{battle.name}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{battle.name}</h1>
           {myGroup && (
-            <div className="space-y-2 mt-3">
-              <div className={`inline-block px-6 py-2 rounded-full shadow-lg ${
+            <div className="space-y-2 mt-2">
+              <div className={`inline-block px-5 py-2 rounded-full shadow-lg ${
                 myGroup.is_eliminated
                   ? 'bg-gradient-to-r from-red-500 to-red-600'
                   : 'bg-gradient-to-r from-gray-800 to-gray-900'
               } text-white`}>
-                <p className="font-bold text-lg">
+                <p className="font-bold text-base">
                   {myGroup.is_eliminated ? '💀 ELIMINADO' : myGroup.group_name}
                 </p>
-                <p className="text-sm opacity-90">Puntos: {myGroup.score}</p>
+                <p className="text-xs opacity-90">Puntos: {myGroup.score}</p>
                 {!myGroup.is_eliminated && myGroup.wrong_answers > 0 && (
-                  <p className="text-sm font-bold text-yellow-200">
+                  <p className="text-xs font-bold text-yellow-200">
                     ⚠️ {myGroup.wrong_answers}/2 errores
                   </p>
                 )}
@@ -277,31 +277,31 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         </div>
 
         {isWaiting && (
-          <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
+          <div className="bg-white p-6 rounded-2xl shadow-xl text-center">
             <div className="animate-pulse">
-              <ion-icon name="hourglass-outline" class="text-6xl text-gray-700 mb-4"></ion-icon>
+              <ion-icon name="hourglass-outline" class="text-5xl text-gray-700 mb-3"></ion-icon>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Esperando Inicio</h2>
-            <p className="text-slate-600">El maestro iniciará la batalla pronto...</p>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">Esperando Inicio</h2>
+            <p className="text-sm text-slate-600">El maestro iniciará la batalla pronto...</p>
           </div>
         )}
 
         {isActive && currentQuestion && !myGroup?.is_eliminated && (
-          <div className="bg-white p-6 rounded-2xl shadow-xl">
+          <div className="bg-white p-4 rounded-2xl shadow-xl">
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-slate-500">
+                <span className="text-xs font-semibold text-slate-500">
                   Pregunta {(myGroup?.current_question_index || 0) + 1} de {battle.question_count}
                 </span>
-                <div className={`flex items-center space-x-2 font-bold text-2xl ${
+                <div className={`flex items-center space-x-1 font-bold text-lg ${
                   timeRemaining <= 10 ? 'text-red-500 animate-pulse' :
                   timeRemaining <= 30 ? 'text-orange-500' : 'text-green-500'
                 }`}>
-                  <ion-icon name="timer-outline" class="text-3xl"></ion-icon>
+                  <ion-icon name="timer-outline" class="text-2xl"></ion-icon>
                   <span>{timeRemaining}s</span>
                 </div>
               </div>
-              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
                     timeRemaining <= 10 ? 'bg-red-500' :
@@ -312,11 +312,11 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4">
               {!hasAnswered && (
-                <div className="flex items-center space-x-2 text-orange-500">
-                  <ion-icon name="alert-circle-outline" class="text-xl"></ion-icon>
-                  <span className="font-semibold">¡Responde antes que termine el tiempo!</span>
+                <div className="flex items-center space-x-1 text-orange-500">
+                  <ion-icon name="alert-circle-outline" class="text-base"></ion-icon>
+                  <span className="font-semibold text-xs">¡Responde antes que termine el tiempo!</span>
                 </div>
               )}
               {hasAnswered && (
@@ -327,11 +327,11 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
               )}
             </div>
 
-            <h2 className="text-xl font-bold text-slate-800 mb-6">
+            <h2 className="text-base font-bold text-slate-800 mb-4 leading-snug">
               {currentQuestion.question_text}
             </h2>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {currentQuestion.answers.map((answer, idx) => {
                 const isSelected = selectedAnswer === idx;
                 const isCorrect = idx === currentQuestion.correct_answer_index;
@@ -342,37 +342,37 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                     key={idx}
                     onClick={() => handleAnswerSelect(idx)}
                     disabled={hasAnswered}
-                    className={`p-4 rounded-xl border-3 font-semibold text-left transition-all transform ${
+                    className={`p-3 rounded-xl border-3 font-semibold text-left transition-all ${
                       !showResult
-                        ? 'hover:scale-105 hover:shadow-lg active:scale-95'
+                        ? 'active:scale-95'
                         : ''
                     } ${
                       showResult && isSelected && isCorrect
-                        ? 'bg-green-100 border-green-500 scale-105 shadow-lg'
+                        ? 'bg-green-100 border-green-500 shadow-lg'
                         : showResult && isSelected && !isCorrect
                         ? 'bg-red-100 border-red-500'
                         : showResult && isCorrect
                         ? 'bg-green-50 border-green-400'
-                        : 'bg-white hover:bg-slate-50 dark:hover:bg-slate-600'
+                        : 'bg-white'
                     }`}
                     style={{
                       borderColor: !showResult ? answer.color : undefined,
                       borderWidth: '3px',
                     }}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
                       <div
-                        className="w-8 h-8 rounded-full flex-shrink-0"
+                        className="w-6 h-6 rounded-full flex-shrink-0"
                         style={{ backgroundColor: answer.color }}
                       ></div>
-                      <span className="text-slate-800 flex-grow">
+                      <span className="text-slate-800 flex-grow text-sm">
                         {answer.text}
                       </span>
                       {showResult && isCorrect && (
-                        <ion-icon name="checkmark-circle" class="text-2xl text-green-500"></ion-icon>
+                        <ion-icon name="checkmark-circle" class="text-xl text-green-500"></ion-icon>
                       )}
                       {showResult && isSelected && !isCorrect && (
-                        <ion-icon name="close-circle" class="text-2xl text-red-500"></ion-icon>
+                        <ion-icon name="close-circle" class="text-xl text-red-500"></ion-icon>
                       )}
                     </div>
                   </button>
