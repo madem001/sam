@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { professorCardsApi } from '../../lib/api';
 
 interface Game {
   id: string;
@@ -41,6 +42,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const [wordText, setWordText] = useState('ROJO');
   const [wordColor, setWordColor] = useState('blue');
   const [correctAnswer, setCorrectAnswer] = useState<'text' | 'color'>('color');
+  const [tempPoints, setTempPoints] = useState<{ [key: string]: number }>({});
+  const [assigningPoints, setAssigningPoints] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     loadActiveGame();
@@ -145,13 +148,36 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
     setResponses([]);
   };
 
-  const awardPoints = async (responseId: string, points: number) => {
-    await supabase
-      .from('all_for_all_responses')
-      .update({ points_awarded: points })
-      .eq('id', responseId);
+  const updateTempPoints = (responseId: string, points: number) => {
+    setTempPoints(prev => ({ ...prev, [responseId]: points }));
+  };
 
-    loadResponses();
+  const assignPoints = async (response: Response) => {
+    const points = tempPoints[response.id] || 0;
+    if (points <= 0) return;
+
+    setAssigningPoints(prev => ({ ...prev, [response.id]: true }));
+
+    try {
+      await supabase
+        .from('all_for_all_responses')
+        .update({ points_awarded: points })
+        .eq('id', response.id);
+
+      await professorCardsApi.addPointsToProfessorCard(
+        response.student_id,
+        teacherId,
+        points
+      );
+
+      console.log('✅ Puntos asignados exitosamente:', points, 'a', response.student?.name);
+
+      loadResponses();
+    } catch (error) {
+      console.error('❌ Error asignando puntos:', error);
+    } finally {
+      setAssigningPoints(prev => ({ ...prev, [response.id]: false }));
+    }
   };
 
   const getRankEmoji = (rank: number) => {
@@ -381,12 +407,37 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
-                          value={response.points_awarded}
-                          onChange={(e) => awardPoints(response.id, parseInt(e.target.value) || 0)}
+                          value={tempPoints[response.id] ?? response.points_awarded}
+                          onChange={(e) => updateTempPoints(response.id, parseInt(e.target.value) || 0)}
                           className="w-20 px-3 py-2 rounded-lg border border-slate-300 text-center font-bold bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
                           placeholder="0"
+                          disabled={response.points_awarded > 0}
                         />
                         <span className="text-slate-600 font-medium text-sm">pts</span>
+                        {response.points_awarded === 0 ? (
+                          <button
+                            onClick={() => assignPoints(response)}
+                            disabled={assigningPoints[response.id] || (tempPoints[response.id] || 0) <= 0}
+                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:from-slate-300 disabled:to-slate-400 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all disabled:cursor-not-allowed"
+                          >
+                            {assigningPoints[response.id] ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                Asignando...
+                              </>
+                            ) : (
+                              <>
+                                <ion-icon name="trophy" class="text-lg"></ion-icon>
+                                Asignar
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+                            <ion-icon name="checkmark-circle" class="text-lg"></ion-icon>
+                            Asignado
+                          </div>
+                        )}
                       </div>
 
                       <div>
