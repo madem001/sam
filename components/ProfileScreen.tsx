@@ -330,11 +330,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
 
           {/* Professor Cards Section */}
           <div className="glass-card-modern p-6">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center justify-center">
-              <ion-icon name="people" class="text-2xl mr-2 text-blue-500"></ion-icon>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center justify-center">
+              <ion-icon name="people" class="text-3xl mr-2 text-blue-500"></ion-icon>
               Mis Maestros
             </h3>
-            <p className="text-xs text-center text-slate-500 dark:text-slate-400 mb-6">Desliza las cartas para navegar →</p>
+            <p className="text-sm text-center text-slate-600 dark:text-slate-300 mb-6 font-medium">Desliza las cartas para navegar →</p>
 
             {isLoadingProfessors ? (
               <div className="flex items-center justify-center py-12">
@@ -349,7 +349,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               <div className="space-y-4">
                 <div
                   ref={cardContainerRef}
-                  style={{ perspective: '1200px', height: '320px' }}
+                  style={{ perspective: '1400px', height: '400px' }}
                   className="flex items-center justify-center w-full relative select-none"
                   onMouseMove={handleDragMove}
                   onMouseUp={handleDragEnd}
@@ -357,7 +357,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                   onTouchMove={handleDragMove}
                   onTouchEnd={handleDragEnd}
                 >
-                  <div style={{ position: 'relative', width: '240px', height: '320px', transformStyle: 'preserve-3d' }}>
+                  <div style={{ position: 'relative', width: '280px', height: '380px', transformStyle: 'preserve-3d' }}>
                     {professors.map((prof, index) => (
                       <div
                         key={prof.id}
@@ -403,14 +403,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                   ))}
                 </div>
 
-                <div className="flex justify-center items-center gap-2 flex-wrap">
+                <div className="flex justify-center items-center gap-3 flex-wrap">
                   {professors.map((prof, index) => (
                     <button
                       key={prof.id}
-                      className={`w-12 h-12 rounded-xl overflow-hidden transition-all ${
+                      className={`w-16 h-16 rounded-xl overflow-hidden transition-all ${
                         index === activeCardIndex
-                          ? 'ring-2 ring-sky-500 scale-110 shadow-lg'
-                          : 'opacity-50 hover:opacity-100 hover:scale-105'
+                          ? 'ring-3 ring-sky-500 scale-110 shadow-lg'
+                          : 'opacity-60 hover:opacity-100 hover:scale-105'
                       }`}
                       onClick={() => setActiveCardIndex(index)}
                     >
