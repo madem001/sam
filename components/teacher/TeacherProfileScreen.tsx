@@ -60,59 +60,73 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="px-6 pt-8 pb-24">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Profile Header Card */}
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div className="relative h-32 bg-gradient-to-br from-gray-700 to-gray-900"></div>
+    <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50">
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {/* Profile Card - Hero */}
+        <div className="mb-4">
+          <div className="overflow-visible p-0">
+            {/* Profile Image Section */}
+            <div className="relative h-64 bg-gradient-to-br from-gray-700 to-gray-900">
+              <img
+                src={editableUser.imageUrl}
+                alt={editableUser.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-            <div className="relative px-6 pb-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-end -mt-16 gap-4">
-                  <div className="relative">
-                    <img
-                      src={editableUser.imageUrl}
-                      alt={editableUser.name}
-                      className="w-32 h-32 rounded-3xl border-4 border-white shadow-xl object-cover"
-                    />
-                  </div>
-                  <div className="pb-2">
-                    <h1 className="text-3xl font-bold text-slate-800">{editableUser.name}</h1>
-                    <p className="text-gray-700 font-semibold mt-1">Docente</p>
-                  </div>
-                </div>
+            {/* Profile Info Section with Curved Top */}
+            <div className="relative bg-white -mt-10 rounded-t-[3rem] p-5 pt-8 text-center shadow-2xl">
+              <h1 className="text-2xl font-bold text-slate-800 mb-1">{editableUser.name}</h1>
+              <p className="text-sm text-slate-500 mb-4 flex items-center justify-center">
+                <ion-icon name="school-outline" class="text-base mr-1"></ion-icon>
+                Docente
+              </p>
 
-                <div className="flex items-center gap-2 mt-4">
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all shadow-sm hover:shadow"
-                    aria-label="Editar perfil"
-                  >
-                    <ion-icon name="create-outline" class="text-xl"></ion-icon>
-                  </button>
-                  <button
-                    onClick={onLogout}
-                    className="p-3 rounded-2xl bg-red-100 hover:bg-red-200 text-red-600 transition-all shadow-sm hover:shadow"
-                    aria-label="Cerrar sesión"
-                  >
-                    <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
-                  </button>
+              {/* Stats Row */}
+              <div className="flex justify-around mb-4 pb-4 border-b border-slate-200">
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{editableUser.subjects?.length || 0}</div>
+                  <div className="text-xs text-slate-500">Clases</div>
                 </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{editableUser.skills?.length || 0}</div>
+                  <div className="text-xs text-slate-500">Habilidades</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{editableUser.cycles?.length || 0}</div>
+                  <div className="text-xs text-slate-500">Ciclos</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="flex-1 bg-white border-2 border-slate-300 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-all"
+                >
+                  Salir
+                </button>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Subjects Card */}
+        <div className="max-w-2xl mx-auto px-6 space-y-4">
+          {/* Subjects Section */}
           {editableUser.subjects && editableUser.subjects.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <ion-icon name="book" class="text-2xl text-white"></ion-icon>
-                </div>
-                <h2 className="text-xl font-bold text-slate-800">Clases que imparte</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            <div className="glass-card-modern p-6">
+              <h3 className="text-xl font-bold text-slate-800 mb-5 flex items-center justify-center">
+                <ion-icon name="book" class="text-2xl mr-2 text-blue-500"></ion-icon>
+                Clases que imparte
+              </h3>
+              <div className="flex flex-wrap gap-2 justify-center">
                 {editableUser.subjects.map((subject, index) => (
                   <span
                     key={index}
@@ -125,16 +139,14 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
             </div>
           )}
 
-          {/* Skills Card */}
+          {/* Skills Section */}
           {editableUser.skills && editableUser.skills.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
-                  <ion-icon name="bulb" class="text-2xl text-white"></ion-icon>
-                </div>
-                <h2 className="text-xl font-bold text-slate-800">Habilidades</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            <div className="glass-card-modern p-6">
+              <h3 className="text-xl font-bold text-slate-800 mb-5 flex items-center justify-center">
+                <ion-icon name="bulb" class="text-2xl mr-2 text-green-500"></ion-icon>
+                Habilidades
+              </h3>
+              <div className="flex flex-wrap gap-2 justify-center">
                 {editableUser.skills.map((skill, index) => (
                   <span
                     key={index}
@@ -147,16 +159,14 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
             </div>
           )}
 
-          {/* Cycles Card */}
+          {/* Cycles Section */}
           {editableUser.cycles && editableUser.cycles.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <ion-icon name="calendar" class="text-2xl text-white"></ion-icon>
-                </div>
-                <h2 className="text-xl font-bold text-slate-800">Ciclos Académicos</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            <div className="glass-card-modern p-6">
+              <h3 className="text-xl font-bold text-slate-800 mb-5 flex items-center justify-center">
+                <ion-icon name="calendar" class="text-2xl mr-2 text-purple-500"></ion-icon>
+                Ciclos Académicos
+              </h3>
+              <div className="flex flex-wrap gap-2 justify-center">
                 {editableUser.cycles.map((cycle, index) => (
                   <span
                     key={index}
@@ -170,22 +180,20 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
           )}
 
           {/* Card Unlock Configuration */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
-                <ion-icon name="card" class="text-2xl text-white"></ion-icon>
-              </div>
-              <h2 className="text-xl font-bold text-slate-800">Configuración de Tarjeta</h2>
-            </div>
+          <div className="glass-card-modern p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-5 flex items-center justify-center">
+              <ion-icon name="card" class="text-2xl mr-2 text-amber-500"></ion-icon>
+              Configuración de Tarjeta
+            </h3>
 
             <div className="space-y-4">
-              <p className="text-slate-600">
+              <p className="text-slate-600 text-center text-sm">
                 Puntos necesarios para que los estudiantes desbloqueen tu tarjeta de profesor
               </p>
 
-              <div className="flex items-end gap-3">
+              <div className="flex flex-col gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 text-center">
                     Puntos Requeridos
                   </label>
                   <input
@@ -195,7 +203,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
                     value={unlockPoints}
                     onChange={(e) => setUnlockPoints(Number(e.target.value))}
                     disabled={!isEditing}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-gray-900 outline-none transition-colors disabled:opacity-50 disabled:bg-slate-50"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-gray-900 outline-none transition-colors disabled:opacity-50 disabled:bg-slate-50 text-center text-lg font-bold"
                   />
                 </div>
 
@@ -204,7 +212,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
                     <>
                       <button
                         onClick={handleSaveUnlockPoints}
-                        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+                        className="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
                       >
                         Guardar
                       </button>
@@ -213,7 +221,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
                           setIsEditing(false);
                           loadUnlockPoints();
                         }}
-                        className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all"
+                        className="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all"
                       >
                         Cancelar
                       </button>
@@ -221,7 +229,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
                   ) : (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+                      className="flex-1 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
                     >
                       Editar
                     </button>
@@ -238,7 +246,7 @@ const TeacherProfileScreen: React.FC<TeacherProfileScreenProps> = ({ user, onLog
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <EditProfileModal
         isOpen={isEditModalOpen}
