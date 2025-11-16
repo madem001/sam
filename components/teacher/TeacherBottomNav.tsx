@@ -15,11 +15,11 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
+const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="relative flex-1 flex flex-col items-center justify-center py-4"
+      className="relative flex-1 flex flex-col items-center justify-center py-3 gap-1"
     >
       <div style={{ visibility: isActive ? 'hidden' : 'visible' }}>
         <ion-icon
@@ -27,6 +27,12 @@ const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
           class="text-2xl text-gray-600"
         ></ion-icon>
       </div>
+      <span
+        className="text-xs font-medium text-gray-600"
+        style={{ visibility: isActive ? 'hidden' : 'visible' }}
+      >
+        {label}
+      </span>
     </button>
   );
 };
