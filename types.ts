@@ -1,136 +1,111 @@
-import React from 'react';
-
-// FIX: Declare global type for 'ion-icon' custom element.
-// This ensures it is recognized by TypeScript's JSX parser across the application.
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      // FIX: Updated the type definition for 'ion-icon' to be more specific,
-      // which resolves TS errors and allows standard attributes like 'class'.
-      'ion-icon': React.HTMLAttributes<HTMLElement> & {
-        name?: string;
-        class?: string;
-      };
-    }
-  }
+export enum UserRole {
+  Student = 'STUDENT',
+  Teacher = 'TEACHER',
+  Admin = 'ADMIN'
 }
 
 export enum Screen {
   Login = 'LOGIN',
-  Profile = 'PROFILE',
-  Achievements = 'ACHIEVEMENTS',
-  Questions = 'QUESTIONS',
-  Battle = 'BATTLE',
+  Home = 'HOME',
   JoinBattle = 'JOIN_BATTLE',
   BattleLobby = 'BATTLE_LOBBY',
-  Trivia = 'TRIVIA',
-  Winner = 'WINNER',
-  Loser = 'LOSER',
+  StudentBattle = 'STUDENT_BATTLE',
+  Profile = 'PROFILE',
+  Achievements = 'ACHIEVEMENTS',
+  Notifications = 'NOTIFICATIONS',
+  TeacherDashboard = 'TEACHER_DASHBOARD'
 }
 
 export enum TeacherScreen {
   Dashboard = 'DASHBOARD',
   BattleManager = 'BATTLE_MANAGER',
+  BattleControl = 'BATTLE_CONTROL',
   QuestionBank = 'QUESTION_BANK',
   StudentList = 'STUDENT_LIST',
-  Profile = 'PROFILE',
-}
-
-export enum UserRole {
-    Student = 'STUDENT',
-    Teacher = 'TEACHER',
-}
-
-export interface Skill {
-  name: string;
-  score: number;
-}
-
-export interface Professor {
-  id: number;
-  name: string;
-  title: string;
-  imageUrl: string;
-  skills: Skill[];
-  locked: boolean;
-}
-
-export interface Achievement {
-  id: number;
-  name: string;
-  icon: string; // ionicon name
-  description: string;
-  matchesPlayed?: number;
-  pointsEarned?: number;
-  levelAchieved?: number;
-}
-
-export interface Notification {
-  id: string;
-  message: string;
-  read: boolean;
-  type: 'battle_invite' | 'generic';
-  payload?: {
-    battleName: string;
-    roomCode: string;
-    inviter: string;
-  };
+  RewardsManagement = 'REWARDS_MANAGEMENT',
+  Profile = 'PROFILE'
 }
 
 export interface User {
-  id: string; // FEAT: Added unique ID for user identification and targeting.
+  id: string;
   name: string;
-  level: number;
-  imageUrl: string;
-  avatarUrl?: string;
-  achievements: Achievement[];
   role: UserRole;
-  gender: 'male' | 'female';
-  notifications?: Notification[]; // FEAT: Added notifications for battle invites.
-  // Teacher-specific fields
+  email?: string;
+  level?: number;
+  points?: number;
+  streak?: number;
+  imageUrl?: string;
+  avatar?: string;
+  unlockPoints?: number;
+  subjects?: string[];
+  skills?: string[];
+  cycles?: string[];
+  achievements?: Achievement[];
+  notifications?: Notification[];
+}
+
+export interface Student extends User {
+  role: UserRole.Student;
+}
+
+export interface Teacher extends User {
+  role: UserRole.Teacher;
   subjects?: string[];
   skills?: string[];
   cycles?: string[];
 }
 
-export interface Question {
-    id: string;
-    text: string;
-    answers: string[];
-    correctAnswerIndex: number;
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  unlockedAt?: string;
 }
 
-export interface Student {
-    id: string;
-    name: string;
-    level: number;
-    imageUrl: string;
+export interface Notification {
+  id: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  createdAt: string;
 }
 
-// Added for the new module management feature
-export interface AppModule {
-    id: Screen | TeacherScreen;
-    name: string;
-    description: string;
-    role: UserRole.Student | UserRole.Teacher;
-}
-
-// Added for the new dynamic module creator feature
-export interface CustomModule {
-    id: string;
-    name: string;
-    icon: string;
-    role: UserRole.Student | UserRole.Teacher;
-    gameMode: 'individual' | 'group';
-    accessMethod: 'code' | 'qr' | 'both';
-}
-
-// Added to standardize login/registration data payload
 export interface AuthData {
-    role: UserRole;
-    name?: string;
-    subjects?: string[];
-    skills?: string[];
-    cycles?: string[];
-    imageUrl?: string;
+  userId?: string;
+  name: string;
+  email?: string;
+  password?: string;
+  role: UserRole;
+  imageUrl?: string;
+  subjects?: string[];
+  skills?: string[];
+  cycles?: string[];
+}
+
+export interface CustomModule {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+}
+
+export interface Professor {
+  id: string;
+  name: string;
+  title: string;
+  department: string;
+  imageUrl: string;
+  unlockPoints: number;
+  locked: boolean;
+}
+
+export interface Question {
+  id: string;
+  text: string;
+  answers: string[];
+  correctIndex: number;
+  category?: string;
+  difficulty?: string;
 }
