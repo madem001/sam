@@ -50,10 +50,13 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   };
 
   const handleStartBattle = async () => {
+    console.log('🎮 [TEACHER] Iniciando batalla:', battleId);
     const success = await battleApi.startBattle(battleId);
     if (success) {
+      console.log('✅ [TEACHER] Batalla iniciada exitosamente');
       await loadBattleData();
     } else {
+      console.error('❌ [TEACHER] Error al iniciar batalla');
       alert('Error al iniciar la batalla');
     }
   };

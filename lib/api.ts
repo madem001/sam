@@ -684,18 +684,25 @@ export const battleApi = {
 
   startBattle: async (battleId: string) => {
     try {
-      const { error } = await supabase
+      console.log('🚀 [API] Iniciando batalla:', battleId);
+      const { data, error } = await supabase
         .from('battles')
         .update({
           status: 'active',
           started_at: new Date().toISOString(),
         })
-        .eq('id', battleId);
+        .eq('id', battleId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [API] Error en startBattle:', error);
+        throw error;
+      }
+
+      console.log('✅ [API] Batalla actualizada:', data);
       return true;
     } catch (error) {
-      console.error('❌ Error starting battle:', error);
+      console.error('❌ [API] Error starting battle:', error);
       return false;
     }
   },

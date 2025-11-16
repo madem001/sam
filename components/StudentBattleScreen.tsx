@@ -27,10 +27,13 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
   useEffect(() => {
     loadBattleData();
-    const battleSub = battleApi.subscribeToBattle(battleId, () => {
+    const battleSub = battleApi.subscribeToBattle(battleId, (payload) => {
+      console.log('🔔 [STUDENT] Cambio en batalla detectado:', payload.eventType);
+      console.log('🔔 [STUDENT] Nuevo estado:', payload.new?.status);
       loadBattleData();
     });
-    const groupsSub = battleApi.subscribeToBattleGroups(battleId, () => {
+    const groupsSub = battleApi.subscribeToBattleGroups(battleId, (payload) => {
+      console.log('🔔 [STUDENT] Cambio en grupos detectado:', payload.eventType);
       loadGroups();
     });
 
@@ -132,6 +135,14 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   const isWaiting = battle.status === 'waiting';
   const isActive = battle.status === 'active';
   const isFinished = battle.status === 'finished';
+
+  console.log('🎨 [STUDENT] Renderizando con estado:', {
+    status: battle.status,
+    isWaiting,
+    isActive,
+    isFinished,
+    hasCurrentQuestion: !!currentQuestion
+  });
 
   return (
     <div className="relative h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
