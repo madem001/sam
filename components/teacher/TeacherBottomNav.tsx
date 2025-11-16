@@ -17,14 +17,14 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick }) => {
   const activeClasses = 'text-white -translate-y-4';
-  const inactiveClasses = 'text-indigo-200 dark:text-indigo-300/80 hover:text-white dark:hover:text-white';
+  const inactiveClasses = 'text-indigo-100 dark:text-indigo-300/80 hover:text-white dark:hover:text-white';
 
   return (
     <button
       onClick={onClick}
       className="relative flex-1 z-10 flex flex-col items-center justify-center w-full transition-all duration-300 ease-in-out"
     >
-      <div className={`flex flex-col items-center transform transition-all duration-300 ease-in-out ${isActive ? activeClasses : ''}`}>
+      <div className={`flex flex-col items-center transform transition-all duration-300 ease-in-out ${isActive ? activeClasses : inactiveClasses}`}>
         {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
         <ion-icon name={iconName} class="text-3xl"></ion-icon>
         <span className={`text-xs font-bold mt-1`}>{label}</span>

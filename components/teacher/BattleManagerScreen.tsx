@@ -36,6 +36,7 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
         const { data: battles, error } = await supabase
             .from('battles')
             .select('*')
+            .eq('teacher_id', teacherId)
             .order('created_at', { ascending: false });
 
         if (error) {
