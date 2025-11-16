@@ -409,17 +409,18 @@ export const battleApi = {
     roundCount: number,
     groupCount: number,
     questions: { text: string; answers: string[]; correctIndex: number }[],
-    studentsPerGroup?: number
+    studentsPerGroup?: number,
+    teacherId?: string
   ) => {
-    console.log('🚀 Creando batalla:', name);
+    console.log('🚀 Creando batalla:', name, 'Teacher ID:', teacherId);
 
     const battleCode = generateCode();
 
-    const { data: battle } = await supabase
+    const { data: battle, error: battleError } = await supabase
       .from('battles')
       .insert({
         name,
-        teacher_id: 'default-teacher',
+        teacher_id: teacherId || 'default-teacher',
         question_count: roundCount,
         battle_code: battleCode,
         students_per_group: studentsPerGroup || 4,
@@ -429,7 +430,14 @@ export const battleApi = {
       .select()
       .maybeSingle();
 
+    if (battleError) {
+      console.error('❌ Error creando batalla:', battleError);
+      throw battleError;
+    }
+
     if (!battle) throw new Error('No se pudo crear batalla');
+
+    console.log('✅ Batalla creada con teacher_id:', battle.teacher_id);
 
     console.log('✅ Batalla creada:', battle.id);
 

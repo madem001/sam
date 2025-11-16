@@ -67,6 +67,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
       if (battleData) {
         setBattle(battleData);
+        console.log('👨‍🏫 [STUDENT] Teacher ID de la batalla:', battleData.teacher_id);
         const questionsData = await battleApi.getBattleQuestions(battleId);
         console.log('✅ [STUDENT] Preguntas cargadas:', questionsData.length);
         setQuestions(questionsData);
@@ -202,8 +203,17 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           setShowEndGamePopup(true);
 
           const teacherId = battle?.teacher_id || '';
+          console.log('🎯 [STUDENT] Asignando puntos:', {
+            studentId,
+            teacherId,
+            points: finalPoints,
+            professorName: battle?.name
+          });
           if (teacherId && finalPoints > 0) {
             await battleApi.addPointsToProfessorCard(studentId, teacherId, finalPoints);
+            console.log('✅ [STUDENT] Puntos asignados a la carta del profesor');
+          } else {
+            console.warn('⚠️ [STUDENT] No se pueden asignar puntos:', { teacherId, finalPoints });
           }
         }
       }, 2000);
