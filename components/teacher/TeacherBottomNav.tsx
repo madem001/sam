@@ -23,7 +23,7 @@ const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
     >
       <ion-icon
         name={iconName}
-        class={`text-2xl transition-all duration-300 ${isActive ? 'opacity-0' : 'text-gray-400'}`}
+        class={`text-2xl transition-all duration-300 ${isActive ? 'opacity-0' : 'text-gray-600'}`}
       ></ion-icon>
     </button>
   );
