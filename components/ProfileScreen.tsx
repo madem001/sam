@@ -148,13 +148,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       }
     }
 
-    setDragState({
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      currentX: 0,
-      currentY: 0,
-    });
+    setTimeout(() => {
+      setDragState({
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        currentX: 0,
+        currentY: 0,
+      });
+    }, 50);
   };
 
   const getCardStyle = (index: number): React.CSSProperties => {
@@ -201,11 +203,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   };
 
   const handleCardClick = async (index: number) => {
-    if (dragState.isDragging) return;
+    const dragDistance = Math.abs(dragState.currentX) + Math.abs(dragState.currentY);
+
+    if (dragDistance > 10) {
+      console.log('⏸️ Clic ignorado - fue un drag de', dragDistance, 'px');
+      return;
+    }
 
     const prof = professors[index];
+    console.log('🎯 Clic en carta:', prof.name, 'Index:', index, 'Active:', activeCardIndex, 'Locked:', prof.locked);
+
     if (index === activeCardIndex) {
       if (!prof.locked) {
+        console.log('🔓 Carta desbloqueada - abriendo modal');
+
         const { data: pointsData } = await supabase
           .from('student_professor_points')
           .select('points')
@@ -213,14 +224,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           .eq('professor_id', prof.id)
           .maybeSingle();
 
+        console.log('📊 Puntos obtenidos:', pointsData?.points || 0);
+
         setSelectedCardForRedemption({
           cardId: prof.cardId || '',
           teacherId: prof.id,
           professorName: prof.name,
           points: pointsData?.points || 0,
         });
+      } else {
+        console.log('🔒 Carta bloqueada - no se abre modal');
       }
     } else {
+      console.log('📍 Cambiando carta activa a:', index);
       setActiveCardIndex(index);
     }
   };
@@ -417,8 +433,22 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           currentPoints={selectedCardForRedemption.points}
           onClose={() => setSelectedCardForRedemption(null)}
           onRedeem={async () => {
+            console.log('🔄 Recargando cartas después de canjear recompensa...');
             const cards = await professorCardsApi.getStudentCards(user.id);
-            setProfessors(cards);
+            const mappedProfessors: Professor[] = cards.map((c: any) => ({
+              id: c.card.teacher_id,
+              cardId: c.card.id,
+              name: c.card.name,
+              subject: c.card.title,
+              title: c.card.title,
+              description: c.card.description,
+              imageUrl: c.card.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.card.name)}&background=3b82f6&color=fff&bold=true&size=128`,
+              locked: !c.unlocked,
+              unlockPoints: c.card.unlock_points,
+              points: c.card.points || 0,
+            }));
+            setProfessors(mappedProfessors);
+            setSelectedCardForRedemption(null);
           }}
         />
       )}
