@@ -28,10 +28,12 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
 
   useEffect(() => {
     loadActiveGame();
-    subscribeToGames();
+    const cleanup = subscribeToGames();
+    return cleanup;
   }, []);
 
   const loadActiveGame = async () => {
+    console.log('🔍 [STUDENT] Cargando juego activo...');
     setIsLoading(true);
     const { data, error } = await supabase
       .from('all_for_all_games')
@@ -39,10 +41,14 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       .eq('is_active', true)
       .maybeSingle();
 
+    console.log('📦 [STUDENT] Resultado de búsqueda:', { data, error });
+
     if (data) {
+      console.log('✅ [STUDENT] Juego activo encontrado:', data);
       setGame(data);
       await checkIfResponded(data.id);
     } else {
+      console.log('⏳ [STUDENT] No hay juego activo');
       setGame(null);
       setHasResponded(false);
     }
@@ -61,6 +67,8 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
   };
 
   const subscribeToGames = () => {
+    console.log('👂 [STUDENT] Suscribiéndose a cambios en all_for_all_games');
+
     const channel = supabase
       .channel('all_for_all_games_changes')
       .on(
@@ -70,13 +78,17 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
           schema: 'public',
           table: 'all_for_all_games',
         },
-        () => {
+        (payload) => {
+          console.log('🔔 [STUDENT] Cambio detectado en juegos:', payload);
           loadActiveGame();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 [STUDENT] Estado de suscripción:', status);
+      });
 
     return () => {
+      console.log('🔌 [STUDENT] Desconectando suscripción');
       supabase.removeChannel(channel);
     };
   };
