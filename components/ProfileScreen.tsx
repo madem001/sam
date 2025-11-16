@@ -251,10 +251,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Profile Card - Hero */}
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="glass-card-modern overflow-visible p-0 -mx-6">
+          <div className="overflow-visible p-0">
             {/* Profile Image Section */}
             <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600">
               <img
@@ -265,7 +265,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             </div>
 
             {/* Profile Info Section with Curved Top */}
-            <div className="relative bg-white dark:bg-slate-800 -mt-6 rounded-t-[2rem] p-6 pt-8 text-center shadow-2xl">
+            <div className="relative bg-white dark:bg-slate-800 -mt-10 rounded-t-[3rem] p-6 pt-10 text-center shadow-2xl">
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">{user.name}</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center justify-center">
                 <ion-icon name="location-outline" class="text-base mr-1"></ion-icon>
