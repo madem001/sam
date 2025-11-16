@@ -4,7 +4,6 @@ import TeacherBottomNav from './TeacherBottomNav';
 import DashboardScreen from './DashboardScreen';
 import TeacherProfileScreen from './TeacherProfileScreen';
 import BattleManagerScreen from './BattleManagerScreen';
-import QuestionBankScreen from './QuestionBankScreen';
 import StudentListScreen from './StudentListScreen';
 import BattleLobbyScreen from '../BattleLobbyScreen';
 import RewardsManagementScreen from './RewardsManagementScreen';
@@ -33,9 +32,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         break;
       case TeacherScreen.BattleManager:
         content = <BattleManagerScreen students={students} teacherId={user.id} onBack={handleBack} />;
-        break;
-      case TeacherScreen.QuestionBank:
-        content = <QuestionBankScreen teacherId={user.id} onBack={handleBack} />;
         break;
       case TeacherScreen.StudentList:
         content = <StudentListScreen onBack={handleBack} />;

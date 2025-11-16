@@ -26,26 +26,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigateTo }) => {
       </div>
 
       <div className="space-y-4">
-        <ActionCard 
+        <ActionCard
           title="Crear Batalla"
           description="Inicia una nueva competencia para tus estudiantes."
           icon={<ion-icon name="flash-outline"></ion-icon>}
           onClick={() => navigateTo(TeacherScreen.BattleManager)}
           delay="200ms"
         />
-        <ActionCard 
-          title="Banco de Preguntas"
-          description="Crea y edita las preguntas para las batallas."
-          icon={<ion-icon name="book-outline"></ion-icon>}
-          onClick={() => navigateTo(TeacherScreen.QuestionBank)}
-          delay="300ms"
-        />
-        <ActionCard 
+        <ActionCard
           title="Ver Estudiantes"
           description="Revisa el progreso y los logros de tu clase."
           icon={<ion-icon name="people-outline"></ion-icon>}
           onClick={() => navigateTo(TeacherScreen.StudentList)}
-          delay="400ms"
+          delay="300ms"
         />
       </div>
     </div>
