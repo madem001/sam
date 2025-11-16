@@ -28,19 +28,27 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
   useEffect(() => {
     loadBattleData();
+
     const battleSub = battleApi.subscribeToBattle(battleId, (payload) => {
       console.log('🔔 [STUDENT] Cambio en batalla detectado:', payload.eventType);
       console.log('🔔 [STUDENT] Nuevo estado:', payload.new?.status);
       loadBattleData();
     });
+
     const groupsSub = battleApi.subscribeToBattleGroups(battleId, (payload) => {
       console.log('🔔 [STUDENT] Cambio en grupos detectado:', payload.eventType);
       loadGroups();
     });
 
+    const pollingInterval = setInterval(() => {
+      console.log('🔄 [STUDENT] Polling battle state...');
+      loadBattleData();
+    }, 2000);
+
     return () => {
       battleSub.unsubscribe();
       groupsSub.unsubscribe();
+      clearInterval(pollingInterval);
     };
   }, [battleId]);
 
@@ -51,7 +59,8 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
       console.log('✅ [STUDENT] Batalla cargada:', {
         name: battleData?.name,
         status: battleData?.status,
-        totalQuestions: battleData?.question_count
+        totalQuestions: battleData?.question_count,
+        currentQuestionIndex: battleData?.current_question_index
       });
 
       if (battleData) {
@@ -68,34 +77,62 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   };
 
   const loadGroups = async () => {
+    console.log('👥 [STUDENT] Cargando grupos...');
     const groupsData = await battleApi.getBattleGroups(battleId);
+    console.log('✅ [STUDENT] Grupos cargados:', groupsData.length);
     setGroups(groupsData);
     const myGroupData = groupsData.find(g => g.id === groupId);
     if (myGroupData) {
+      console.log('✅ [STUDENT] Mi grupo encontrado:', {
+        id: myGroupData.id,
+        name: myGroupData.group_name,
+        currentQuestionIndex: myGroupData.current_question_index,
+        isEliminated: myGroupData.is_eliminated
+      });
       setMyGroup(myGroupData);
+    } else {
+      console.log('❌ [STUDENT] Mi grupo NO encontrado. GroupId buscado:', groupId);
     }
   };
 
   useEffect(() => {
-    if (!myGroup || !battle || !questions.length) return;
+    console.log('🔍 [STUDENT] Verificando condiciones para mostrar pregunta:', {
+      hasMyGroup: !!myGroup,
+      hasBattle: !!battle,
+      battleStatus: battle?.status,
+      questionsCount: questions.length,
+      isEliminated: myGroup?.is_eliminated,
+      currentQuestionIndex: myGroup?.current_question_index
+    });
+
+    if (!myGroup || !battle || !questions.length) {
+      console.log('⚠️ [STUDENT] Faltan datos para mostrar pregunta');
+      return;
+    }
 
     if (battle.status === 'active' && !myGroup.is_eliminated) {
       const currentQ = questions[myGroup.current_question_index];
       if (currentQ) {
-        console.log('📝 [STUDENT] Pregunta actual del grupo:', {
+        console.log('📝 [STUDENT] Pregunta disponible:', {
           index: myGroup.current_question_index,
-          text: currentQ.question_text.substring(0, 50) + '...'
+          text: currentQ.question_text.substring(0, 50) + '...',
+          currentQuestionId: currentQuestion?.id,
+          newQuestionId: currentQ.id
         });
 
         if (!currentQuestion || currentQuestion.id !== currentQ.id) {
-          console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
+          console.log('✅ [STUDENT] Cargando nueva pregunta...');
           setCurrentQuestion(currentQ);
           setStartTime(Date.now());
           setHasAnswered(false);
           setSelectedAnswer(null);
           setTimeRemaining(60);
         }
+      } else {
+        console.log('❌ [STUDENT] No hay pregunta en el índice:', myGroup.current_question_index);
       }
+    } else {
+      console.log('⏸️ [STUDENT] Batalla no activa o grupo eliminado');
     }
   }, [myGroup, battle, questions]);
 
