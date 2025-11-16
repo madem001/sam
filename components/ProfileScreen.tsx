@@ -330,12 +330,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
 
           {/* Professor Cards Section */}
           <div className="glass-card-modern p-6">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center justify-center">
-              <ion-icon name="people" class="text-3xl mr-2 text-blue-500"></ion-icon>
-              Mis Maestros
-            </h3>
-            <p className="text-sm text-center text-slate-600 dark:text-slate-300 mb-6 font-medium">Desliza las cartas para navegar →</p>
-
             {isLoadingProfessors ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
