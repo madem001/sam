@@ -184,10 +184,10 @@ export const getGroupMembers = async (groupId: string): Promise<GroupMember[]> =
     const members = await api.getGroupMembers(groupId);
     return members.map((m: any) => ({
       id: m.id,
-      group_id: m.groupId,
-      student_id: m.studentId,
-      student_name: m.studentName,
-      joined_at: m.joinedAt,
+      group_id: m.group_id || m.groupId,
+      student_id: m.student_id || m.studentId,
+      student_name: m.student_name || m.studentName,
+      joined_at: m.joined_at || m.joinedAt,
     }));
   } catch (error) {
     console.error('Error getting group members:', error);
@@ -214,7 +214,7 @@ export const submitAnswer = async (
   responseTimeMs: number
 ): Promise<boolean> => {
   try {
-    await api.submitAnswer(battleId, groupId, questionId, answerIndex, responseTimeMs);
+    await api.submitAnswer(battleId, groupId, questionId, answerIndex, correctIndex, responseTimeMs);
     return true;
   } catch (error) {
     console.error('Error submitting answer:', error);
@@ -244,7 +244,8 @@ export const nextQuestion = async (battleId: string): Promise<boolean> => {
 
 export const getBattleState = async (battleId: string): Promise<Battle | null> => {
   try {
-    const battle = await api.getBattle(battleId);
+    const battle = await api.getBattleState(battleId);
+    if (!battle) return null;
     return mapBattleFromAPI(battle);
   } catch (error) {
     console.error('Error getting battle state:', error);
