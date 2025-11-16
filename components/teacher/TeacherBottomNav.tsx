@@ -19,7 +19,8 @@ const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick })
   return (
     <button
       onClick={onClick}
-      className="relative flex-1 flex flex-col items-center justify-center py-3 gap-1"
+      className="relative flex flex-col items-center justify-center py-3 gap-1 min-w-0 flex-shrink-0"
+      style={{ width: 'auto', maxWidth: '80px' }}
     >
       <div style={{ visibility: isActive ? 'hidden' : 'visible' }}>
         <ion-icon
@@ -28,7 +29,7 @@ const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick })
         ></ion-icon>
       </div>
       <span
-        className="text-xs font-medium text-gray-600"
+        className="text-[10px] font-medium text-gray-600 truncate w-full text-center px-1"
         style={{ visibility: isActive ? 'hidden' : 'visible' }}
       >
         {label}
@@ -127,7 +128,7 @@ const TeacherBottomNav: React.FC<TeacherBottomNavProps> = ({ activeScreen, setAc
         </svg>
 
         {/* Navigation items */}
-        <div className="relative flex justify-around items-center h-full px-6 z-10">
+        <div className="relative flex justify-around items-center h-full px-2 z-10 gap-1">
           {navItems.map(item => (
             <NavItem
               key={item.screen}
