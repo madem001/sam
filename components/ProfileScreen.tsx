@@ -270,11 +270,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
         <div className="mb-4">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
-            <div className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+            <div className="relative h-80 bg-gradient-to-br from-gray-700 to-gray-900 overflow-hidden">
               <img
                 src={user.imageUrl}
                 alt={user.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover object-top"
               />
             </div>
 
