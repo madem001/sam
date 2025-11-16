@@ -8,6 +8,19 @@ Error: Could not resolve "./components/LoginScreen" from "App.tsx"
 
 **Causa**: Los componentes de React se perdieron durante la limpieza del proyecto.
 
+## 📚 DOCUMENTACIÓN COMPLETA DISPONIBLE
+
+**→ [GUÍA COMPLETA DE SETUP](./COMPLETE_SETUP_GUIDE.md)** ⭐
+
+Esta guía tiene TODO lo que necesitas:
+- ✅ Setup completo de PostgreSQL desde cero
+- ✅ Configuración paso a paso del Backend
+- ✅ Configuración del Frontend
+- ✅ Todos los API Endpoints documentados con ejemplos
+- ✅ WebSocket en tiempo real explicado
+- ✅ Ejemplos prácticos de código
+- ✅ Troubleshooting completo
+
 ---
 
 ## ✅ LO QUE ESTÁ COMPLETO Y FUNCIONAL:
