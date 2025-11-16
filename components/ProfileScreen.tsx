@@ -31,6 +31,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     teacherId: string;
     professorName: string;
     points: number;
+    professorImageUrl: string;
+    professorTitle: string;
+    professorDescription: string;
   } | null>(null);
   const [dragState, setDragState] = useState<{
     isDragging: boolean;
@@ -231,6 +234,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           teacherId: prof.id,
           professorName: prof.name,
           points: pointsData?.points || 0,
+          professorImageUrl: prof.imageUrl,
+          professorTitle: prof.title,
+          professorDescription: prof.description || 'Experto en su área',
         });
       } else {
         console.log('🔒 Carta bloqueada - no se abre modal');
@@ -431,6 +437,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           teacherId={selectedCardForRedemption.teacherId}
           studentId={user.id}
           currentPoints={selectedCardForRedemption.points}
+          professorImageUrl={selectedCardForRedemption.professorImageUrl}
+          professorTitle={selectedCardForRedemption.professorTitle}
+          professorDescription={selectedCardForRedemption.professorDescription}
           onClose={() => setSelectedCardForRedemption(null)}
           onRedeem={async () => {
             console.log('🔄 Recargando cartas después de canjear recompensa...');
