@@ -110,13 +110,16 @@ export const authApi = {
   updateProfile: async (userId: string, updates: { name?: string; avatar?: string }) => {
     console.log('✏️ Actualizando perfil:', userId, updates);
 
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.avatar !== undefined) updateData.avatar = updates.avatar;
+
     const { error } = await supabase
       .from('profiles')
-      .update({
-        name: updates.name,
-        avatar: updates.avatar,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (error) {

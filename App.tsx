@@ -41,14 +41,44 @@ const App: React.FC = () => {
     setTheme(initialTheme);
     document.documentElement.className = initialTheme;
 
-    const loadingTimer = setTimeout(() => setIsAppLoading(false), 3000);
-    
-    // Cargar todos los usuarios al iniciar la app
-    api.getAllUsers().then(users => {
-      setAllUsers(users);
-    });
+    const initializeApp = async () => {
+      try {
+        const savedUserId = localStorage.getItem('userId');
 
-    return () => clearTimeout(loadingTimer);
+        if (savedUserId) {
+          console.log('🔄 Restaurando sesión para usuario:', savedUserId);
+          const profile = await api.authApi.getProfile(savedUserId);
+
+          if (profile) {
+            console.log('✅ Sesión restaurada:', profile);
+            setUser({
+              id: profile.id,
+              email: profile.email,
+              name: profile.name,
+              role: profile.role as UserRole,
+              imageUrl: profile.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
+              points: profile.points || 0,
+              level: profile.level || 1,
+              streak: profile.streak || 0,
+            });
+            setIsAuthenticated(true);
+          } else {
+            console.log('⚠️ Perfil no encontrado, limpiando sesión');
+            localStorage.removeItem('userId');
+          }
+        }
+
+        const users = await api.getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error('❌ Error inicializando app:', error);
+        localStorage.removeItem('userId');
+      } finally {
+        setIsAppLoading(false);
+      }
+    };
+
+    initializeApp();
   }, []);
   
   useEffect(() => {
@@ -78,7 +108,8 @@ const App: React.FC = () => {
 
       if (loggedInUser) {
           setUser(loggedInUser);
-          console.log('✅ User state actualizado');
+          localStorage.setItem('userId', loggedInUser.id);
+          console.log('✅ User state actualizado y sesión guardada');
 
           if (loggedInUser.role === UserRole.Student) {
               setActiveScreen(Screen.Profile);
@@ -105,13 +136,28 @@ const App: React.FC = () => {
   const handleLogout = () => {
       setIsAuthenticated(false);
       setUser(null);
+      localStorage.removeItem('userId');
+      console.log('👋 Sesión cerrada');
   };
 
-  const handleUserUpdate = (updatedData: Partial<User>) => {
-    setUser(prevUser => (prevUser ? { ...prevUser, ...updatedData } : null));
-    // También actualizamos la "base de datos" local
-    setAllUsers(prevAllUsers => prevAllUsers.map(u => u.id === user?.id ? { ...u, ...updatedData } : u));
-    // En una app real, esto sería una llamada a api.updateUser(user.id, updatedData)
+  const handleUserUpdate = async (updatedData: Partial<User>) => {
+    if (!user) return;
+
+    try {
+      const updates: { name?: string; avatar?: string } = {};
+      if (updatedData.name) updates.name = updatedData.name;
+      if (updatedData.imageUrl) updates.avatar = updatedData.imageUrl;
+
+      if (Object.keys(updates).length > 0) {
+        await api.authApi.updateProfile(user.id, updates);
+        console.log('✅ Perfil actualizado en la base de datos');
+      }
+
+      setUser(prevUser => (prevUser ? { ...prevUser, ...updatedData } : null));
+      setAllUsers(prevAllUsers => prevAllUsers.map(u => u.id === user?.id ? { ...u, ...updatedData } : u));
+    } catch (error) {
+      console.error('❌ Error actualizando perfil:', error);
+    }
   };
 
   const sendBattleInvitations = (studentIds: string[], roomCode: string, battleName: string, inviterName: string) => {

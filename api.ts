@@ -2,6 +2,8 @@ import { AuthData, User, Professor, Question, UserRole } from './types';
 import { MOCK_USERS, MOCK_PROFESSORS, MOCK_QUESTIONS, MOCK_TRIVIA_QUESTIONS } from './mocks';
 import { authApi } from './lib/api';
 
+export { authApi };
+
 // --- Simulación de latencia de red ---
 const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
