@@ -13,6 +13,7 @@ import TeacherDashboard from './components/teacher/TeacherDashboard';
 import JoinBattleScreen from './components/JoinBattleScreen';
 import LoadingScreen from './components/LoadingScreen';
 import AllForAllScreen from './components/AllForAllScreen';
+import { supabase } from './lib/supabase';
 import * as api from './api';
 
 const App: React.FC = () => {
@@ -88,6 +89,38 @@ const App: React.FC = () => {
         }
     }
   }, [allUsers, user]);
+
+  useEffect(() => {
+    if (!user || !isAuthenticated) return;
+
+    const channel = supabase.channel('online-users', {
+      config: {
+        presence: {
+          key: 'user_id',
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        console.log('👥 Presencia sincronizada');
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user.id,
+            name: user.name,
+            role: user.role,
+            online_at: new Date().toISOString(),
+          });
+          console.log('✅ Presencia reportada para:', user.name);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isAuthenticated]);
 
 
   const handleLoginSuccess = async (authData: AuthData) => {
