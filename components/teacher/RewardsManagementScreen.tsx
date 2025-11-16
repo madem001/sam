@@ -56,8 +56,8 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
       });
 
     if (error) {
-      alert('Error al crear recompensa');
-      console.error(error);
+      console.error('❌ Error al crear recompensa:', error);
+      alert(`Error al crear recompensa: ${error.message}`);
       return;
     }
 

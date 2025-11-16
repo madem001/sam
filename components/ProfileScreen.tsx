@@ -46,15 +46,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
         console.log('🎴 [PROFILE] Cartas recibidas:', cards.length);
 
         const mappedProfessors: Professor[] = cards.map((c: any) => {
-          console.log('🎴 [PROFILE] Carta:', c.card?.name, 'Image:', c.card?.image_url);
+          console.log('🎴 [PROFILE] Carta:', c.card?.name, 'Puntos:', c.card?.points);
           return {
-            id: c.card.id,
+            id: c.card.teacher_id,
+            cardId: c.card.id,
             name: c.card.name,
             subject: c.card.title,
+            title: c.card.title,
             description: c.card.description,
             imageUrl: c.card.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.card.name)}&background=3b82f6&color=fff&bold=true&size=128`,
             locked: !c.unlocked,
             unlockPoints: c.card.unlock_points,
+            points: c.card.points || 0,
           };
         });
 
@@ -217,7 +220,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                         }}
                       >
                         <div style={{ transform: 'scale(0.9)' }}>
-                          <ProfessorCard professor={prof} isActive={index === activeCardIndex} />
+                          <ProfessorCard
+                            professor={prof}
+                            isActive={index === activeCardIndex}
+                            points={prof.points || 0}
+                            requiredPoints={prof.unlockPoints || 100}
+                          />
                         </div>
                       </div>
                     ))}

@@ -157,7 +157,8 @@ export const professorCardsApi = {
           description,
           image_url,
           avatar_base64,
-          unlock_points
+          unlock_points,
+          teacher_id
         )
       `)
       .eq('student_id', studentId);
@@ -168,11 +169,23 @@ export const professorCardsApi = {
     }
 
     if (data) {
-      data.forEach((item: any) => {
+      for (const item of data) {
         if (item.card && item.card.avatar_base64) {
           item.card.image_url = item.card.avatar_base64;
         }
-      });
+
+        if (item.card && item.card.teacher_id) {
+          const { data: pointsData } = await supabase
+            .from('student_professor_points')
+            .select('points')
+            .eq('student_id', studentId)
+            .eq('professor_id', item.card.teacher_id)
+            .maybeSingle();
+
+          item.card.points = pointsData?.points || 0;
+          console.log('📊 Puntos para profesor', item.card.name, ':', item.card.points);
+        }
+      }
     }
 
     console.log('✅ Cartas obtenidas:', data);
