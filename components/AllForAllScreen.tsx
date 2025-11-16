@@ -32,9 +32,11 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
     loadActiveGame();
     const cleanupGames = subscribeToGames();
     const cleanupResponses = subscribeToResponses();
+    const cleanupPresence = subscribeToPresence();
     return () => {
       cleanupGames();
       cleanupResponses();
+      cleanupPresence();
     };
   }, []);
 
@@ -58,11 +60,32 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
     const professorIds = myProfessors.map(p => p.professor_id);
     console.log('👨‍🏫 [STUDENT] Mis profesores:', professorIds);
 
+    const { data: onlinePresence } = await supabase
+      .from('teacher_presence')
+      .select('teacher_id, game_id')
+      .eq('is_online', true)
+      .in('teacher_id', professorIds);
+
+    if (!onlinePresence || onlinePresence.length === 0) {
+      console.log('⏳ [STUDENT] Ninguno de mis profesores está en línea');
+      setGame(null);
+      setHasResponded(false);
+      setIsLoading(false);
+      return;
+    }
+
+    const onlineTeachers = onlinePresence.map(p => p.teacher_id);
+    const activeGameIds = onlinePresence.map(p => p.game_id).filter(id => id !== null);
+
+    console.log('✅ [STUDENT] Profesores en línea:', onlineTeachers);
+    console.log('🎮 [STUDENT] Juegos activos:', activeGameIds);
+
     const { data, error } = await supabase
       .from('all_for_all_games')
       .select('*')
       .eq('is_active', true)
-      .in('teacher_id', professorIds)
+      .in('teacher_id', onlineTeachers)
+      .in('id', activeGameIds.length > 0 ? activeGameIds : [''])
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -74,7 +97,7 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
       setGame(data);
       await checkIfResponded(data.id);
     } else {
-      console.log('⏳ [STUDENT] No hay juego activo de mis profesores');
+      console.log('⏳ [STUDENT] No hay juego activo de profesores en línea');
       setGame(null);
       setHasResponded(false);
     }
@@ -151,6 +174,33 @@ const AllForAllScreen: React.FC<AllForAllScreenProps> = ({ userId }) => {
 
     return () => {
       console.log('🔌 [STUDENT] Desconectando suscripción respuestas');
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const subscribeToPresence = () => {
+    console.log('👂 [STUDENT] Suscribiéndose a cambios en presencia de profesores');
+
+    const channel = supabase
+      .channel('teacher_presence_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teacher_presence',
+        },
+        (payload) => {
+          console.log('🔔 [STUDENT] Cambio detectado en presencia:', payload);
+          loadActiveGame();
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 [STUDENT] Estado de suscripción presencia:', status);
+      });
+
+    return () => {
+      console.log('🔌 [STUDENT] Desconectando suscripción presencia');
       supabase.removeChannel(channel);
     };
   };

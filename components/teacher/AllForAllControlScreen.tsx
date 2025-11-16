@@ -55,8 +55,51 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
     if (activeGame) {
       loadResponses();
       subscribeToResponses();
+      updatePresence(activeGame.id);
+
+      const heartbeatInterval = setInterval(() => {
+        updatePresence(activeGame.id);
+      }, 10000);
+
+      return () => {
+        clearInterval(heartbeatInterval);
+        clearPresence();
+      };
     }
   }, [activeGame]);
+
+  const updatePresence = async (gameId: string) => {
+    console.log('💓 [TEACHER] Actualizando presencia para juego:', gameId);
+
+    const { error } = await supabase
+      .from('teacher_presence')
+      .upsert({
+        teacher_id: teacherId,
+        game_id: gameId,
+        is_online: true,
+        last_heartbeat: new Date().toISOString(),
+      }, {
+        onConflict: 'teacher_id'
+      });
+
+    if (error) {
+      console.error('❌ [TEACHER] Error actualizando presencia:', error);
+    } else {
+      console.log('✅ [TEACHER] Presencia actualizada');
+    }
+  };
+
+  const clearPresence = async () => {
+    console.log('🔌 [TEACHER] Limpiando presencia');
+
+    await supabase
+      .from('teacher_presence')
+      .update({
+        is_online: false,
+        game_id: null,
+      })
+      .eq('teacher_id', teacherId);
+  };
 
   const loadActiveGame = async () => {
     const { data } = await supabase
@@ -135,6 +178,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
 
   const endGame = async () => {
     if (!activeGame) return;
+
+    await clearPresence();
 
     await supabase
       .from('all_for_all_games')
