@@ -25,6 +25,7 @@ export interface BattleGroup {
   correct_answers: number;
   wrong_answers: number;
   is_eliminated: boolean;
+  current_question_index: number;
   created_at: string;
 }
 
@@ -69,6 +70,7 @@ const mapGroupFromAPI = (data: any): BattleGroup => ({
   correct_answers: data.correct_answers || data.correctAnswers,
   wrong_answers: data.wrong_answers || 0,
   is_eliminated: data.is_eliminated || false,
+  current_question_index: data.current_question_index || 0,
   created_at: data.created_at || data.createdAt,
 });
 
@@ -246,6 +248,16 @@ export const nextQuestion = async (battleId: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error advancing question:', error);
+    return false;
+  }
+};
+
+export const nextQuestionForGroup = async (groupId: string, battleId: string): Promise<boolean> => {
+  try {
+    await api.nextQuestionForGroup(groupId, battleId);
+    return true;
+  } catch (error) {
+    console.error('Error advancing group question:', error);
     return false;
   }
 };

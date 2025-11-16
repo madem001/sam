@@ -765,6 +765,44 @@ export const battleApi = {
       return false;
     }
   },
+
+  nextQuestionForGroup: async (groupId: string, battleId: string) => {
+    try {
+      const { data: group } = await supabase
+        .from('battle_groups')
+        .select('current_question_index')
+        .eq('id', groupId)
+        .maybeSingle();
+
+      if (!group) return false;
+
+      const { data: battle } = await supabase
+        .from('battles')
+        .select('question_count')
+        .eq('id', battleId)
+        .maybeSingle();
+
+      if (!battle) return false;
+
+      const nextIndex = group.current_question_index + 1;
+
+      if (nextIndex >= battle.question_count) {
+        console.log('🏁 [API] Grupo completó todas las preguntas');
+        return false;
+      }
+
+      await supabase
+        .from('battle_groups')
+        .update({ current_question_index: nextIndex })
+        .eq('id', groupId);
+
+      console.log('⏭️ [API] Grupo avanzó a pregunta:', nextIndex + 1);
+      return true;
+    } catch (error) {
+      console.error('❌ Error advancing group question:', error);
+      return false;
+    }
+  },
 };
 
 export default {

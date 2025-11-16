@@ -51,7 +51,6 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
       console.log('✅ [STUDENT] Batalla cargada:', {
         name: battleData?.name,
         status: battleData?.status,
-        currentQuestionIndex: battleData?.current_question_index,
         totalQuestions: battleData?.question_count
       });
 
@@ -60,24 +59,6 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         const questionsData = await battleApi.getBattleQuestions(battleId);
         console.log('✅ [STUDENT] Preguntas cargadas:', questionsData.length);
         setQuestions(questionsData);
-
-        if (questionsData.length > 0 && battleData.status === 'active') {
-          const currentQ = questionsData[battleData.current_question_index];
-          if (currentQ) {
-            console.log('📝 [STUDENT] Pregunta actual:', {
-              index: battleData.current_question_index,
-              text: currentQ.question_text.substring(0, 50) + '...'
-            });
-
-            if (!currentQuestion || currentQuestion.id !== currentQ.id) {
-              console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
-              setCurrentQuestion(currentQ);
-              setStartTime(Date.now());
-              setHasAnswered(false);
-              setSelectedAnswer(null);
-            }
-          }
-        }
       }
       await loadGroups();
       console.log('✅ [STUDENT] Datos completos cargados');
@@ -92,6 +73,25 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
     const myGroupData = groupsData.find(g => g.id === groupId);
     if (myGroupData) {
       setMyGroup(myGroupData);
+
+      if (questions.length > 0 && battle?.status === 'active' && !myGroupData.is_eliminated) {
+        const currentQ = questions[myGroupData.current_question_index];
+        if (currentQ) {
+          console.log('📝 [STUDENT] Pregunta actual del grupo:', {
+            index: myGroupData.current_question_index,
+            text: currentQ.question_text.substring(0, 50) + '...'
+          });
+
+          if (!currentQuestion || currentQuestion.id !== currentQ.id) {
+            console.log('🔄 [STUDENT] Nueva pregunta detectada, reiniciando estado...');
+            setCurrentQuestion(currentQ);
+            setStartTime(Date.now());
+            setHasAnswered(false);
+            setSelectedAnswer(null);
+            setTimeRemaining(60);
+          }
+        }
+      }
     }
   };
 
@@ -119,7 +119,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   }, [battle, currentQuestion, hasAnswered]);
 
   const handleAnswerSelect = async (answerIndex: number) => {
-    if (hasAnswered || !currentQuestion) return;
+    if (hasAnswered || !currentQuestion || !myGroup) return;
 
     console.log('✅ [STUDENT] Respuesta seleccionada:', {
       answerIndex,
@@ -141,11 +141,21 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         responseTime
       );
       console.log('✅ [STUDENT] Respuesta enviada exitosamente');
+
+      await loadGroups();
+
+      setTimeout(async () => {
+        if (myGroup.current_question_index + 1 < (battle?.question_count || 0)) {
+          console.log('⏭️ [STUDENT] Auto-avanzando a siguiente pregunta...');
+          await battleApi.nextQuestionForGroup(groupId, battleId);
+          await loadGroups();
+        } else {
+          console.log('🏁 [STUDENT] Grupo completó todas las preguntas');
+        }
+      }, 2000);
     } catch (error) {
       console.error('❌ [STUDENT] Error enviando respuesta:', error);
     }
-
-    await loadGroups();
   };
 
   if (!battle) {
@@ -217,7 +227,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  Pregunta {battle.current_question_index + 1} de {battle.question_count}
+                  Pregunta {(myGroup?.current_question_index || 0) + 1} de {battle.question_count}
                 </span>
                 <div className={`flex items-center space-x-2 font-bold text-2xl ${
                   timeRemaining <= 10 ? 'text-red-500 animate-pulse' :
@@ -308,6 +318,24 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           </div>
         )}
 
+        {isActive && myGroup && myGroup.current_question_index >= battle.question_count && !myGroup.is_eliminated && (
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-8 rounded-2xl shadow-xl text-white text-center">
+            <div className="animate-bounce">
+              <ion-icon name="checkmark-circle" class="text-7xl mb-4"></ion-icon>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">¡Completaste todas las preguntas!</h2>
+            <p className="text-xl opacity-90">
+              Excelente trabajo
+            </p>
+            <p className="text-lg mt-4">
+              Puntuación: <span className="font-bold">{myGroup.score}</span>
+            </p>
+            <p className="text-sm mt-6 opacity-75">
+              Espera a que otros grupos terminen
+            </p>
+          </div>
+        )}
+
         {isActive && myGroup?.is_eliminated && (
           <div className="bg-gradient-to-br from-red-500 to-red-700 p-8 rounded-2xl shadow-xl text-white text-center">
             <div className="animate-bounce">
@@ -387,7 +415,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                         )}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {group.correct_answers} correctas • {group.wrong_answers} errores
+                        Pregunta {group.current_question_index + 1}/{battle.question_count} • {group.correct_answers} correctas • {group.wrong_answers} errores
                       </p>
                     </div>
                   </div>
