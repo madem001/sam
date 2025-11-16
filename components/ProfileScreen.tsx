@@ -359,16 +359,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                         onTouchStart={index === activeCardIndex ? handleDragStart : undefined}
                         onClick={() => handleCardClick(index)}
                       >
-                        <div style={{
-                          filter: index === activeCardIndex ? 'none' : 'brightness(0.85)'
-                        }}>
-                          <ProfessorCard
-                            professor={prof}
-                            isActive={index === activeCardIndex}
-                            points={prof.points || 0}
-                            requiredPoints={prof.unlockPoints || 100}
-                          />
-                        </div>
+                        <ProfessorCard
+                          professor={prof}
+                          isActive={index === activeCardIndex}
+                          points={prof.points || 0}
+                          requiredPoints={prof.unlockPoints || 100}
+                        />
                       </div>
                     ))}
                   </div>
