@@ -44,6 +44,8 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const [correctAnswer, setCorrectAnswer] = useState<'text' | 'color'>('color');
   const [tempPoints, setTempPoints] = useState<{ [key: string]: number }>({});
   const [assigningPoints, setAssigningPoints] = useState<{ [key: string]: boolean }>({});
+  const [isRoomOccupied, setIsRoomOccupied] = useState(false);
+  const [occupiedByTeacher, setOccupiedByTeacher] = useState<string | null>(null);
 
   useEffect(() => {
     loadActiveGame();
@@ -130,14 +132,29 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   };
 
   const loadActiveGame = async () => {
-    const { data } = await supabase
+    const { data: myGame } = await supabase
       .from('all_for_all_games')
       .select('*')
       .eq('teacher_id', teacherId)
       .eq('is_active', true)
       .maybeSingle();
 
-    setActiveGame(data);
+    setActiveGame(myGame);
+
+    const { data: otherGames } = await supabase
+      .from('all_for_all_games')
+      .select('*, teacher:profiles!all_for_all_games_teacher_id_fkey(name)')
+      .neq('teacher_id', teacherId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (otherGames && !myGame) {
+      setIsRoomOccupied(true);
+      setOccupiedByTeacher((otherGames as any).teacher?.name || 'Otro profesor');
+    } else {
+      setIsRoomOccupied(false);
+      setOccupiedByTeacher(null);
+    }
   };
 
   const loadResponses = async () => {
@@ -186,6 +203,23 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   };
 
   const startGame = async () => {
+    console.log('🎮 [TEACHER] Verificando disponibilidad de sala...');
+
+    const { data: existingGames } = await supabase
+      .from('all_for_all_games')
+      .select('id, teacher_id')
+      .eq('is_active', true);
+
+    if (existingGames && existingGames.length > 0) {
+      const otherTeacherGame = existingGames.find(g => g.teacher_id !== teacherId);
+      if (otherTeacherGame) {
+        console.log('🚫 [TEACHER] Sala ocupada por otro profesor');
+        alert('La sala está ocupada. Otro profesor tiene un juego activo en este momento.');
+        await loadActiveGame();
+        return;
+      }
+    }
+
     console.log('🎮 [TEACHER] Iniciando juego All for All...');
 
     const { data, error } = await supabase
@@ -283,10 +317,26 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
         </div>
 
         {!activeGame ? (
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 animate-scale-in">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-              Configurar Nueva Ronda
-            </h2>
+          <>
+            {isRoomOccupied && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-8 text-center animate-scale-in mb-6">
+                <div className="text-6xl mb-4">🚫</div>
+                <h2 className="text-2xl font-bold text-red-800 mb-2">
+                  Sala Ocupada
+                </h2>
+                <p className="text-red-600 text-lg mb-1">
+                  {occupiedByTeacher} tiene un juego activo
+                </p>
+                <p className="text-red-500 text-sm">
+                  Espera a que termine para poder iniciar tu juego
+                </p>
+              </div>
+            )}
+
+            <div className={`bg-white rounded-3xl p-6 shadow-sm border border-slate-200 animate-scale-in ${isRoomOccupied ? 'opacity-50 pointer-events-none' : ''}`}>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
+                Configurar Nueva Ronda
+              </h2>
 
             <div className="space-y-5">
               <div>
@@ -404,12 +454,14 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               <button
                 onClick={startGame}
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-lg py-4 rounded-xl transition-all flex items-center justify-center gap-3"
+                disabled={isRoomOccupied}
               >
                 <ion-icon name="play-circle" class="text-2xl"></ion-icon>
                 Iniciar Juego
               </button>
             </div>
           </div>
+          </>
         ) : (
           <div className="space-y-6 animate-scale-in">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">

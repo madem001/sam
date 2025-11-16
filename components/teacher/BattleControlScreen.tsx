@@ -78,6 +78,22 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   };
 
   const handleStartBattle = async () => {
+    console.log('🎮 [TEACHER] Verificando disponibilidad de sala...');
+
+    const { data: activeBattles } = await supabase
+      .from('battles')
+      .select('id, teacher_id')
+      .eq('status', 'active');
+
+    if (activeBattles && activeBattles.length > 0) {
+      const otherTeacherBattle = activeBattles.find(b => b.id !== battleId);
+      if (otherTeacherBattle) {
+        console.log('🚫 [TEACHER] Sala ocupada por otra batalla');
+        alert('La sala está ocupada. Otra batalla está activa en este momento. Espera a que termine para iniciar tu batalla.');
+        return;
+      }
+    }
+
     console.log('🎮 [TEACHER] Iniciando batalla:', battleId);
     const success = await battleApi.startBattle(battleId);
     if (success) {
