@@ -15,11 +15,9 @@ interface ProfileScreenProps {
   onUpdateUser: (updatedData: Partial<User>) => void;
   onJoinFromNotification: (code: string) => void;
   onMarkAsRead: (notificationIds: string[]) => void;
-  theme: 'light' | 'dark';
-  onToggleTheme: () => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateUser, onJoinFromNotification, onMarkAsRead, theme, onToggleTheme }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateUser, onJoinFromNotification, onMarkAsRead }) => {
   console.log('👤 ProfileScreen renderizado con user:', user);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -228,22 +226,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="h-full flex flex-col overflow-hidden relative bg-gradient-to-br from-teal-50 to-emerald-50">
       {/* Compact Header */}
       <header className="absolute top-0 right-0 z-20 flex items-center justify-end px-6 py-4 gap-2">
         <button
-          onClick={onToggleTheme}
-          className="p-2.5 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:scale-110 transition-all shadow-lg backdrop-blur-sm"
-        >
-          <ion-icon name={theme === 'light' ? 'moon-outline' : 'sunny-outline'} class="text-xl"></ion-icon>
-        </button>
-        <button
           onClick={handleOpenNotifications}
-          className="relative p-2.5 rounded-full bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:scale-110 transition-all shadow-lg backdrop-blur-sm"
+          className="relative p-2.5 rounded-full bg-white/80 text-slate-600 hover:scale-110 transition-all shadow-lg backdrop-blur-sm"
         >
           <ion-icon name="notifications-outline" class="text-xl"></ion-icon>
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold ring-2 ring-white dark:ring-slate-900">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold ring-2 ring-white">
               {unreadCount}
             </span>
           )}
@@ -265,26 +257,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
             </div>
 
             {/* Profile Info Section with Curved Top */}
-            <div className="relative bg-white dark:bg-slate-800 -mt-10 rounded-t-[3rem] p-6 pt-10 text-center shadow-2xl">
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">{user.name}</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center justify-center">
+            <div className="relative bg-white -mt-10 rounded-t-[3rem] p-6 pt-10 text-center shadow-2xl">
+              <h1 className="text-2xl font-bold text-slate-800 mb-1">{user.name}</h1>
+              <p className="text-sm text-slate-500 mb-4 flex items-center justify-center">
                 <ion-icon name="location-outline" class="text-base mr-1"></ion-icon>
                 Estudiante EduBattle
               </p>
 
               {/* Stats Row */}
-              <div className="flex justify-around mb-5 pb-5 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex justify-around mb-5 pb-5 border-b border-slate-200">
                 <div>
-                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{professors.filter(p => !p.locked).length}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Cartas</div>
+                  <div className="text-2xl font-bold text-slate-800">{professors.filter(p => !p.locked).length}</div>
+                  <div className="text-xs text-slate-500">Cartas</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user.achievements?.length || 0}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Logros</div>
+                  <div className="text-2xl font-bold text-slate-800">{user.achievements?.length || 0}</div>
+                  <div className="text-xs text-slate-500">Logros</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{professors.length}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Maestros</div>
+                  <div className="text-2xl font-bold text-slate-800">{professors.length}</div>
+                  <div className="text-xs text-slate-500">Maestros</div>
                 </div>
               </div>
 
@@ -298,7 +290,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                 </button>
                 <button
                   onClick={onLogout}
-                  className="flex-1 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-semibold py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 transition-all"
+                  className="flex-1 bg-white border-2 border-slate-300 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-all"
                 >
                   Salir
                 </button>
@@ -311,7 +303,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           {/* Achievements Section */}
           {user.achievements && user.achievements.length > 0 && (
             <div className="glass-card-modern p-6">
-              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-5 flex items-center justify-center">
+              <h3 className="text-xl font-bold text-slate-800 mb-5 flex items-center justify-center">
                 <ion-icon name="trophy" class="text-2xl mr-2 text-amber-500"></ion-icon>
                 Mis Logros
               </h3>
@@ -321,7 +313,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl mb-2">
                       <ion-icon name={ach.icon} class="text-3xl text-white"></ion-icon>
                     </div>
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight">{ach.name}</p>
+                    <p className="text-xs font-semibold text-slate-700 text-center leading-tight">{ach.name}</p>
                   </div>
                 ))}
               </div>
@@ -336,8 +328,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
               </div>
             ) : professors.length === 0 ? (
               <div className="text-center py-12">
-                <ion-icon name="school-outline" class="text-6xl text-slate-300 dark:text-slate-600"></ion-icon>
-                <p className="text-slate-500 dark:text-slate-400 mt-3">No hay maestros disponibles</p>
+                <ion-icon name="school-outline" class="text-6xl text-slate-300"></ion-icon>
+                <p className="text-slate-500 mt-3">No hay maestros disponibles</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -390,7 +382,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
                       className={`h-2 rounded-full transition-all ${
                         index === activeCardIndex
                           ? 'w-8 bg-sky-500'
-                          : 'w-2 bg-slate-300 dark:bg-slate-600'
+                          : 'w-2 bg-slate-300'
                       }`}
                       onClick={() => setActiveCardIndex(index)}
                     />

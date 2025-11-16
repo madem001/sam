@@ -13,23 +13,22 @@ const iconColors: { [key: string]: string } = {
 
 const StatItem: React.FC<{ icon: string; label: string; value: string | number }> = ({ icon, label, value }) => (
     <div className="text-center">
-        <div className="text-3xl text-slate-700 dark:text-slate-300">
+        <div className="text-3xl text-slate-700">
             {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
             <ion-icon name={icon}></ion-icon>
         </div>
-        <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
-        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+        <p className="text-2xl font-bold text-slate-800">{value}</p>
+        <p className="text-xs font-semibold text-slate-500">{label}</p>
     </div>
 );
 
 
 interface AchievementsScreenProps {
   user: User;
-  theme: 'light' | 'dark';
   onBack: () => void;
 }
 
-const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, theme, onBack }) => {
+const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack }) => {
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const achievements = user.achievements;
 
@@ -39,28 +38,28 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, theme, on
   
   if (!achievements || achievements.length === 0) {
     return (
-      <div className={`relative p-4 bg-achievements-light h-full flex flex-col items-center justify-center text-center ${theme === 'dark' ? 'dark' : ''}`}>
+      <div className="relative p-4 bg-achievements-light h-full flex flex-col items-center justify-center text-center">
         <button
             onClick={onBack}
-            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
+            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
             aria-label="Regresar"
         >
             {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
             <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
         </button>
         {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
-        <ion-icon name="shield-outline" class="text-7xl text-slate-400 dark:text-slate-600"></ion-icon>
-        <h1 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mt-4">Aún no hay logros</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">¡Participa en una batalla para empezar a ganar!</p>
+        <ion-icon name="shield-outline" class="text-7xl text-slate-400"></ion-icon>
+        <h1 className="text-2xl font-bold text-slate-700 mt-4">Aún no hay logros</h1>
+        <p className="text-slate-500 mt-2">¡Participa en una batalla para empezar a ganar!</p>
       </div>
     );
   }
 
   return (
-    <div className={`relative bg-achievements-light h-full ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className="relative bg-achievements-light h-full">
       <button
             onClick={onBack}
-            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
+            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
             aria-label="Regresar"
         >
             {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
@@ -72,13 +71,13 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, theme, on
           <div className="avatar-container">
             <ParallaxAvatar imageUrl={user.imageUrl} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-4">{user.name}</h1>
-          <p className="text-sky-600 dark:text-sky-400 font-semibold">Nivel {user.level}</p>
+          <h1 className="text-2xl font-bold text-slate-800 mt-4">{user.name}</h1>
+          <p className="text-sky-600 font-semibold">Nivel {user.level}</p>
       </div>
       
       {/* Achievements Collection */}
       <div className="p-4 relative z-10 animate-stagger" style={{ '--stagger-delay': '200ms' } as React.CSSProperties}>
-        <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-4 px-1">
+        <h2 className="text-xl font-bold text-slate-700 mb-4 px-1">
           Tu Colección
         </h2>
         <div className="achievement-collection-grid">
@@ -109,7 +108,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, theme, on
             <div className="achievement-modal-content" onClick={(e) => e.stopPropagation()}>
                 <button 
                     onClick={() => setSelectedAchievement(null)}
-                    className="absolute top-3 right-3 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-900/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white/80 dark:hover:bg-slate-900/80 transition"
+                    className="absolute top-3 right-3 text-slate-600 bg-white/50 dark:bg-slate-900/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white/80 dark:hover:bg-slate-900/80 transition"
                 >
                     {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
                     <ion-icon name="close-outline" class="text-2xl"></ion-icon>
@@ -120,11 +119,11 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, theme, on
                         {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
                         <ion-icon name={selectedAchievement.icon}></ion-icon>
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-2">{selectedAchievement.name}</h2>
-                    <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm">{selectedAchievement.description}</p>
+                    <h2 className="text-2xl font-bold text-slate-800 mt-2">{selectedAchievement.name}</h2>
+                    <p className="text-slate-600 mt-1 text-sm">{selectedAchievement.description}</p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 border-t border-white/50 dark:border-slate-500/50 p-4">
+                <div className="grid grid-cols-3 gap-4 border-t border-white/50 p-4">
                    <StatItem icon="game-controller-outline" label="Partidas" value={selectedAchievement.matchesPlayed || '-'} />
                    <StatItem icon="star-outline" label="Puntos" value={selectedAchievement.pointsEarned || '-'} />
                    <StatItem icon="trending-up-outline" label="Nivel" value={selectedAchievement.levelAchieved || '-'} />

@@ -14,7 +14,7 @@ const LoserScreen: React.FC<LoserScreenProps> = ({ onContinue }) => {
   }, [onContinue]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-gradient-to-br from-red-500 to-orange-500 dark:from-red-600 dark:to-orange-600 text-white">
+    <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-gradient-to-br from-red-500 to-orange-500 dark:to-orange-600 text-white">
       <div className="animate-pulse mb-6 text-7xl">
         {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
         <ion-icon name="sad-outline"></ion-icon>

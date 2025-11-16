@@ -103,7 +103,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ onGameComplete, onBack 
 
   if (!currentColor) {
     return (
-      <div className="flex justify-center items-center h-full bg-slate-100 dark:bg-slate-900">
+      <div className="flex justify-center items-center h-full bg-slate-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
       </div>
     );
@@ -113,7 +113,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ onGameComplete, onBack 
     <div className="relative flex flex-col h-full p-6 bg-question-screen">
       <button
             onClick={onBack}
-            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
+            className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors shadow-md"
             aria-label="Regresar"
         >
             {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
@@ -123,8 +123,8 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ onGameComplete, onBack 
       {/* Header: Instructions and Timer */}
       <div className="flex-shrink-0 mb-8 animate-stagger" style={{ '--stagger-delay': '100ms' } as React.CSSProperties}>
         <div className="text-center mb-3">
-            <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">¡El más rápido gana!</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Selecciona el color de la palabra para entrar a la trivia.</p>
+            <h2 className="text-xl font-bold text-slate-700">¡El más rápido gana!</h2>
+            <p className="text-slate-500 text-sm">Selecciona el color de la palabra para entrar a la trivia.</p>
         </div>
         <div className="timer-bar-container">
           <div className="timer-bar" style={{ 
@@ -148,7 +148,7 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ onGameComplete, onBack 
             key={index}
             onClick={() => handleColorSelect(color, index)}
             disabled={isLocked}
-            className={`color-card shadow-lg dark:shadow-black/30 ${selectedCardIndex === index ? selectionStatus : ''}`}
+            className={`color-card shadow-lg ${selectedCardIndex === index ? selectionStatus : ''}`}
             style={{ backgroundColor: color.hex }}
           >
           </button>

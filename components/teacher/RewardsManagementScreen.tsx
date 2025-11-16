@@ -87,23 +87,23 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:to-slate-800 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 dark:hover:text-slate-200"
           >
             <ion-icon name="arrow-back-outline" class="text-2xl"></ion-icon>
             <span>Volver</span>
           </button>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">
             🎁 Gestión de Recompensas
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Crea recompensas que tus estudiantes pueden canjear con sus puntos
           </p>
         </div>
@@ -117,12 +117,12 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
         </button>
 
         {isCreating && (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Crear Nueva Recompensa</h2>
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Crear Nueva Recompensa</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Título
                 </label>
                 <input
@@ -130,12 +130,12 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
                   value={newReward.title}
                   onChange={(e) => setNewReward({ ...newReward, title: e.target.value })}
                   placeholder="Ej: Borrar una tarea"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Descripción
                 </label>
                 <textarea
@@ -143,12 +143,12 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
                   onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
                   placeholder="Detalles de la recompensa..."
                   rows={3}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Puntos Requeridos
                 </label>
                 <input
@@ -156,7 +156,7 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
                   value={newReward.points_required}
                   onChange={(e) => setNewReward({ ...newReward, points_required: parseInt(e.target.value) || 0 })}
                   min="1"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
                 />
               </div>
 
@@ -172,9 +172,9 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
 
         <div className="space-y-4">
           {rewards.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-12 text-center">
-              <ion-icon name="gift-outline" class="text-6xl text-slate-300 dark:text-slate-600 mb-4"></ion-icon>
-              <p className="text-slate-500 dark:text-slate-400">
+            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <ion-icon name="gift-outline" class="text-6xl text-slate-300 mb-4"></ion-icon>
+              <p className="text-slate-500">
                 No hay recompensas creadas aún
               </p>
             </div>
@@ -182,28 +182,28 @@ const RewardsManagementScreen: React.FC<RewardsManagementScreenProps> = ({ teach
             rewards.map((reward) => (
               <div
                 key={reward.id}
-                className={`bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 ${
+                className={`bg-white rounded-2xl shadow-lg p-6 ${
                   !reward.is_active ? 'opacity-50' : ''
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                      <h3 className="text-xl font-bold text-slate-800">
                         {reward.title}
                       </h3>
                       {!reward.is_active && (
-                        <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-red-100 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full">
                           INACTIVA
                         </span>
                       )}
                     </div>
-                    <p className="text-slate-600 dark:text-slate-400 mb-3">
+                    <p className="text-slate-600 mb-3">
                       {reward.description}
                     </p>
                     <div className="flex items-center space-x-2">
                       <ion-icon name="star" class="text-amber-500 text-xl"></ion-icon>
-                      <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                      <span className="text-lg font-bold text-amber-600">
                         {reward.points_required} puntos
                       </span>
                     </div>

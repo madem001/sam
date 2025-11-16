@@ -10,7 +10,7 @@ const Card: React.FC<{
 }> = ({ number, title, icon, color, rotation, delay }) => {
   return (
     <div
-      className="absolute w-36 h-56 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border-4 p-2 animate-card-fall"
+      className="absolute w-36 h-56 bg-white rounded-lg shadow-2xl border-4 p-2 animate-card-fall"
       style={{
         borderColor: color,
         // @ts-ignore
@@ -37,7 +37,7 @@ const Card: React.FC<{
 
 const LoadingScreen: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-slate-800 dark:to-slate-900">
+    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-teal-50 to-emerald-100 dark:to-slate-900">
       <div className="relative w-64 h-64 flex items-center justify-center mb-12">
         <Card
           number={3}
@@ -64,7 +64,7 @@ const LoadingScreen: React.FC = () => {
           delay="0.6s"
         />
       </div>
-      <h1 className="text-4xl font-extrabold text-slate-700 dark:text-slate-200 animate-text-fade-in" style={{ animationDelay: '1.2s', opacity: 0 }}>
+      <h1 className="text-4xl font-extrabold text-slate-700 animate-text-fade-in" style={{ animationDelay: '1.2s', opacity: 0 }}>
         EduBattle Arena
       </h1>
     </div>

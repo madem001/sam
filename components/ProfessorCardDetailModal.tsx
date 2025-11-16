@@ -102,7 +102,7 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white">
           <button
             onClick={onClose}
@@ -120,18 +120,18 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
 
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+            <h3 className="text-2xl font-bold text-slate-800 mb-4">
               🎁 Recompensas Disponibles
             </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
+            <p className="text-slate-600 mb-4">
               Canjea tus puntos por estas recompensas
             </p>
           </div>
 
           {rewards.length === 0 ? (
-            <div className="bg-slate-100 dark:bg-slate-700 rounded-2xl p-12 text-center">
-              <ion-icon name="gift-outline" class="text-6xl text-slate-300 dark:text-slate-500 mb-4"></ion-icon>
-              <p className="text-slate-500 dark:text-slate-400">
+            <div className="bg-slate-100 rounded-2xl p-12 text-center">
+              <ion-icon name="gift-outline" class="text-6xl text-slate-300 mb-4"></ion-icon>
+              <p className="text-slate-500">
                 No hay recompensas disponibles
               </p>
             </div>
@@ -145,16 +145,16 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
                     key={reward.id}
                     className={`bg-gradient-to-r ${
                       canAfford
-                        ? 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-300 dark:border-green-700'
-                        : 'from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-600 border-slate-300 dark:border-slate-600'
+                        ? 'from-green-50 to-emerald-50 dark:to-emerald-900/20 border-green-300 dark:border-green-700'
+                        : 'from-slate-50 to-slate-100 dark:to-slate-600 border-slate-300 dark:border-slate-600'
                     } border-2 rounded-2xl p-6 transition-all hover:shadow-lg`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
+                        <h4 className="text-xl font-bold text-slate-800 mb-1">
                           {reward.title}
                         </h4>
-                        <p className="text-slate-600 dark:text-slate-400 mb-3">
+                        <p className="text-slate-600 mb-3">
                           {reward.description}
                         </p>
                       </div>
@@ -163,7 +163,7 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <ion-icon name="star" class="text-amber-500 text-xl"></ion-icon>
-                        <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                        <span className="text-lg font-bold text-amber-600">
                           {reward.points_required} puntos
                         </span>
                       </div>
@@ -174,7 +174,7 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
                         className={`px-6 py-3 rounded-xl font-bold transition-all ${
                           canAfford && !isRedeeming
                             ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:scale-105'
-                            : 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                            : 'bg-slate-300 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                         }`}
                       >
                         {canAfford ? 'Canjear' : 'Puntos insuficientes'}
@@ -187,10 +187,10 @@ const ProfessorCardDetailModal: React.FC<ProfessorCardDetailModalProps> = ({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-slate-100 dark:bg-slate-700 p-4">
+        <div className="sticky bottom-0 bg-slate-100 p-4">
           <button
             onClick={onClose}
-            className="w-full bg-slate-600 dark:bg-slate-500 text-white font-bold py-3 rounded-xl hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors"
+            className="w-full bg-slate-600 text-white font-bold py-3 rounded-xl hover:bg-slate-700 dark:hover:bg-slate-400 transition-colors"
           >
             Cerrar
           </button>

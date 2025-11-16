@@ -16,11 +16,9 @@ interface TeacherDashboardProps {
   customModules: CustomModule[];
   students: User[];
   onInviteStudents: (studentIds: string[], roomCode: string, battleName: string) => void;
-  theme: 'light' | 'dark';
-  onToggleTheme: () => void;
 }
 
-const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, enabledModules, customModules, students, onInviteStudents, theme, onToggleTheme }) => {
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, enabledModules, customModules, students, onInviteStudents }) => {
   const [activeScreen, setActiveScreen] = useState<TeacherScreen | string>(TeacherScreen.Dashboard);
   
   const navigateTo = (screen: TeacherScreen) => setActiveScreen(screen);
@@ -42,7 +40,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         content = <StudentListScreen onBack={handleBack} />;
         break;
       case TeacherScreen.Profile:
-        content = <TeacherProfileScreen user={user} onLogout={onLogout} theme={theme} onToggleTheme={onToggleTheme} />;
+        content = <TeacherProfileScreen user={user} onLogout={onLogout} />;
         break;
       case 'rewards':
         content = <RewardsManagementScreen teacherId={user.id} onBack={handleBack} />;
@@ -60,7 +58,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900">
+    <div className="h-full flex flex-col bg-slate-50">
       <main className="flex-1 overflow-y-auto p-4 md:p-6">
         {renderContent()}
       </main>

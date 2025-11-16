@@ -243,10 +243,10 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   });
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-teal-50 to-emerald-50 dark:to-slate-800">
       <button
         onClick={onBack}
-        className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-lg"
+        className="absolute top-4 left-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors shadow-lg"
         aria-label="Regresar"
       >
         <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
@@ -254,7 +254,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
       <div className="p-6 space-y-6 pt-16">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{battle.name}</h1>
+          <h1 className="text-3xl font-bold text-slate-800">{battle.name}</h1>
           {myGroup && (
             <div className="space-y-2 mt-3">
               <div className={`inline-block px-6 py-2 rounded-full shadow-lg ${
@@ -277,20 +277,20 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         </div>
 
         {isWaiting && (
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl text-center">
+          <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
             <div className="animate-pulse">
               <ion-icon name="hourglass-outline" class="text-6xl text-sky-500 mb-4"></ion-icon>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Esperando Inicio</h2>
-            <p className="text-slate-600 dark:text-slate-400">El maestro iniciará la batalla pronto...</p>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Esperando Inicio</h2>
+            <p className="text-slate-600">El maestro iniciará la batalla pronto...</p>
           </div>
         )}
 
         {isActive && currentQuestion && !myGroup?.is_eliminated && (
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl">
+          <div className="bg-white p-6 rounded-2xl shadow-xl">
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                <span className="text-sm font-semibold text-slate-500">
                   Pregunta {(myGroup?.current_question_index || 0) + 1} de {battle.question_count}
                 </span>
                 <div className={`flex items-center space-x-2 font-bold text-2xl ${
@@ -301,7 +301,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                   <span>{timeRemaining}s</span>
                 </div>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 ${
                     timeRemaining <= 10 ? 'bg-red-500' :
@@ -327,7 +327,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
               )}
             </div>
 
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
               {currentQuestion.question_text}
             </h2>
 
@@ -348,12 +348,12 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                         : ''
                     } ${
                       showResult && isSelected && isCorrect
-                        ? 'bg-green-100 dark:bg-green-900/30 border-green-500 scale-105 shadow-lg'
+                        ? 'bg-green-100 border-green-500 scale-105 shadow-lg'
                         : showResult && isSelected && !isCorrect
-                        ? 'bg-red-100 dark:bg-red-900/30 border-red-500'
+                        ? 'bg-red-100 border-red-500'
                         : showResult && isCorrect
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-400'
-                        : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600'
+                        ? 'bg-green-50 border-green-400'
+                        : 'bg-white hover:bg-slate-50 dark:hover:bg-slate-600'
                     }`}
                     style={{
                       borderColor: !showResult ? answer.color : undefined,
@@ -365,7 +365,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                         className="w-8 h-8 rounded-full flex-shrink-0"
                         style={{ backgroundColor: answer.color }}
                       ></div>
-                      <span className="text-slate-800 dark:text-slate-100 flex-grow">
+                      <span className="text-slate-800 flex-grow">
                         {answer.text}
                       </span>
                       {showResult && isCorrect && (
@@ -419,7 +419,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         )}
 
         {isFinished && (
-          <div className="bg-gradient-to-br from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600 p-8 rounded-2xl shadow-xl text-white text-center">
+          <div className="bg-gradient-to-br from-amber-400 to-orange-500 dark:to-orange-600 p-8 rounded-2xl shadow-xl text-white text-center">
             <ion-icon name="trophy" class="text-7xl mb-4"></ion-icon>
             <h2 className="text-3xl font-bold mb-2">Batalla Finalizada</h2>
             {myGroup && (
@@ -437,13 +437,13 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+        <div className="bg-white p-6 rounded-2xl shadow-xl">
+          <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
             <ion-icon name="podium" class="text-2xl mr-2 text-amber-500"></ion-icon>
             Ranking en Vivo
           </h3>
           {groups.length === 0 ? (
-            <p className="text-slate-500 dark:text-slate-400 text-center py-4">No hay grupos</p>
+            <p className="text-slate-500 text-center py-4">No hay grupos</p>
           ) : (
             <div className="space-y-2">
               {groups.map((group, idx) => (
@@ -451,42 +451,42 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                   key={group.id}
                   className={`flex items-center justify-between p-3 rounded-lg ${
                     group.is_eliminated
-                      ? 'bg-red-100 dark:bg-red-900/30 opacity-60'
+                      ? 'bg-red-100 opacity-60'
                       : group.id === groupId
-                      ? 'bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-500'
+                      ? 'bg-sky-100 border-2 border-sky-500'
                       : idx === 0
-                      ? 'bg-amber-50 dark:bg-amber-900/20'
-                      : 'bg-slate-50 dark:bg-slate-700/30'
+                      ? 'bg-amber-50'
+                      : 'bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <span
                       className={`text-lg font-bold ${
                         group.is_eliminated
-                          ? 'text-red-600 dark:text-red-400'
+                          ? 'text-red-600'
                           : idx === 0
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-slate-600 dark:text-slate-400'
+                          ? 'text-amber-600'
+                          : 'text-slate-600'
                       }`}
                     >
                       {group.is_eliminated ? '💀' : idx + 1}
                     </span>
                     <div>
-                      <p className="font-bold text-slate-800 dark:text-slate-100">
+                      <p className="font-bold text-slate-800">
                         {group.group_name}
                         {group.is_eliminated && (
-                          <span className="ml-2 text-xs text-red-600 dark:text-red-400">ELIMINADO</span>
+                          <span className="ml-2 text-xs text-red-600">ELIMINADO</span>
                         )}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Pregunta {group.current_question_index + 1}/{battle.question_count} • {group.correct_answers} correctas • {group.wrong_answers} errores
                       </p>
                     </div>
                   </div>
                   <p className={`text-xl font-bold ${
                     group.is_eliminated
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-sky-600 dark:text-sky-400'
+                      ? 'text-red-600'
+                      : 'text-sky-600'
                   }`}>{group.score}</p>
                 </div>
               ))}

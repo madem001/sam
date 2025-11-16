@@ -23,7 +23,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [joinBattleCode, setJoinBattleCode] = useState<string | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const theme = 'light';
   
   const [enabledModules, setEnabledModules] = useState<Set<Screen | TeacherScreen | string>>(
     new Set([
@@ -36,10 +36,7 @@ const App: React.FC = () => {
   const appContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = prefersDark ? 'dark' : 'light';
-    setTheme(initialTheme);
-    document.documentElement.className = initialTheme;
+    document.documentElement.className = 'light';
 
     const initializeApp = async () => {
       try {
@@ -81,9 +78,6 @@ const App: React.FC = () => {
     initializeApp();
   }, []);
   
-  useEffect(() => {
-    document.documentElement.className = theme;
-  }, [theme]);
   
   useEffect(() => {
     if (user) {
@@ -94,9 +88,6 @@ const App: React.FC = () => {
     }
   }, [allUsers, user]);
 
-  const handleToggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
 
   const handleLoginSuccess = async (authData: AuthData) => {
     console.log('🎯 App.handleLoginSuccess llamado con:', authData);
@@ -231,15 +222,13 @@ const App: React.FC = () => {
     switch (activeScreen) {
       case Screen.Profile:
         content = (
-            <ProfileScreen 
-                user={user} 
-                lastPointsWon={lastPointsWon} 
-                onLogout={handleLogout} 
-                onUpdateUser={handleUserUpdate} 
+            <ProfileScreen
+                user={user}
+                lastPointsWon={lastPointsWon}
+                onLogout={handleLogout}
+                onUpdateUser={handleUserUpdate}
                 onJoinFromNotification={handleJoinFromNotification}
                 onMarkAsRead={handleMarkNotificationsRead}
-                theme={theme}
-                onToggleTheme={handleToggleTheme}
             />
         );
         break;
@@ -250,7 +239,7 @@ const App: React.FC = () => {
         content = <BattleLobbyScreen onBack={() => setActiveScreen(Screen.JoinBattle)} />;
         break;
       case Screen.Achievements:
-        content = <AchievementsScreen user={user} theme={theme} onBack={() => setActiveScreen(Screen.Profile)} />;
+        content = <AchievementsScreen user={user} onBack={() => setActiveScreen(Screen.Profile)} />;
         break;
       case Screen.Questions:
         content = <QuestionScreen onGameComplete={handleQuestionGameComplete} onBack={() => setActiveScreen(Screen.Profile)} />;
@@ -269,7 +258,7 @@ const App: React.FC = () => {
         if (customModule) {
              content = <BattleLobbyScreen onBack={() => setActiveScreen(Screen.Profile)} />;
         } else {
-            content = <ProfileScreen user={user} onLogout={handleLogout} onUpdateUser={handleUserUpdate} onJoinFromNotification={handleJoinFromNotification} onMarkAsRead={handleMarkNotificationsRead} theme={theme} onToggleTheme={handleToggleTheme} />;
+            content = <ProfileScreen user={user} onLogout={handleLogout} onUpdateUser={handleUserUpdate} onJoinFromNotification={handleJoinFromNotification} onMarkAsRead={handleMarkNotificationsRead} />;
         }
         break;
     }
@@ -292,7 +281,7 @@ const App: React.FC = () => {
           case UserRole.Teacher:
               console.log('👨‍🏫 Renderizando Teacher Dashboard');
               const students = allUsers.filter(u => u.role === UserRole.Student);
-              return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={students} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} theme={theme} onToggleTheme={handleToggleTheme} />;
+              return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={students} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} />;
           case UserRole.Student:
               console.log('👨‍🎓 Renderizando Student Screen');
               return (
@@ -324,7 +313,7 @@ const App: React.FC = () => {
           console.log('⏳ Mostrando spinner (isLoading)');
           return (
               <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 dark:border-sky-400"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
               </div>
           );
       }

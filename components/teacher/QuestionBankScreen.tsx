@@ -217,32 +217,32 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
             setSelectedSet(null);
             setQuestions([]);
           }}
-          className="absolute top-0 left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200/50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+          className="absolute top-0 left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200/50 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
         >
           <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
         </button>
 
         <div className="p-6 pt-14 space-y-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{selectedSet.set_name}</h1>
+            <h1 className="text-2xl font-bold text-slate-800">{selectedSet.set_name}</h1>
             {selectedSet.description && (
-              <p className="text-slate-600 dark:text-slate-400 mt-1">{selectedSet.description}</p>
+              <p className="text-slate-600 mt-1">{selectedSet.description}</p>
             )}
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{questions.length} preguntas</p>
+            <p className="text-sm text-slate-500 mt-2">{questions.length} preguntas</p>
           </div>
 
           <div className="space-y-3">
             {questions.map((q, idx) => (
-              <div key={q.id} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                <p className="font-bold text-slate-800 dark:text-slate-100 mb-2">{idx + 1}. {q.question_text}</p>
+              <div key={q.id} className="bg-white p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                <p className="font-bold text-slate-800 mb-2">{idx + 1}. {q.question_text}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {q.answers.map((answer, aIdx) => (
                     <div
                       key={aIdx}
                       className={`p-2 rounded text-sm ${
                         aIdx === q.correct_answer_index
-                          ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500 font-semibold'
-                          : 'bg-slate-50 dark:bg-slate-700'
+                          ? 'bg-green-100 border-2 border-green-500 font-semibold'
+                          : 'bg-slate-50'
                       }`}
                     >
                       {answer}
@@ -260,40 +260,40 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
   if (showCreateModal) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Crear Set de Preguntas</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Crear Set de Preguntas</h2>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
                   Nombre del Set
                 </label>
                 <input
                   type="text"
                   value={setName}
                   onChange={(e) => setSetName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-slate-100"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg dark:bg-slate-700 dark:text-slate-100"
                   placeholder="Ej: Matemáticas Básicas"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
                   Descripción (opcional)
                 </label>
                 <input
                   type="text"
                   value={setDescription}
                   onChange={(e) => setSetDescription(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-slate-100"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg dark:bg-slate-700 dark:text-slate-100"
                   placeholder="Descripción del tema"
                 />
               </div>
             </div>
 
             <div className="mb-4 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">
+              <h3 className="text-lg font-semibold text-slate-700">
                 Preguntas ({newQuestions.length}/20)
               </h3>
               <button
@@ -308,9 +308,9 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
 
             <div className="space-y-6 mb-6">
               {newQuestions.map((q, qIdx) => (
-                <div key={qIdx} className="border border-slate-200 dark:border-slate-600 rounded-lg p-4">
+                <div key={qIdx} className="border border-slate-200 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-bold text-slate-700 dark:text-slate-200">Pregunta {qIdx + 1}</h4>
+                    <h4 className="font-bold text-slate-700">Pregunta {qIdx + 1}</h4>
                     {newQuestions.length > 1 && (
                       <button
                         onClick={() => handleRemoveQuestion(qIdx)}
@@ -325,7 +325,7 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
                     type="text"
                     value={q.question_text}
                     onChange={(e) => handleQuestionChange(qIdx, 'question_text', e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded mb-3 dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full px-3 py-2 border border-slate-300 rounded mb-3 dark:bg-slate-700 dark:text-slate-100"
                     placeholder="Texto de la pregunta"
                   />
 
@@ -342,7 +342,7 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
                           type="text"
                           value={answer}
                           onChange={(e) => handleAnswerChange(qIdx, aIdx, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-slate-100"
+                          className="flex-1 px-3 py-2 border border-slate-300 rounded dark:bg-slate-700 dark:text-slate-100"
                           placeholder={`Respuesta ${aIdx + 1}`}
                         />
                       </div>
@@ -360,7 +360,7 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
                   setSetDescription('');
                   setNewQuestions([{ question_text: '', answers: ['', '', '', ''], correct_answer_index: 0 }]);
                 }}
-                className="px-6 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-300"
+                className="px-6 py-2 bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-300"
               >
                 Cancelar
               </button>
@@ -381,15 +381,15 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
     <div className="relative h-full overflow-y-auto">
       <button
         onClick={onBack}
-        className="absolute top-0 left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200/50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+        className="absolute top-0 left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200/50 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
       >
         <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
       </button>
 
       <div className="p-6 pt-14 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Banco de Preguntas</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Crea sets de 5-20 preguntas</p>
+          <h1 className="text-3xl font-bold text-slate-800">Banco de Preguntas</h1>
+          <p className="text-slate-500 mt-1">Crea sets de 5-20 preguntas</p>
         </div>
 
         <button
@@ -405,18 +405,18 @@ const QuestionBankScreen: React.FC<QuestionBankScreenProps> = ({ teacherId, onBa
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
           </div>
         ) : sets.length === 0 ? (
-          <p className="text-slate-500 dark:text-slate-400 text-center py-8">No hay sets creados</p>
+          <p className="text-slate-500 text-center py-8">No hay sets creados</p>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {sets.map((set) => (
-              <div key={set.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+              <div key={set.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{set.set_name}</h3>
+                    <h3 className="font-bold text-slate-800 text-lg">{set.set_name}</h3>
                     {set.description && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400">{set.description}</p>
+                      <p className="text-sm text-slate-600">{set.description}</p>
                     )}
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       {set.question_count} pregunta{set.question_count !== 1 ? 's' : ''}
                     </p>
                   </div>

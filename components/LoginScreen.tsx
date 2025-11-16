@@ -14,23 +14,23 @@ const RobotMascot: React.FC<{ focus: 'idle' | 'email' | 'password' }> = ({ focus
     <div className={`relative w-48 h-48 mx-auto robot-idle-animation ${isPasswordFocused ? 'robot-peek-animation' : ''}`}>
       <svg viewBox="0 0 200 200" className="w-full h-full">
         {/* Shadow */}
-        <ellipse cx="100" cy="180" rx="60" ry="10" className="fill-black/10 dark:fill-black/20" />
+        <ellipse cx="100" cy="180" rx="60" ry="10" className="fill-black/10" />
         
         {/* Body */}
-        <rect x="50" y="80" width="100" height="90" rx="20" className="fill-slate-200 dark:fill-slate-700" />
-        <rect x="60" y="100" width="80" height="50" rx="10" className="fill-slate-50 dark:fill-slate-500" />
+        <rect x="50" y="80" width="100" height="90" rx="20" className="fill-slate-200" />
+        <rect x="60" y="100" width="80" height="50" rx="10" className="fill-slate-50" />
         
         {/* Head */}
-        <rect x="65" y="30" width="70" height="60" rx="15" className="fill-slate-200 dark:fill-slate-700" />
+        <rect x="65" y="30" width="70" height="60" rx="15" className="fill-slate-200" />
         
         {/* Antenna */}
-        <line x1="100" y1="30" x2="100" y2="15" strokeWidth="4" strokeLinecap="round" className="stroke-slate-400 dark:stroke-slate-500" />
-        <circle cx="100" cy="12" r="5" className="fill-sky-400 dark:fill-sky-500" />
+        <line x1="100" y1="30" x2="100" y2="15" strokeWidth="4" strokeLinecap="round" className="stroke-slate-400" />
+        <circle cx="100" cy="12" r="5" className="fill-sky-400" />
         
         {/* Eyes */}
         <g>
-          <circle cx="85" cy="60" r="12" className="fill-slate-600 dark:fill-slate-900" />
-          <circle cx="115" cy="60" r="12" className="fill-slate-600 dark:fill-slate-900" />
+          <circle cx="85" cy="60" r="12" className="fill-slate-600" />
+          <circle cx="115" cy="60" r="12" className="fill-slate-600" />
           <g className="pupil">
             <circle cx="85" cy="60" r="5" fill="#fff" className="robot-pupil" />
             <circle cx="115" cy="60" r="5" fill="#fff" className="robot-pupil" />
@@ -41,13 +41,13 @@ const RobotMascot: React.FC<{ focus: 'idle' | 'email' | 'password' }> = ({ focus
         <g>
             {/* Left Arm */}
             <g className="robot-arm" style={{ transform: isEmailFocused ? 'translateY(25px) translateX(-20px) rotate(-60deg)' : 'translateY(0) rotate(0)', transformOrigin: '70px 110px' }}>
-                 <rect x="25" y="100" width="30" height="15" rx="7.5" className="fill-slate-400 dark:fill-slate-600" />
-                 <circle cx="20" cy="107.5" r="12" className="fill-slate-300 dark:fill-slate-500" />
+                 <rect x="25" y="100" width="30" height="15" rx="7.5" className="fill-slate-400" />
+                 <circle cx="20" cy="107.5" r="12" className="fill-slate-300" />
             </g>
              {/* Right Arm */}
             <g className="robot-arm" style={{ transform: isEmailFocused ? 'translateY(25px) translateX(20px) rotate(60deg)' : 'translateY(0) rotate(0)', transformOrigin: '130px 110px' }}>
-                <rect x="145" y="100" width="30" height="15" rx="7.5" className="fill-slate-400 dark:fill-slate-600" />
-                <circle cx="180" cy="107.5" r="12" className="fill-slate-300 dark:fill-slate-500" />
+                <rect x="145" y="100" width="30" height="15" rx="7.5" className="fill-slate-400" />
+                <circle cx="180" cy="107.5" r="12" className="fill-slate-300" />
             </g>
         </g>
       </svg>
@@ -66,7 +66,7 @@ const FloatingInput: React.FC<{id: string, label: string, type?: string, value: 
             onChange={onChange}
             onFocus={onFocus}
             onBlur={onBlur}
-            className="floating-input w-full px-4 py-3 bg-white dark:bg-slate-800 rounded-lg border-2 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-400 transition text-slate-900 dark:text-slate-100"
+            className="floating-input w-full px-4 py-3 bg-white rounded-lg border-2 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-400 transition text-slate-900 dark:text-slate-100"
             required={required}
         />
         <label htmlFor={id} className="floating-label">
@@ -178,7 +178,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="flex flex-col h-full p-6 bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+    <div className="flex flex-col h-full p-6 bg-slate-50 overflow-y-auto">
       <div className="flex-grow flex flex-col justify-center">
         <div className="animate-stagger" style={{ '--stagger-delay': '100ms' } as React.CSSProperties}>
           <RobotMascot focus={focus} />
@@ -186,21 +186,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         
         <div key={view}>
             <div className="text-center my-6 animate-stagger" style={{ '--stagger-delay': '200ms' } as React.CSSProperties}>
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{getTitle()}</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Ingresa para continuar tu aventura.</p>
+                <h1 className="text-3xl font-bold text-slate-800">{getTitle()}</h1>
+                <p className="text-slate-500 mt-1">Ingresa para continuar tu aventura.</p>
             </div>
 
             {!isAdminLogin && (
                 <div className="mb-6 w-full max-w-sm mx-auto animate-stagger" style={{ '--stagger-delay': '300ms' } as React.CSSProperties}>
-                    <div className="relative flex p-1 bg-slate-200 dark:bg-slate-800 rounded-full">
+                    <div className="relative flex p-1 bg-slate-200 rounded-full">
                         <span 
-                            className="absolute top-1 bottom-1 w-1/2 bg-white dark:bg-slate-700 rounded-full shadow transition-gooey z-0"
+                            className="absolute top-1 bottom-1 w-1/2 bg-white rounded-full shadow transition-gooey z-0"
                             style={{
                                 transform: role === UserRole.Student ? 'translateX(0%)' : 'translateX(100%)'
                             }}
                         ></span>
-                        <button type="button" onClick={() => setRole(UserRole.Student)} className={`relative z-10 w-1/2 rounded-full py-2 text-sm font-bold transition-colors ${role === UserRole.Student ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`}>Estudiante</button>
-                        <button type="button" onClick={() => setRole(UserRole.Teacher)} className={`relative z-10 w-1/2 rounded-full py-2 text-sm font-bold transition-colors ${role === UserRole.Teacher ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'}`}>Docente</button>
+                        <button type="button" onClick={() => setRole(UserRole.Student)} className={`relative z-10 w-1/2 rounded-full py-2 text-sm font-bold transition-colors ${role === UserRole.Student ? 'text-sky-600' : 'text-slate-500'}`}>Estudiante</button>
+                        <button type="button" onClick={() => setRole(UserRole.Teacher)} className={`relative z-10 w-1/2 rounded-full py-2 text-sm font-bold transition-colors ${role === UserRole.Teacher ? 'text-sky-600' : 'text-slate-500'}`}>Docente</button>
                     </div>
                 </div>
             )}
@@ -213,9 +213,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                                 <img 
                                     src={imagePreview || 'https://ui-avatars.com/api/?name=?&background=e2e8f0&color=64748b&bold=true&size=128'} 
                                     alt="Vista previa del perfil" 
-                                    className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 dark:border-slate-700"
+                                    className="w-24 h-24 rounded-full object-cover border-4 border-slate-200"
                                 />
-                                <label htmlFor="profile-picture" className="cursor-pointer bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                                <label htmlFor="profile-picture" className="cursor-pointer bg-slate-200 text-slate-700 dark:text-slate-200 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition">
                                     Cambiar Foto
                                 </label>
                                 <input 
@@ -252,11 +252,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       
       <div className="flex-shrink-0 pt-4">
         {!isAdminLogin && (
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-center text-sm text-slate-500">
             {view === 'login' ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}
             <button
                 onClick={() => setView(view === 'login' ? 'register' : 'login')}
-                className="ml-2 font-semibold text-sky-600 dark:text-sky-400 hover:underline focus:outline-none"
+                className="ml-2 font-semibold text-sky-600 hover:underline focus:outline-none"
             >
                 {view === 'login' ? 'Regístrate' : 'Inicia Sesión'}
             </button>
@@ -264,7 +264,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         )}
          <button 
             onClick={handleAdminLoginToggle} 
-            className="absolute top-4 right-4 p-3 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 hover:text-indigo-700 dark:hover:text-indigo-400 transition"
+            className="absolute top-4 right-4 p-3 rounded-full bg-slate-200 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 hover:text-indigo-700 dark:hover:text-indigo-400 transition"
             aria-label="Acceso de Administrador"
         >
             {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
