@@ -84,10 +84,6 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
     return colors[icon] || 'from-blue-400 to-blue-600';
   };
 
-  const generate3DAvatarUrl = (name: string, imageUrl: string) => {
-    const seed = encodeURIComponent(name);
-    return `https://api.dicebear.com/7.x/avataaars-3d/svg?seed=${seed}&backgroundColor=ffb366,ff9933&radius=50`;
-  };
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const totalPoints = achievements
@@ -135,20 +131,19 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-6 relative z-10">
-        {/* 3D Cartoon Avatar Section */}
+        {/* Profile Avatar Section */}
         <div className="flex flex-col items-center mt-6 mb-8">
-          <div className="relative w-56 h-56 mb-6">
-            {/* 3D Avatar from DiceBear */}
-            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-orange-300 to-orange-500 p-4">
+          <div className="relative w-48 h-48 mb-6">
+            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-4 ring-blue-300/50">
               <img
-                src={generate3DAvatarUrl(user.name, user.imageUrl)}
+                src={user.imageUrl}
                 alt={user.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
 
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 blur-2xl opacity-20 -z-10"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 blur-2xl opacity-20 -z-10"></div>
           </div>
 
           {/* User Info */}
