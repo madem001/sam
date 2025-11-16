@@ -29,10 +29,10 @@ interface AllForAllControlScreenProps {
 }
 
 const COLOR_OPTIONS = [
-  { name: 'ROJO', value: 'red' },
-  { name: 'AZUL', value: 'blue' },
-  { name: 'VERDE', value: 'green' },
-  { name: 'AMARILLO', value: 'yellow' },
+  { name: 'ROJO', value: 'red', bg: 'bg-red-500', hover: 'hover:bg-red-600', gradient: 'from-red-500 to-red-600' },
+  { name: 'AZUL', value: 'blue', bg: 'bg-blue-500', hover: 'hover:bg-blue-600', gradient: 'from-blue-500 to-blue-600' },
+  { name: 'VERDE', value: 'green', bg: 'bg-green-500', hover: 'hover:bg-green-600', gradient: 'from-green-500 to-green-600' },
+  { name: 'AMARILLO', value: 'yellow', bg: 'bg-yellow-400', hover: 'hover:bg-yellow-500', gradient: 'from-yellow-400 to-yellow-500' },
 ];
 
 const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacherId }) => {
@@ -159,33 +159,44 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
     }
   };
 
+  const selectedColorOption = COLOR_OPTIONS.find(c => c.value === wordColor);
+
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
-            All for All - Control del Profesor
-          </h1>
-          <p className="text-slate-600">
-            Gestiona el juego en tiempo real y asigna puntos manualmente
-          </p>
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 pb-24">
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <ion-icon name="color-palette" class="text-2xl text-white"></ion-icon>
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-slate-800">
+                All for All
+              </h1>
+              <p className="text-slate-600">Panel de Control del Profesor</p>
+            </div>
+          </div>
         </div>
 
         {!activeGame ? (
-          <div className="bg-white rounded-3xl p-8 shadow-xl">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">
-              Configurar Nueva Ronda
-            </h2>
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/40 animate-scale-in">
+            <div className="flex items-center gap-3 mb-6">
+              <ion-icon name="settings-outline" class="text-3xl text-purple-600"></ion-icon>
+              <h2 className="text-2xl font-bold text-slate-800">
+                Configurar Nueva Ronda
+              </h2>
+            </div>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
+                  <ion-icon name="text-outline" class="text-xl"></ion-icon>
                   Palabra a Mostrar
                 </label>
                 <select
                   value={wordText}
                   onChange={(e) => setWordText(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-gray-900 outline-none transition-colors"
+                  className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-purple-500 outline-none transition-all font-semibold text-lg bg-white shadow-sm hover:shadow-md"
                 >
                   {COLOR_OPTIONS.map((color) => (
                     <option key={color.value} value={color.name}>
@@ -196,101 +207,135 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
+                  <ion-icon name="brush-outline" class="text-xl"></ion-icon>
                   Color del Texto
                 </label>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {COLOR_OPTIONS.map((color) => (
                     <button
                       key={color.value}
                       onClick={() => setWordColor(color.value)}
-                      className={`py-3 rounded-xl font-semibold transition-all ${
+                      className={`relative py-5 rounded-2xl font-bold text-white transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                         wordColor === color.value
-                          ? 'ring-4 ring-gray-900 scale-105'
-                          : 'ring-2 ring-slate-200 hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: color.value, color: 'white' }}
+                          ? 'ring-4 ring-slate-900 scale-105'
+                          : 'hover:scale-105'
+                      } ${color.bg}`}
                     >
                       {color.name}
+                      {wordColor === color.value && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center">
+                          <ion-icon name="checkmark" class="text-sm text-white"></ion-icon>
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-3">
+                  <ion-icon name="help-circle-outline" class="text-xl"></ion-icon>
                   Respuesta Correcta
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setCorrectAnswer('text')}
-                    className={`py-4 rounded-xl font-semibold transition-all ${
+                    className={`relative py-6 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                       correctAnswer === 'text'
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-white scale-105'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    Lo que dice el texto
+                    <ion-icon name="chatbox-ellipses-outline" class="text-2xl mb-1"></ion-icon>
+                    <div className="text-sm">Lo que dice</div>
+                    <div className="text-xs opacity-80">el texto</div>
+                    {correctAnswer === 'text' && (
+                      <div className="absolute -top-2 -right-2 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                        <ion-icon name="checkmark" class="text-white"></ion-icon>
+                      </div>
+                    )}
                   </button>
                   <button
                     onClick={() => setCorrectAnswer('color')}
-                    className={`py-4 rounded-xl font-semibold transition-all ${
+                    className={`relative py-6 rounded-2xl font-bold transition-all transform shadow-lg hover:shadow-xl hover:-translate-y-1 ${
                       correctAnswer === 'color'
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gradient-to-br from-slate-800 to-slate-900 text-white scale-105'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    El color del texto
+                    <ion-icon name="color-fill-outline" class="text-2xl mb-1"></ion-icon>
+                    <div className="text-sm">El color</div>
+                    <div className="text-xs opacity-80">del texto</div>
+                    {correctAnswer === 'color' && (
+                      <div className="absolute -top-2 -right-2 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                        <ion-icon name="checkmark" class="text-white"></ion-icon>
+                      </div>
+                    )}
                   </button>
                 </div>
               </div>
 
-              <div className="bg-gray-100 rounded-2xl p-6">
-                <p className="text-sm font-semibold text-slate-600 mb-2">Vista Previa:</p>
-                <div className="bg-gray-800 rounded-xl p-8 text-center">
+              <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl p-6 border-2 border-slate-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <ion-icon name="eye-outline" class="text-xl text-slate-600"></ion-icon>
+                  <p className="text-sm font-bold text-slate-700">Vista Previa</p>
+                </div>
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-12 text-center shadow-2xl mb-4">
                   <p
-                    className="text-6xl font-black"
+                    className="text-7xl font-black tracking-tight drop-shadow-2xl"
                     style={{ color: wordColor }}
                   >
                     {wordText}
                   </p>
                 </div>
-                <p className="text-sm text-slate-600 mt-3 text-center">
-                  Respuesta correcta: <strong>{correctAnswer === 'text' ? wordText : COLOR_OPTIONS.find(c => c.value === wordColor)?.name}</strong>
-                </p>
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <ion-icon name="ribbon-outline" class="text-lg text-green-600"></ion-icon>
+                  <span className="text-slate-600">Respuesta correcta:</span>
+                  <span className="font-black text-slate-800">
+                    {correctAnswer === 'text' ? wordText : COLOR_OPTIONS.find(c => c.value === wordColor)?.name}
+                  </span>
+                </div>
               </div>
 
               <button
                 onClick={startGame}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                className="w-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-lg py-5 rounded-2xl transition-all shadow-2xl hover:shadow-green-500/50 hover:-translate-y-1 transform flex items-center justify-center gap-3"
               >
+                <ion-icon name="play-circle" class="text-3xl"></ion-icon>
                 Iniciar Juego
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-8 shadow-xl">
+          <div className="space-y-6 animate-scale-in">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/40">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800">
-                    Juego Activo
-                  </h2>
-                  <p className="text-slate-600 mt-1">
-                    {responses.length} estudiante{responses.length !== 1 ? 's' : ''} ha{responses.length !== 1 ? 'n' : ''} respondido
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <h2 className="text-2xl font-black text-slate-800">
+                      Juego Activo
+                    </h2>
+                  </div>
+                  <p className="text-slate-600 flex items-center gap-2">
+                    <ion-icon name="people" class="text-lg"></ion-icon>
+                    <strong>{responses.length}</strong> {responses.length === 1 ? 'respuesta' : 'respuestas'}
                   </p>
                 </div>
                 <button
                   onClick={endGame}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg"
+                  className="bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-xl hover:shadow-red-500/50 hover:-translate-y-1 transform flex items-center gap-2"
                 >
-                  Terminar Juego
+                  <ion-icon name="stop-circle" class="text-xl"></ion-icon>
+                  Terminar
                 </button>
               </div>
 
-              <div className="bg-gray-800 rounded-2xl p-8 text-center mb-6">
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-12 text-center shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"></div>
                 <p
-                  className="text-6xl font-black"
+                  className="text-8xl font-black tracking-tight drop-shadow-2xl relative z-10 animate-pulse-slow"
                   style={{ color: activeGame.word_color }}
                 >
                   {activeGame.word_text}
@@ -298,40 +343,47 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-8 shadow-xl">
-              <h3 className="text-xl font-bold text-slate-800 mb-4">
-                Ranking en Tiempo Real
-              </h3>
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/40">
+              <div className="flex items-center gap-3 mb-6">
+                <ion-icon name="podium" class="text-3xl text-amber-500"></ion-icon>
+                <h3 className="text-2xl font-black text-slate-800">
+                  Ranking en Tiempo Real
+                </h3>
+              </div>
 
               {responses.length === 0 ? (
-                <div className="text-center py-12">
-                  <ion-icon name="hourglass-outline" class="text-6xl text-slate-300"></ion-icon>
-                  <p className="text-slate-500 mt-3">Esperando respuestas...</p>
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-slate-200 to-slate-300 rounded-full flex items-center justify-center">
+                    <ion-icon name="hourglass-outline" class="text-4xl text-slate-500"></ion-icon>
+                  </div>
+                  <p className="text-slate-500 font-semibold text-lg">Esperando respuestas...</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {responses.map((response) => (
+                  {responses.map((response, index) => (
                     <div
                       key={response.id}
-                      className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                      className={`flex items-center gap-4 p-5 rounded-3xl transition-all transform hover:scale-102 shadow-lg ${
                         response.is_correct
-                          ? 'bg-green-50 border-2 border-green-200'
-                          : 'bg-red-50 border-2 border-red-200'
+                          ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300'
+                          : 'bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-300'
                       }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="text-3xl font-bold w-16 text-center">
+                      <div className="text-4xl font-black w-20 text-center bg-white/50 rounded-2xl py-2">
                         {getRankEmoji(response.rank_position)}
                       </div>
 
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white font-bold">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-black text-xl shadow-lg">
                           {response.student?.name?.charAt(0) || '?'}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-800">
+                          <p className="font-bold text-slate-800 text-lg">
                             {response.student?.name || 'Estudiante'}
                           </p>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-slate-600 flex items-center gap-1">
+                            <ion-icon name="hand-left" class="text-base"></ion-icon>
                             Presionó: <strong>{COLOR_OPTIONS.find(c => c.value === response.button_pressed)?.name || response.button_pressed}</strong>
                           </p>
                         </div>
@@ -342,20 +394,22 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
                           type="number"
                           value={response.points_awarded}
                           onChange={(e) => awardPoints(response.id, parseInt(e.target.value) || 0)}
-                          className="w-20 px-3 py-2 rounded-lg border-2 border-slate-200 text-center font-bold"
+                          className="w-24 px-4 py-3 rounded-xl border-2 border-slate-300 text-center font-black text-lg bg-white shadow-inner focus:border-purple-500 outline-none transition-all"
                           placeholder="0"
                         />
-                        <span className="text-slate-600 font-semibold">pts</span>
+                        <span className="text-slate-700 font-bold text-sm">pts</span>
                       </div>
 
                       <div>
                         {response.is_correct ? (
-                          <div className="bg-green-500 text-white px-4 py-2 rounded-full font-semibold">
-                            ✓ Correcto
+                          <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg flex items-center gap-2">
+                            <ion-icon name="checkmark-circle" class="text-xl"></ion-icon>
+                            Correcto
                           </div>
                         ) : (
-                          <div className="bg-red-500 text-white px-4 py-2 rounded-full font-semibold">
-                            ✗ Incorrecto
+                          <div className="bg-gradient-to-br from-red-500 to-pink-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg flex items-center gap-2">
+                            <ion-icon name="close-circle" class="text-xl"></ion-icon>
+                            Incorrecto
                           </div>
                         )}
                       </div>
