@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Achievement, User } from '../types';
+import { User } from '../types';
+import { supabase } from '../lib/supabase';
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlock_condition: string;
+  points_reward: number;
+  unlocked?: boolean;
+  unlocked_at?: string;
+  matches_played?: number;
+  points_earned?: number;
+  level_achieved?: number;
+}
 
 interface AchievementsScreenProps {
   user: User;
@@ -8,64 +23,13 @@ interface AchievementsScreenProps {
 
 const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack }) => {
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const achievements: Achievement[] = [
-    {
-      id: 1,
-      name: 'Primera Batalla',
-      icon: 'shield-checkmark',
-      description: '¡Completaste tu primera batalla! El comienzo de una gran trayectoria.',
-      matchesPlayed: 1,
-      pointsEarned: 50,
-      levelAchieved: 1,
-    },
-    {
-      id: 2,
-      name: 'Velocidad Luz',
-      icon: 'flash',
-      description: 'Respondiste todas las preguntas en tiempo récord. ¡Nadie es más rápido!',
-      matchesPlayed: 5,
-      pointsEarned: 200,
-      levelAchieved: 3,
-    },
-    {
-      id: 3,
-      name: 'Racha Imparable',
-      icon: 'flame',
-      description: 'Ganaste 5 batallas consecutivas sin perder. ¡Eres imparable!',
-      matchesPlayed: 5,
-      pointsEarned: 500,
-      levelAchieved: 5,
-    },
-    {
-      id: 4,
-      name: 'Maestro Estratega',
-      icon: 'bulb',
-      description: 'Dominaste todas las categorías con respuestas perfectas.',
-      matchesPlayed: 10,
-      pointsEarned: 300,
-      levelAchieved: 4,
-    },
-    {
-      id: 5,
-      name: 'Campeón Invicto',
-      icon: 'trophy',
-      description: 'Alcanzaste 10 victorias seguidas. ¡Eres una leyenda!',
-      matchesPlayed: 10,
-      pointsEarned: 1000,
-      levelAchieved: 8,
-    },
-    {
-      id: 6,
-      name: 'Perfeccionista',
-      icon: 'star',
-      description: 'Conseguiste una puntuación perfecta en una batalla.',
-      matchesPlayed: 3,
-      pointsEarned: 150,
-      levelAchieved: 2,
-    },
-  ];
+  useEffect(() => {
+    loadAchievements();
+  }, [user.id]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -76,20 +40,58 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  const loadAchievements = async () => {
+    try {
+      const { data: allAchievements, error: achievementsError } = await supabase
+        .from('achievements')
+        .select('*')
+        .order('points_reward', { ascending: true });
+
+      if (achievementsError) throw achievementsError;
+
+      const { data: studentAchievements, error: studentError } = await supabase
+        .from('student_achievements')
+        .select('*')
+        .eq('student_id', user.id);
+
+      if (studentError) throw studentError;
+
+      const unlockedMap = new Map(
+        (studentAchievements || []).map(sa => [sa.achievement_id, sa])
+      );
+
+      const enrichedAchievements = (allAchievements || []).map(ach => ({
+        ...ach,
+        unlocked: unlockedMap.has(ach.id),
+        ...unlockedMap.get(ach.id),
+      }));
+
+      setAchievements(enrichedAchievements);
+    } catch (error) {
+      console.error('Error loading achievements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAchievementClick = (achievement: Achievement) => {
     setSelectedAchievement(achievement);
   };
 
-  const getAchievementColor = (achievementId: number): string => {
-    const colors: { [key: number]: string } = {
-      1: 'from-blue-500 to-blue-700',
-      2: 'from-yellow-400 to-orange-500',
-      3: 'from-red-500 to-pink-600',
-      4: 'from-purple-500 to-indigo-600',
-      5: 'from-amber-400 to-yellow-600',
-      6: 'from-teal-400 to-cyan-600',
+  const getAchievementColor = (icon: string, unlocked: boolean): string => {
+    if (!unlocked) return 'from-gray-200 to-gray-300';
+
+    const colors: { [key: string]: string } = {
+      'shield-checkmark': 'from-blue-400 to-blue-600',
+      'flash': 'from-yellow-400 to-orange-500',
+      'flame': 'from-red-400 to-pink-500',
+      'bulb': 'from-purple-400 to-indigo-500',
+      'trophy': 'from-amber-400 to-yellow-500',
+      'star': 'from-teal-400 to-cyan-500',
+      'lock-open': 'from-emerald-400 to-green-500',
+      'game-controller': 'from-rose-400 to-pink-500',
     };
-    return colors[achievementId] || 'from-gray-500 to-gray-700';
+    return colors[icon] || 'from-blue-400 to-blue-600';
   };
 
   const calculateParallax = (index: number) => {
@@ -104,14 +106,30 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
     };
   };
 
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  const totalPoints = achievements
+    .filter(a => a.unlocked)
+    .reduce((sum, a) => sum + a.points_reward, 0);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100">
+        <div className="text-center">
+          <ion-icon name="trophy" class="text-6xl text-blue-500 animate-pulse"></ion-icon>
+          <p className="text-slate-600 mt-4">Cargando logros...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+    <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-sky-50 via-white to-blue-50 relative">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-2 h-2 bg-white rounded-full opacity-20"
+            className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-10"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -126,7 +144,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
       <header className="relative z-10 p-6 pb-0">
         <button
           onClick={onBack}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all shadow-lg"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-slate-700 hover:bg-white shadow-lg transition-all"
         >
           <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
         </button>
@@ -134,7 +152,7 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-6 relative z-10">
-        {/* Avatar 3D Section */}
+        {/* 3D Cartoon Avatar Section */}
         <div className="flex flex-col items-center mt-6 mb-8">
           <div
             className="relative w-48 h-48 mb-6"
@@ -143,25 +161,55 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
               transition: 'transform 0.2s ease-out',
             }}
           >
-            {/* 3D Avatar Container */}
-            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-4 ring-white/20">
-              <img
-                src={user.imageUrl}
-                alt={user.name}
-                className="w-full h-full object-cover"
-              />
+            {/* 3D Cartoon Avatar Container */}
+            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-4 ring-blue-300/50 bg-gradient-to-br from-orange-300 to-orange-400">
+              <div className="absolute inset-0 flex items-center justify-center">
+                {/* Cartoon-style simplified avatar based on photo */}
+                <div className="relative w-full h-full">
+                  {/* Base face */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-b from-orange-200 to-orange-300"></div>
+
+                  {/* Photo overlay with cartoon filter */}
+                  <img
+                    src={user.imageUrl}
+                    alt={user.name}
+                    className="absolute inset-0 w-full h-full object-cover rounded-full mix-blend-multiply opacity-60"
+                    style={{ filter: 'contrast(1.2) saturate(1.5)' }}
+                  />
+
+                  {/* Cartoon highlights */}
+                  <div className="absolute top-8 left-8 w-16 h-16 rounded-full bg-white/40 blur-xl"></div>
+                  <div className="absolute bottom-12 right-12 w-12 h-12 rounded-full bg-orange-600/20 blur-lg"></div>
+
+                  {/* Eyes overlay for cartoon effect */}
+                  <div className="absolute top-[35%] left-1/2 -translate-x-1/2 flex gap-8">
+                    <div className="w-8 h-10 bg-white rounded-full shadow-inner relative">
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-5 bg-slate-800 rounded-full"></div>
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <div className="w-8 h-10 bg-white rounded-full shadow-inner relative">
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-5 bg-slate-800 rounded-full"></div>
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Smile */}
+                  <div className="absolute top-[55%] left-1/2 -translate-x-1/2 w-12 h-6 border-b-4 border-slate-700 rounded-b-full"></div>
+                </div>
+              </div>
+
               {/* 3D Effect Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
-              <div className="absolute inset-0 bg-gradient-to-tl from-black/20 to-transparent pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-tl from-black/10 to-transparent pointer-events-none"></div>
             </div>
 
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 blur-2xl opacity-30 -z-10"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 blur-2xl opacity-20 -z-10"></div>
           </div>
 
           {/* User Info */}
-          <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
-          <div className="flex items-center gap-2 text-emerald-400">
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">{user.name}</h1>
+          <div className="flex items-center gap-2 text-emerald-600">
             <ion-icon name="trophy" class="text-xl"></ion-icon>
             <span className="text-lg font-semibold">Nivel {user.level}</span>
           </div>
@@ -169,30 +217,26 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
           {/* Stats */}
           <div className="flex gap-6 mt-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">{achievements.length}</div>
-              <div className="text-sm text-slate-400">Logros</div>
+              <div className="text-3xl font-bold text-slate-800">{unlockedCount}</div>
+              <div className="text-sm text-slate-500">Logros</div>
             </div>
-            <div className="w-px bg-white/20"></div>
+            <div className="w-px bg-slate-300"></div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">
-                {achievements.reduce((sum, ach) => sum + (ach.pointsEarned || 0), 0)}
-              </div>
-              <div className="text-sm text-slate-400">Puntos</div>
+              <div className="text-3xl font-bold text-slate-800">{totalPoints}</div>
+              <div className="text-sm text-slate-500">Puntos</div>
             </div>
-            <div className="w-px bg-white/20"></div>
+            <div className="w-px bg-slate-300"></div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-white">
-                {achievements.reduce((sum, ach) => sum + (ach.matchesPlayed || 0), 0)}
-              </div>
-              <div className="text-sm text-slate-400">Batallas</div>
+              <div className="text-3xl font-bold text-slate-800">{achievements.length}</div>
+              <div className="text-sm text-slate-500">Totales</div>
             </div>
           </div>
         </div>
 
         {/* Achievements Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <ion-icon name="ribbon" class="text-2xl"></ion-icon>
+          <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <ion-icon name="ribbon" class="text-2xl text-blue-600"></ion-icon>
             Tus Logros
           </h2>
 
@@ -204,9 +248,9 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
                 className="relative group"
                 style={calculateParallax(index)}
               >
-                <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${getAchievementColor(achievement.id)} p-6 shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl`}>
+                <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${getAchievementColor(achievement.icon, achievement.unlocked || false)} p-6 shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl ${!achievement.unlocked ? 'opacity-50' : ''}`}>
                   {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                   {/* Icon */}
                   <div className="relative z-10 flex flex-col items-center text-white">
@@ -215,9 +259,18 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
                   </div>
 
                   {/* Badge corner */}
-                  <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <ion-icon name="checkmark" class="text-lg text-white"></ion-icon>
-                  </div>
+                  {achievement.unlocked && (
+                    <div className="absolute top-2 right-2 w-8 h-8 bg-white/30 rounded-full flex items-center justify-center">
+                      <ion-icon name="checkmark" class="text-lg text-white"></ion-icon>
+                    </div>
+                  )}
+
+                  {/* Lock icon for locked achievements */}
+                  {!achievement.unlocked && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ion-icon name="lock-closed" class="text-4xl text-slate-600/50"></ion-icon>
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
@@ -228,61 +281,84 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
       {/* Achievement Detail Modal */}
       {selectedAchievement && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-6"
           onClick={() => setSelectedAchievement(null)}
         >
           <div
-            className="relative max-w-md w-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl overflow-hidden shadow-2xl"
+            className="relative max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={() => setSelectedAchievement(null)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all"
+              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
             >
               <ion-icon name="close" class="text-2xl"></ion-icon>
             </button>
 
             {/* Header with gradient */}
-            <div className={`relative p-8 bg-gradient-to-br ${getAchievementColor(selectedAchievement.id)}`}>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+            <div className={`relative p-8 bg-gradient-to-br ${getAchievementColor(selectedAchievement.icon, selectedAchievement.unlocked || false)}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
               <div className="relative z-10 flex flex-col items-center text-white">
-                <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                <div className="w-24 h-24 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center mb-4 shadow-xl">
                   <ion-icon name={selectedAchievement.icon} class="text-6xl"></ion-icon>
                 </div>
                 <h2 className="text-2xl font-bold text-center mb-2">{selectedAchievement.name}</h2>
-                <p className="text-white/90 text-center text-sm">{selectedAchievement.description}</p>
+                <p className="text-white/95 text-center text-sm">{selectedAchievement.description}</p>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="p-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-xl bg-white/5">
-                  <ion-icon name="game-controller-outline" class="text-3xl text-blue-400"></ion-icon>
-                  <div className="text-2xl font-bold text-white mt-2">{selectedAchievement.matchesPlayed}</div>
-                  <div className="text-xs text-slate-400">Partidas</div>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-white/5">
-                  <ion-icon name="star-outline" class="text-3xl text-yellow-400"></ion-icon>
-                  <div className="text-2xl font-bold text-white mt-2">{selectedAchievement.pointsEarned}</div>
-                  <div className="text-xs text-slate-400">Puntos</div>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-white/5">
-                  <ion-icon name="trending-up-outline" class="text-3xl text-emerald-400"></ion-icon>
-                  <div className="text-2xl font-bold text-white mt-2">{selectedAchievement.levelAchieved}</div>
-                  <div className="text-xs text-slate-400">Nivel</div>
-                </div>
-              </div>
+            {/* Content */}
+            <div className="p-6 bg-gradient-to-b from-slate-50 to-white">
+              {selectedAchievement.unlocked ? (
+                <>
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="text-center p-4 rounded-xl bg-blue-50 border border-blue-100">
+                      <ion-icon name="game-controller-outline" class="text-3xl text-blue-500"></ion-icon>
+                      <div className="text-2xl font-bold text-slate-800 mt-2">{selectedAchievement.matches_played || 0}</div>
+                      <div className="text-xs text-slate-600">Partidas</div>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-yellow-50 border border-yellow-100">
+                      <ion-icon name="star-outline" class="text-3xl text-yellow-500"></ion-icon>
+                      <div className="text-2xl font-bold text-slate-800 mt-2">{selectedAchievement.points_reward}</div>
+                      <div className="text-xs text-slate-600">Puntos</div>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                      <ion-icon name="trending-up-outline" class="text-3xl text-emerald-500"></ion-icon>
+                      <div className="text-2xl font-bold text-slate-800 mt-2">{selectedAchievement.level_achieved || user.level}</div>
+                      <div className="text-xs text-slate-600">Nivel</div>
+                    </div>
+                  </div>
 
-              {/* Achievement date */}
-              <div className="mt-6 p-4 rounded-xl bg-white/5 flex items-center gap-3">
-                <ion-icon name="calendar-outline" class="text-2xl text-slate-400"></ion-icon>
-                <div>
-                  <div className="text-sm font-semibold text-white">Desbloqueado</div>
-                  <div className="text-xs text-slate-400">Durante tu aventura en EduBattle</div>
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <ion-icon name="checkmark-circle" class="text-2xl text-emerald-600"></ion-icon>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-slate-800">¡Logro Desbloqueado!</div>
+                      <div className="text-xs text-slate-600">
+                        {selectedAchievement.unlocked_at
+                          ? new Date(selectedAchievement.unlocked_at).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })
+                          : 'Durante tu aventura en EduBattle'}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="p-6 rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 text-center">
+                  <ion-icon name="lock-closed-outline" class="text-5xl text-slate-400 mb-3"></ion-icon>
+                  <h3 className="text-lg font-bold text-slate-700 mb-2">Logro Bloqueado</h3>
+                  <p className="text-sm text-slate-600 mb-4">{selectedAchievement.description}</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700">
+                    <ion-icon name="star" class="text-lg"></ion-icon>
+                    <span className="text-sm font-semibold">+{selectedAchievement.points_reward} puntos al desbloquear</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
