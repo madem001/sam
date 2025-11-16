@@ -15,20 +15,16 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ label, iconName, isActive, onClick }) => {
-  const activeClasses = 'text-white -translate-y-4';
-  const inactiveClasses = 'text-teal-100 hover:text-white dark:hover:text-white';
-
+const NavItem: React.FC<NavItemProps> = ({ iconName, isActive, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="relative flex-1 z-10 flex flex-col items-center justify-center w-full transition-all duration-300 ease-in-out"
+      className="relative flex-1 flex flex-col items-center justify-center py-4 transition-all duration-300"
     >
-      <div className={`flex flex-col items-center transform transition-all duration-300 ease-in-out ${isActive ? activeClasses : inactiveClasses}`}>
-        {/* FIX: Changed 'className' to 'class' for web component compatibility. */}
-        <ion-icon name={iconName} class="text-3xl"></ion-icon>
-        <span className="text-xs font-bold mt-1">{label}</span>
-      </div>
+      <ion-icon
+        name={iconName}
+        class={`text-2xl transition-all duration-300 ${isActive ? 'text-white scale-110' : 'text-slate-600'}`}
+      ></ion-icon>
     </button>
   );
 };
@@ -52,35 +48,47 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
     }));
 
   const navItems = [...standardNavItems, ...customNavItems];
-  
+
   const activeIndex = navItems.findIndex(item => item.screen === activeScreen);
 
   if (navItems.length === 0) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-24 text-white z-10">
-       {/* Background */}
-      <div className="absolute bottom-0 w-full h-16 bg-teal-700 shadow-2xl"></div>
-
-      {/* Wave Indicator */}
-       {activeIndex !== -1 && (
+    <div className="absolute bottom-0 left-0 right-0 z-10">
+      {/* Bouncing Ball Indicator */}
+      {activeIndex !== -1 && (
+        <div
+          key={activeScreen}
+          className="absolute transition-all duration-500 ease-out"
+          style={{
+            left: `calc(${(activeIndex / navItems.length) * 100}% + ${50 / navItems.length}% - 28px)`,
+            top: '-28px',
+          }}
+        >
+          <div className="relative">
+            {/* Ball with bounce animation */}
             <div
-                className="absolute top-0 h-24 transition-transform duration-300 ease-in-out"
-                style={{
-                    width: `${100 / navItems.length}%`,
-                    transform: `translateX(${activeIndex * 100}%)`
-                }}
+              className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-xl flex items-center justify-center"
+              style={{
+                animation: 'bounce-tab 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+              }}
             >
-                <div className="relative w-full h-full">
-                    <svg viewBox="0 0 100 96" preserveAspectRatio="none" className="w-full h-full text-teal-700 drop-shadow-lg" fill="currentColor">
-                        <path d="M50 0C25 0 25 32 0 32V96H100V32C75 32 75 0 50 0Z"/>
-                    </svg>
-                </div>
+              <ion-icon
+                name={navItems[activeIndex].iconName}
+                class="text-3xl text-white"
+              ></ion-icon>
             </div>
-        )}
+            {/* Shadow */}
+            <div
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/20 rounded-full blur-sm animate-pulse"
+            ></div>
+          </div>
+        </div>
+      )}
 
-      {/* Navigation Items Container */}
-      <div className="absolute top-0 left-0 right-0 h-full flex justify-around items-center pt-2">
+      {/* Bottom Navigation Bar */}
+      <div className="bg-white border-t border-slate-200 rounded-t-3xl shadow-2xl">
+        <div className="flex justify-around items-center h-20 px-4">
           {navItems.map(item => (
             <NavItem
               key={item.screen}
@@ -90,6 +98,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
               onClick={() => setActiveScreen(item.screen as Screen)}
             />
           ))}
+        </div>
       </div>
     </div>
   );
