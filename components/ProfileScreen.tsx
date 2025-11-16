@@ -251,9 +251,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className="flex-1 overflow-y-auto overflow-x-hidden -mt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Profile Card - Hero */}
-        <div className="max-w-2xl mx-auto mb-8">
+        <div className="mb-8">
           <div className="overflow-visible p-0">
             {/* Profile Image Section */}
             <div className="relative h-80 bg-gradient-to-br from-blue-500 to-purple-600">
