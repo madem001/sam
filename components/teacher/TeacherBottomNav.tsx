@@ -41,6 +41,7 @@ const TeacherBottomNav: React.FC<TeacherBottomNavProps> = ({ activeScreen, setAc
   const allStandardNavItems = [
     { screen: TeacherScreen.Dashboard, label: 'Inicio', iconName: 'home-outline' },
     { screen: TeacherScreen.BattleManager, label: 'Batallas', iconName: 'flash-outline' },
+    { screen: TeacherScreen.AllForAll, label: 'All for All', iconName: 'color-palette-outline' },
     { screen: TeacherScreen.QuestionBank, label: 'Preguntas', iconName: 'book-outline'},
     { screen: 'rewards', label: 'Recompensas', iconName: 'gift-outline'},
     { screen: TeacherScreen.StudentList, label: 'Estudiantes', iconName: 'people-outline'},

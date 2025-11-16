@@ -12,6 +12,7 @@ import LoserScreen from './components/LoserScreen';
 import TeacherDashboard from './components/teacher/TeacherDashboard';
 import JoinBattleScreen from './components/JoinBattleScreen';
 import LoadingScreen from './components/LoadingScreen';
+import AllForAllScreen from './components/AllForAllScreen';
 import * as api from './api';
 
 const App: React.FC = () => {
@@ -27,8 +28,8 @@ const App: React.FC = () => {
   
   const [enabledModules, setEnabledModules] = useState<Set<Screen | TeacherScreen | string>>(
     new Set([
-        Screen.Profile, Screen.JoinBattle, Screen.Achievements, Screen.Questions,
-        TeacherScreen.Dashboard, TeacherScreen.BattleManager, TeacherScreen.QuestionBank, TeacherScreen.StudentList, TeacherScreen.Profile, 'rewards',
+        Screen.Profile, Screen.JoinBattle, Screen.AllForAll, Screen.Achievements,
+        TeacherScreen.Dashboard, TeacherScreen.BattleManager, TeacherScreen.AllForAll, TeacherScreen.QuestionBank, TeacherScreen.StudentList, TeacherScreen.Profile, 'rewards',
     ])
   );
   const [customModules, setCustomModules] = useState<CustomModule[]>([]);
@@ -240,6 +241,9 @@ const App: React.FC = () => {
         break;
       case Screen.Achievements:
         content = <AchievementsScreen user={user} onBack={() => setActiveScreen(Screen.Profile)} />;
+        break;
+      case Screen.AllForAll:
+        content = <AllForAllScreen userId={user.id} />;
         break;
       case Screen.Questions:
         content = <QuestionScreen onGameComplete={handleQuestionGameComplete} onBack={() => setActiveScreen(Screen.Profile)} />;

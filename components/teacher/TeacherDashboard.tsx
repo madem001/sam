@@ -8,6 +8,7 @@ import QuestionBankScreen from './QuestionBankScreen';
 import StudentListScreen from './StudentListScreen';
 import BattleLobbyScreen from '../BattleLobbyScreen';
 import RewardsManagementScreen from './RewardsManagementScreen';
+import AllForAllControlScreen from './AllForAllControlScreen';
 
 interface TeacherDashboardProps {
   user: User;
@@ -41,6 +42,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, onLogout, ena
         break;
       case TeacherScreen.Profile:
         content = <TeacherProfileScreen user={user} onLogout={onLogout} />;
+        break;
+      case TeacherScreen.AllForAll:
+        content = <AllForAllControlScreen teacherId={user.id} />;
         break;
       case 'rewards':
         content = <RewardsManagementScreen teacherId={user.id} onBack={handleBack} />;

@@ -41,8 +41,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen, en
   const allStandardNavItems = [
     { screen: Screen.Profile, label: 'Perfil', iconName: 'person-outline' },
     { screen: Screen.JoinBattle, label: 'Batalla', iconName: 'flash-outline' },
+    { screen: Screen.AllForAll, label: 'All for All', iconName: 'color-palette-outline' },
     { screen: Screen.Achievements, label: 'Logros', iconName: 'trophy-outline' },
-    { screen: Screen.Questions, label: 'Preguntas', iconName: 'help-circle-outline' },
   ];
 
   const standardNavItems = allStandardNavItems.filter(item => enabledModules.has(item.screen));

@@ -26,6 +26,7 @@ export enum Screen {
   Trivia = 'TRIVIA',
   Winner = 'WINNER',
   Loser = 'LOSER',
+  AllForAll = 'ALL_FOR_ALL',
 }
 
 export enum TeacherScreen {
@@ -34,6 +35,7 @@ export enum TeacherScreen {
   QuestionBank = 'QUESTION_BANK',
   StudentList = 'STUDENT_LIST',
   Profile = 'PROFILE',
+  AllForAll = 'ALL_FOR_ALL_CONTROL',
 }
 
 export enum UserRole {
