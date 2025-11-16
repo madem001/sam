@@ -24,6 +24,7 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   const [hasAnswered, setHasAnswered] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [myGroup, setMyGroup] = useState<battleApi.BattleGroup | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(60);
 
   useEffect(() => {
     loadBattleData();
@@ -94,6 +95,29 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (!battle || !currentQuestion || hasAnswered || battle.status !== 'active') {
+      return;
+    }
+
+    const questionStartedAt = battle.question_started_at ? new Date(battle.question_started_at).getTime() : Date.now();
+    const timeLimit = battle.question_time_limit || 60;
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - questionStartedAt) / 1000);
+      const remaining = Math.max(0, timeLimit - elapsed);
+      setTimeRemaining(remaining);
+
+      if (remaining === 0 && !hasAnswered) {
+        console.log('⏰ [STUDENT] Tiempo agotado, enviando respuesta automática incorrecta');
+        setHasAnswered(true);
+        handleAnswerSelect(-1);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [battle, currentQuestion, hasAnswered]);
+
   const handleAnswerSelect = async (answerIndex: number) => {
     if (hasAnswered || !currentQuestion) return;
 
@@ -158,9 +182,22 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">{battle.name}</h1>
           {myGroup && (
-            <div className="mt-3 inline-block px-6 py-2 bg-gradient-to-r from-sky-500 to-blue-500 text-white rounded-full shadow-lg">
-              <p className="font-bold text-lg">{myGroup.group_name}</p>
-              <p className="text-sm opacity-90">Puntos: {myGroup.score}</p>
+            <div className="space-y-2 mt-3">
+              <div className={`inline-block px-6 py-2 rounded-full shadow-lg ${
+                myGroup.is_eliminated
+                  ? 'bg-gradient-to-r from-red-500 to-red-600'
+                  : 'bg-gradient-to-r from-sky-500 to-blue-500'
+              } text-white`}>
+                <p className="font-bold text-lg">
+                  {myGroup.is_eliminated ? '💀 ELIMINADO' : myGroup.group_name}
+                </p>
+                <p className="text-sm opacity-90">Puntos: {myGroup.score}</p>
+                {!myGroup.is_eliminated && myGroup.wrong_answers > 0 && (
+                  <p className="text-sm font-bold text-yellow-200">
+                    ⚠️ {myGroup.wrong_answers}/2 errores
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -175,16 +212,37 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           </div>
         )}
 
-        {isActive && currentQuestion && (
+        {isActive && currentQuestion && !myGroup?.is_eliminated && (
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl">
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  Pregunta {battle.current_question_index + 1} de {battle.question_count}
+                </span>
+                <div className={`flex items-center space-x-2 font-bold text-2xl ${
+                  timeRemaining <= 10 ? 'text-red-500 animate-pulse' :
+                  timeRemaining <= 30 ? 'text-orange-500' : 'text-green-500'
+                }`}>
+                  <ion-icon name="timer-outline" class="text-3xl"></ion-icon>
+                  <span>{timeRemaining}s</span>
+                </div>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    timeRemaining <= 10 ? 'bg-red-500' :
+                    timeRemaining <= 30 ? 'bg-orange-500' : 'bg-green-500'
+                  }`}
+                  style={{ width: `${(timeRemaining / 60) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
             <div className="flex justify-between items-center mb-6">
-              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                Pregunta {battle.current_question_index + 1} de {battle.question_count}
-              </span>
               {!hasAnswered && (
                 <div className="flex items-center space-x-2 text-orange-500">
-                  <ion-icon name="time-outline" class="text-xl"></ion-icon>
-                  <span className="font-bold">Responde</span>
+                  <ion-icon name="alert-circle-outline" class="text-xl"></ion-icon>
+                  <span className="font-semibold">¡Responde antes que termine el tiempo!</span>
                 </div>
               )}
               {hasAnswered && (
@@ -250,14 +308,39 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           </div>
         )}
 
+        {isActive && myGroup?.is_eliminated && (
+          <div className="bg-gradient-to-br from-red-500 to-red-700 p-8 rounded-2xl shadow-xl text-white text-center">
+            <div className="animate-bounce">
+              <ion-icon name="skull" class="text-7xl mb-4"></ion-icon>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">¡Has sido eliminado!</h2>
+            <p className="text-xl opacity-90">
+              Tuviste 2 respuestas incorrectas
+            </p>
+            <p className="text-lg mt-4">
+              Puntuación Final: <span className="font-bold">{myGroup.score}</span>
+            </p>
+            <p className="text-sm mt-6 opacity-75">
+              Puedes seguir viendo la batalla en el ranking
+            </p>
+          </div>
+        )}
+
         {isFinished && (
           <div className="bg-gradient-to-br from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600 p-8 rounded-2xl shadow-xl text-white text-center">
             <ion-icon name="trophy" class="text-7xl mb-4"></ion-icon>
             <h2 className="text-3xl font-bold mb-2">Batalla Finalizada</h2>
             {myGroup && (
-              <p className="text-xl opacity-90 mt-4">
-                Puntuación Final: <span className="font-bold">{myGroup.score}</span>
-              </p>
+              <>
+                <p className="text-xl opacity-90 mt-4">
+                  Puntuación Final: <span className="font-bold">{myGroup.score}</span>
+                </p>
+                {myGroup.is_eliminated && (
+                  <p className="text-lg mt-2 bg-red-500/30 px-4 py-2 rounded-lg">
+                    Eliminado por respuestas incorrectas
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
@@ -275,7 +358,9 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                 <div
                   key={group.id}
                   className={`flex items-center justify-between p-3 rounded-lg ${
-                    group.id === groupId
+                    group.is_eliminated
+                      ? 'bg-red-100 dark:bg-red-900/30 opacity-60'
+                      : group.id === groupId
                       ? 'bg-sky-100 dark:bg-sky-900/30 border-2 border-sky-500'
                       : idx === 0
                       ? 'bg-amber-50 dark:bg-amber-900/20'
@@ -285,23 +370,32 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
                   <div className="flex items-center space-x-3">
                     <span
                       className={`text-lg font-bold ${
-                        idx === 0
+                        group.is_eliminated
+                          ? 'text-red-600 dark:text-red-400'
+                          : idx === 0
                           ? 'text-amber-600 dark:text-amber-400'
                           : 'text-slate-600 dark:text-slate-400'
                       }`}
                     >
-                      {idx + 1}
+                      {group.is_eliminated ? '💀' : idx + 1}
                     </span>
                     <div>
                       <p className="font-bold text-slate-800 dark:text-slate-100">
                         {group.group_name}
+                        {group.is_eliminated && (
+                          <span className="ml-2 text-xs text-red-600 dark:text-red-400">ELIMINADO</span>
+                        )}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {group.correct_answers} correctas
+                        {group.correct_answers} correctas • {group.wrong_answers} errores
                       </p>
                     </div>
                   </div>
-                  <p className="text-xl font-bold text-sky-600 dark:text-sky-400">{group.score}</p>
+                  <p className={`text-xl font-bold ${
+                    group.is_eliminated
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-sky-600 dark:text-sky-400'
+                  }`}>{group.score}</p>
                 </div>
               ))}
             </div>

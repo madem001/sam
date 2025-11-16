@@ -658,14 +658,14 @@ export const battleApi = {
 
       if (answerError) throw answerError;
 
-      if (isCorrect) {
-        const { data: group } = await supabase
-          .from('battle_groups')
-          .select('score, correct_answers')
-          .eq('id', groupId)
-          .maybeSingle();
+      const { data: group } = await supabase
+        .from('battle_groups')
+        .select('score, correct_answers, wrong_answers, is_eliminated')
+        .eq('id', groupId)
+        .maybeSingle();
 
-        if (group) {
+      if (group) {
+        if (isCorrect) {
           const points = Math.max(100 - Math.floor(responseTime / 100), 10);
           await supabase
             .from('battle_groups')
@@ -674,6 +674,24 @@ export const battleApi = {
               correct_answers: group.correct_answers + 1,
             })
             .eq('id', groupId);
+          console.log('✅ [API] Respuesta correcta, puntos otorgados:', points);
+        } else {
+          const newWrongAnswers = group.wrong_answers + 1;
+          const shouldEliminate = newWrongAnswers >= 2;
+
+          await supabase
+            .from('battle_groups')
+            .update({
+              wrong_answers: newWrongAnswers,
+              is_eliminated: shouldEliminate,
+            })
+            .eq('id', groupId);
+
+          if (shouldEliminate) {
+            console.log('💀 [API] Grupo eliminado por 2 respuestas incorrectas');
+          } else {
+            console.log('⚠️ [API] Respuesta incorrecta, advertencia:', newWrongAnswers, '/2');
+          }
         }
       }
     } catch (error) {
@@ -685,11 +703,13 @@ export const battleApi = {
   startBattle: async (battleId: string) => {
     try {
       console.log('🚀 [API] Iniciando batalla:', battleId);
+      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from('battles')
         .update({
           status: 'active',
-          started_at: new Date().toISOString(),
+          started_at: now,
+          question_started_at: now,
         })
         .eq('id', battleId)
         .select();
@@ -699,7 +719,7 @@ export const battleApi = {
         throw error;
       }
 
-      console.log('✅ [API] Batalla actualizada:', data);
+      console.log('✅ [API] Batalla actualizada con timer iniciado:', data);
       return true;
     } catch (error) {
       console.error('❌ [API] Error starting battle:', error);
@@ -727,11 +747,16 @@ export const battleApi = {
             finished_at: new Date().toISOString(),
           })
           .eq('id', battleId);
+        console.log('🏁 [API] Batalla finalizada');
       } else {
         await supabase
           .from('battles')
-          .update({ current_question_index: nextIndex })
+          .update({
+            current_question_index: nextIndex,
+            question_started_at: new Date().toISOString(),
+          })
           .eq('id', battleId);
+        console.log('⏭️ [API] Avanzado a pregunta:', nextIndex + 1);
       }
 
       return true;

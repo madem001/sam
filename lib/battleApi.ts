@@ -9,6 +9,8 @@ export interface Battle {
   battle_code?: string;
   status: 'waiting' | 'active' | 'finished';
   current_question_index: number;
+  question_time_limit: number;
+  question_started_at?: string;
   created_at: string;
   started_at?: string;
   finished_at?: string;
@@ -21,6 +23,8 @@ export interface BattleGroup {
   group_name: string;
   score: number;
   correct_answers: number;
+  wrong_answers: number;
+  is_eliminated: boolean;
   created_at: string;
 }
 
@@ -49,6 +53,8 @@ const mapBattleFromAPI = (data: any): Battle => ({
   battle_code: data.battle_code,
   status: data.status.toLowerCase(),
   current_question_index: data.current_question_index !== undefined ? data.current_question_index : (data.currentRoundIndex !== undefined ? data.currentRoundIndex : data.currentQuestionIndex),
+  question_time_limit: data.question_time_limit || 60,
+  question_started_at: data.question_started_at,
   created_at: data.created_at || data.createdAt,
   started_at: data.started_at || data.startedAt,
   finished_at: data.finished_at || data.finishedAt,
@@ -61,6 +67,8 @@ const mapGroupFromAPI = (data: any): BattleGroup => ({
   group_name: data.group_name || data.groupName,
   score: data.score,
   correct_answers: data.correct_answers || data.correctAnswers,
+  wrong_answers: data.wrong_answers || 0,
+  is_eliminated: data.is_eliminated || false,
   created_at: data.created_at || data.createdAt,
 });
 
