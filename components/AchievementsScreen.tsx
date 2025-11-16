@@ -24,21 +24,11 @@ interface AchievementsScreenProps {
 const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack }) => {
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadAchievements();
   }, [user.id]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   const loadAchievements = async () => {
     try {
@@ -94,16 +84,9 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
     return colors[icon] || 'from-blue-400 to-blue-600';
   };
 
-  const calculateParallax = (index: number) => {
-    const screenCenterX = window.innerWidth / 2;
-    const screenCenterY = window.innerHeight / 2;
-    const deltaX = (mousePosition.x - screenCenterX) / 50;
-    const deltaY = (mousePosition.y - screenCenterY) / 50;
-    const depth = (index % 3) + 1;
-
-    return {
-      transform: `translate(${deltaX * depth}px, ${deltaY * depth}px)`,
-    };
+  const generate3DAvatarUrl = (name: string, imageUrl: string) => {
+    const seed = encodeURIComponent(name);
+    return `https://api.dicebear.com/7.x/avataaars-3d/svg?seed=${seed}&backgroundColor=ffb366,ff9933&radius=50`;
   };
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
@@ -154,57 +137,18 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-6 relative z-10">
         {/* 3D Cartoon Avatar Section */}
         <div className="flex flex-col items-center mt-6 mb-8">
-          <div
-            className="relative w-48 h-48 mb-6"
-            style={{
-              transform: `perspective(1000px) rotateY(${(mousePosition.x - window.innerWidth / 2) / 30}deg) rotateX(${-(mousePosition.y - window.innerHeight / 2) / 30}deg)`,
-              transition: 'transform 0.2s ease-out',
-            }}
-          >
-            {/* 3D Cartoon Avatar Container */}
-            <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-4 ring-blue-300/50 bg-gradient-to-br from-orange-300 to-orange-400">
-              <div className="absolute inset-0 flex items-center justify-center">
-                {/* Cartoon-style simplified avatar based on photo */}
-                <div className="relative w-full h-full">
-                  {/* Base face */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-b from-orange-200 to-orange-300"></div>
-
-                  {/* Photo overlay with cartoon filter */}
-                  <img
-                    src={user.imageUrl}
-                    alt={user.name}
-                    className="absolute inset-0 w-full h-full object-cover rounded-full mix-blend-multiply opacity-60"
-                    style={{ filter: 'contrast(1.2) saturate(1.5)' }}
-                  />
-
-                  {/* Cartoon highlights */}
-                  <div className="absolute top-8 left-8 w-16 h-16 rounded-full bg-white/40 blur-xl"></div>
-                  <div className="absolute bottom-12 right-12 w-12 h-12 rounded-full bg-orange-600/20 blur-lg"></div>
-
-                  {/* Eyes overlay for cartoon effect */}
-                  <div className="absolute top-[35%] left-1/2 -translate-x-1/2 flex gap-8">
-                    <div className="w-8 h-10 bg-white rounded-full shadow-inner relative">
-                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-5 bg-slate-800 rounded-full"></div>
-                      <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                    <div className="w-8 h-10 bg-white rounded-full shadow-inner relative">
-                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-5 bg-slate-800 rounded-full"></div>
-                      <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                  </div>
-
-                  {/* Smile */}
-                  <div className="absolute top-[55%] left-1/2 -translate-x-1/2 w-12 h-6 border-b-4 border-slate-700 rounded-b-full"></div>
-                </div>
-              </div>
-
-              {/* 3D Effect Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none"></div>
-              <div className="absolute inset-0 bg-gradient-to-tl from-black/10 to-transparent pointer-events-none"></div>
+          <div className="relative w-56 h-56 mb-6">
+            {/* 3D Avatar from DiceBear */}
+            <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-orange-300 to-orange-500 p-4">
+              <img
+                src={generate3DAvatarUrl(user.name, user.imageUrl)}
+                alt={user.name}
+                className="w-full h-full object-contain"
+              />
             </div>
 
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 blur-2xl opacity-20 -z-10"></div>
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 blur-2xl opacity-20 -z-10"></div>
           </div>
 
           {/* User Info */}
@@ -246,7 +190,6 @@ const AchievementsScreen: React.FC<AchievementsScreenProps> = ({ user, onBack })
                 key={achievement.id}
                 onClick={() => handleAchievementClick(achievement)}
                 className="relative group"
-                style={calculateParallax(index)}
               >
                 <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${getAchievementColor(achievement.icon, achievement.unlocked || false)} p-6 shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl ${!achievement.unlocked ? 'opacity-50' : ''}`}>
                   {/* Shine effect */}
