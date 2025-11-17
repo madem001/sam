@@ -2,52 +2,76 @@
 
 Plataforma educativa interactiva de batallas de trivia en tiempo real para profesores y estudiantes.
 
-## ⚠️ ESTADO ACTUAL DEL PROYECTO
+## ✅ ESTADO ACTUAL DEL PROYECTO
 
-Este proyecto está **parcialmente configurado** para funcionar 100% local (sin Supabase ni servicios en la nube).
+Este proyecto está **CONFIGURADO** para funcionar con backend local Node.js (sin Supabase).
 
-### ✅ Lo que está listo:
-- ✅ Estructura de carpetas organizada
+### ✅ APIs Habilitadas:
+- ✅ Cliente API completo en `src/frontend/lib/localApi.ts`
 - ✅ Backend con Node.js + Express + Prisma
-- ✅ Schema de base de datos completo en Prisma
-- ✅ Configuración de PostgreSQL local
-- ✅ Sistema de autenticación con JWT
+- ✅ Sistema de autenticación JWT
+- ✅ Endpoints de batallas implementados
+- ✅ WebSocket para tiempo real con Socket.IO
+- ✅ Build funciona correctamente
 
-### ⚠️ Lo que falta para funcionar 100% local:
-- ⚠️ Implementar ~15 endpoints REST faltantes en el backend
-- ⚠️ Reescribir ~40 archivos del frontend para usar API REST en lugar de Supabase
-- ⚠️ Configurar realtime con WebSocket
-- ⚠️ Tiempo estimado: **8-12 horas de trabajo de desarrollo**
+### 📊 Endpoints Implementados:
+- ✅ Auth: registro, login, perfil, listar estudiantes
+- ✅ Batallas: crear, unirse, iniciar, responder, terminar, resultados
+- ✅ WebSocket: eventos en tiempo real
 
 ---
 
-## 🚀 OPCIONES PARA USAR EL PROYECTO
+## 🚀 INICIO RÁPIDO
 
-### Opción 1: Usar con Supabase (Recomendado - Funciona Ya) ✅
+### Requisitos Previos
 
-Si quieres usar el proyecto inmediatamente sin modificaciones:
+- Node.js 18+
+- PostgreSQL 14+
+- npm
 
-1. Crear cuenta gratuita en [Supabase](https://supabase.com)
-2. Crear proyecto nuevo en Supabase
-3. Aplicar migraciones de base de datos (contactar para obtener los scripts SQL)
-4. Configurar .env con credenciales de Supabase:
-   ```env
-   VITE_SUPABASE_URL=tu_url_de_supabase
-   VITE_SUPABASE_ANON_KEY=tu_anon_key
+### Instalación Paso a Paso
+
+**Consulta la guía completa:** [CONFIGURACION_LOCAL.md](./CONFIGURACION_LOCAL.md)
+
+#### Resumen Rápido:
+
+1. **Crear base de datos PostgreSQL:**
+   ```sql
+   CREATE DATABASE edubattle;
    ```
-5. Instalar y ejecutar:
+
+2. **Configurar variables de entorno:**
    ```bash
-   npm install
+   # Backend: src/backend/.env
+   cp src/backend/.env.example src/backend/.env
+   # Editar DATABASE_URL y JWT_SECRET
+
+   # Frontend: .env
+   cp .env.example .env
+   # VITE_API_URL=http://localhost:3001/api
+   ```
+
+3. **Instalar y migrar:**
+   ```bash
+   npm run setup
+   ```
+
+4. **Ejecutar:**
+   ```bash
    npm run dev
    ```
 
-El proyecto funcionará al 100% inmediatamente.
+5. **Verificar:**
+   - Backend: http://localhost:3001/api/health
+   - Frontend: http://localhost:5173
 
-### Opción 2: Migrar a Setup 100% Local (Requiere Desarrollo) ⚠️
+---
 
-Si quieres tener todo local sin depender de servicios en la nube:
+## 📚 DOCUMENTACIÓN
 
-**Ver la guía completa**: [GUIA_MIGRACION_LOCAL.md](./GUIA_MIGRACION_LOCAL.md)
+- **[CONFIGURACION_LOCAL.md](./CONFIGURACION_LOCAL.md)** - Guía paso a paso completa
+- **[RESUMEN_CONFIGURACION.md](./RESUMEN_CONFIGURACION.md)** - APIs y estado actual
+- **[GUIA_CONEXION_BACKEND.md](./GUIA_CONEXION_BACKEND.md)** - Cómo agregar nuevas funcionalidades
 
 **Pasos resumidos:**
 1. Instalar PostgreSQL localmente
