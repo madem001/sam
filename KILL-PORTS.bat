@@ -1,31 +1,33 @@
 @echo off
-echo ==========================================
-echo 🔫 MATANDO PROCESOS EN PUERTOS 3000 Y 3001
-echo ==========================================
+chcp 65001 >nul
+cls
+echo.
+echo ╔════════════════════════════════════════════════════════════╗
+echo ║           🧹 LIMPIANDO PUERTOS Y PROCESOS                  ║
+echo ╚════════════════════════════════════════════════════════════╝
 echo.
 
-echo Matando todos los procesos de Node.js...
-taskkill /F /IM node.exe 2>nul
-taskkill /F /IM tsx.exe 2>nul
-
-echo.
-echo Limpiando puerto 3000...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000') do (
-    echo Matando PID %%a
-    taskkill /F /PID %%a 2>nul
-)
-
-echo.
-echo Limpiando puerto 3001...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3001') do (
-    echo Matando PID %%a
-    taskkill /F /PID %%a 2>nul
-)
-
-echo.
-echo ==========================================
-echo ✅ PUERTOS LIBERADOS
-echo ==========================================
+echo [1/3] 🔪 Matando todos los procesos de Node.js...
+taskkill /F /IM node.exe >nul 2>&1
+taskkill /F /IM tsx.exe >nul 2>&1
+echo       ✓ Procesos de Node.js terminados
 echo.
 
-timeout /t 2 >nul
+echo [2/3] 🧹 Limpiando puertos 3000 y 8000...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000') do taskkill /F /PID %%a >nul 2>&1
+echo       ✓ Puertos liberados
+echo.
+
+echo [3/3] ⏳ Esperando 3 segundos...
+timeout /t 3 >nul
+echo       ✓ Sistema listo
+echo.
+
+echo ╔════════════════════════════════════════════════════════════╗
+echo ║                     ✅ LIMPIEZA COMPLETA                    ║
+echo ╚════════════════════════════════════════════════════════════╝
+echo.
+echo   ℹ️  Ahora puedes ejecutar INICIAR-TODO.bat
+echo.
+pause
