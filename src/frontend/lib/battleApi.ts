@@ -89,9 +89,7 @@ export const createBattle = async (
   questionCount: number
 ): Promise<Battle | null> => {
   try {
-    console.log('📝 [BATTLE API] Creando batalla con teacherId:', teacherId);
     const result = await api.createBattle(battleName, questionCount, 0, [], 4, teacherId);
-    console.log('✅ [BATTLE API] Batalla creada:', result.battle);
     return mapBattleFromAPI(result.battle);
   } catch (error) {
     console.error('❌ [BATTLE API] Error creating battle:', error);
@@ -122,11 +120,9 @@ export const createFullBattle = async (
   studentsPerGroup?: number
 ): Promise<{ battle: Battle; groups: BattleGroup[] } | null> => {
   try {
-    console.log('🎯 createFullBattle llamado con:', { teacherId, battleName, questionCount, groupCount, questionsLength: questions.length });
 
     const result = await api.createBattle(battleName, questionCount, groupCount, questions, studentsPerGroup, teacherId);
 
-    console.log('📦 Resultado de api.createBattle:', result);
 
     if (!result || !result.battle) {
       console.error('❌ No se recibió batalla del API');
@@ -134,10 +130,8 @@ export const createFullBattle = async (
     }
 
     const battle = mapBattleFromAPI(result.battle);
-    console.log('✅ Batalla mapeada:', battle);
 
     const groups = await getBattleGroups(battle.id);
-    console.log('✅ Grupos obtenidos:', groups.length);
 
     return { battle, groups };
   } catch (error: any) {

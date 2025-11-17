@@ -32,18 +32,14 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
     loadBattleData();
 
     const battleSub = battleApi.subscribeToBattle(battleId, (payload) => {
-      console.log('🔔 [STUDENT] Cambio en batalla detectado:', payload.eventType);
-      console.log('🔔 [STUDENT] Nuevo estado:', payload.new?.status);
       loadBattleData();
     });
 
     const groupsSub = battleApi.subscribeToBattleGroups(battleId, (payload) => {
-      console.log('🔔 [STUDENT] Cambio en grupos detectado:', payload.eventType);
       loadGroups();
     });
 
     const pollingInterval = setInterval(() => {
-      console.log('🔄 [STUDENT] Polling battle state...');
       loadBattleData();
     }, 2000);
 
@@ -55,76 +51,38 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   }, [battleId]);
 
   const loadBattleData = async () => {
-    console.log('📥 [STUDENT] Cargando datos de batalla...');
     try {
       const battleData = await battleApi.getBattleState(battleId);
-      console.log('✅ [STUDENT] Batalla cargada:', {
-        name: battleData?.name,
-        status: battleData?.status,
-        totalQuestions: battleData?.question_count,
-        currentQuestionIndex: battleData?.current_question_index
-      });
-
       if (battleData) {
         setBattle(battleData);
-        console.log('👨‍🏫 [STUDENT] Teacher ID de la batalla:', battleData.teacher_id);
         const questionsData = await battleApi.getBattleQuestions(battleId);
-        console.log('✅ [STUDENT] Preguntas cargadas:', questionsData.length);
         setQuestions(questionsData);
       }
       await loadGroups();
-      console.log('✅ [STUDENT] Datos completos cargados');
     } catch (error) {
       console.error('❌ [STUDENT] Error cargando datos:', error);
     }
   };
 
   const loadGroups = async () => {
-    console.log('👥 [STUDENT] Cargando grupos...');
     const groupsData = await battleApi.getBattleGroups(battleId);
-    console.log('✅ [STUDENT] Grupos cargados:', groupsData.length);
     setGroups(groupsData);
     const myGroupData = groupsData.find(g => g.id === groupId);
     if (myGroupData) {
-      console.log('✅ [STUDENT] Mi grupo encontrado:', {
-        id: myGroupData.id,
-        name: myGroupData.group_name,
-        currentQuestionIndex: myGroupData.current_question_index,
-        isEliminated: myGroupData.is_eliminated
-      });
       setMyGroup(myGroupData);
-    } else {
-      console.log('❌ [STUDENT] Mi grupo NO encontrado. GroupId buscado:', groupId);
     }
   };
 
   useEffect(() => {
-    console.log('🔍 [STUDENT] Verificando condiciones para mostrar pregunta:', {
-      hasMyGroup: !!myGroup,
-      hasBattle: !!battle,
-      battleStatus: battle?.status,
-      questionsCount: questions.length,
-      isEliminated: myGroup?.is_eliminated,
-      currentQuestionIndex: myGroup?.current_question_index
-    });
-
     if (!myGroup || !battle || !questions.length) {
-      console.log('⚠️ [STUDENT] Faltan datos para mostrar pregunta');
       return;
     }
 
     if (battle.status === 'active' && !myGroup.is_eliminated) {
       const currentQ = questions[myGroup.current_question_index];
       if (currentQ) {
-        console.log('📝 [STUDENT] Pregunta disponible:', {
-          index: myGroup.current_question_index,
-          text: currentQ.question_text.substring(0, 50) + '...',
-          currentQuestionId: currentQuestion?.id,
-          newQuestionId: currentQ.id
-        });
 
         if (!currentQuestion || currentQuestion.id !== currentQ.id) {
-          console.log('✅ [STUDENT] Cargando nueva pregunta...');
           setCurrentQuestion(currentQ);
           setStartTime(Date.now());
           setHasAnswered(false);
@@ -132,10 +90,8 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
           setTimeRemaining(60);
         }
       } else {
-        console.log('❌ [STUDENT] No hay pregunta en el índice:', myGroup.current_question_index);
       }
     } else {
-      console.log('⏸️ [STUDENT] Batalla no activa o grupo eliminado');
     }
   }, [myGroup, battle, questions]);
 
@@ -153,7 +109,6 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
       setTimeRemaining(remaining);
 
       if (remaining === 0 && !hasAnswered) {
-        console.log('⏰ [STUDENT] Tiempo agotado, enviando respuesta automática incorrecta');
         setHasAnswered(true);
         handleAnswerSelect(-1);
       }
@@ -164,11 +119,6 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
   const handleAnswerSelect = async (answerIndex: number) => {
     if (hasAnswered || !currentQuestion || !myGroup) return;
-
-    console.log('✅ [STUDENT] Respuesta seleccionada:', {
-      answerIndex,
-      isCorrect: answerIndex === currentQuestion.correct_answer_index
-    });
 
     setSelectedAnswer(answerIndex);
     setHasAnswered(true);
@@ -184,20 +134,16 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
         currentQuestion.correct_answer_index,
         responseTime
       );
-      console.log('✅ [STUDENT] Respuesta enviada exitosamente');
 
       await loadGroups();
 
       setTimeout(async () => {
         if (myGroup.current_question_index + 1 < (battle?.question_count || 0)) {
-          console.log('⏭️ [STUDENT] Auto-avanzando a siguiente pregunta...');
           await battleApi.nextQuestionForGroup(groupId, battleId);
           await loadGroups();
         } else {
-          console.log('🏁 [STUDENT] Grupo completó todas las preguntas');
 
           const finalPoints = await battleApi.calculateFinalPoints(battleId, groupId);
-          console.log('🏆 [STUDENT] Puntos finales calculados:', finalPoints);
 
           setFinalScore(finalPoints);
           setShowEndGamePopup(true);
@@ -206,20 +152,9 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
 
           if (teacherId && finalPoints > 0) {
             const groupMembers = await battleApi.getGroupMembers(groupId);
-            console.log('👥 [STUDENT] Asignando puntos a todos los miembros del grupo:', groupMembers.length);
-
             for (const member of groupMembers) {
-              console.log('🎯 [STUDENT] Asignando puntos a:', {
-                studentId: member.student_id,
-                studentName: member.student_name,
-                teacherId,
-                points: finalPoints,
-              });
               await battleApi.addPointsToProfessorCard(member.student_id, teacherId, finalPoints);
             }
-            console.log('✅ [STUDENT] Puntos asignados a todos los miembros del grupo');
-          } else {
-            console.warn('⚠️ [STUDENT] No se pueden asignar puntos:', { teacherId, finalPoints });
           }
         }
       }, 2000);
@@ -239,14 +174,6 @@ const StudentBattleScreen: React.FC<StudentBattleScreenProps> = ({
   const isWaiting = battle.status === 'waiting';
   const isActive = battle.status === 'active';
   const isFinished = battle.status === 'finished';
-
-  console.log('🎨 [STUDENT] Renderizando con estado:', {
-    status: battle.status,
-    isWaiting,
-    isActive,
-    isFinished,
-    hasCurrentQuestion: !!currentQuestion
-  });
 
   return (
     <div className="relative h-full overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:to-slate-800">

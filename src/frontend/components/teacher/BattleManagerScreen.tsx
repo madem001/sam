@@ -44,7 +44,6 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
             return;
         }
 
-        console.log('Batallas cargadas:', battles);
 
         const roomsData: BattleRoom[] = [];
         for (const battle of battles || []) {
@@ -53,7 +52,6 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
                 .select('*')
                 .eq('battle_id', battle.id);
 
-            console.log(`Batalla ${battle.name} - Código: ${battle.battle_code}`);
 
             roomsData.push({
                 id: battle.id,
@@ -65,7 +63,6 @@ const BattleManagerScreen: React.FC<BattleManagerScreenProps> = ({ students, tea
             });
         }
 
-        console.log('Rooms procesadas:', roomsData);
         setRooms(roomsData);
     };
 

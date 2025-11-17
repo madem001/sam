@@ -115,13 +115,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     try {
       if (view === 'register') {
-        console.log('📝 Registrando usuario:', { email, name, role });
 
         const roleValue = role === UserRole.Teacher ? 'TEACHER' : 'STUDENT';
         await authApi.register(email, password, name, roleValue, imagePreview || undefined);
 
         const profile = await authApi.getProfile();
-        console.log('✅ Perfil creado:', profile);
 
         if (!profile) {
           alert('Error al crear el perfil');
@@ -141,10 +139,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           authData.cycles = cycles.split(',').map(c => c.trim());
         }
 
-        console.log('✅ AuthData creado para registro:', authData);
         onLoginSuccess(authData);
       } else {
-        console.log('🔐 Iniciando sesión:', email);
 
         await authApi.login(email, password);
         const profile = await authApi.getProfile();
@@ -154,7 +150,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           return;
         }
 
-        console.log('✅ Perfil recuperado:', profile);
 
         const authData: AuthData = {
           role: profile.role === 'TEACHER' ? UserRole.Teacher : UserRole.Student,
@@ -163,7 +158,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           imageUrl: profile.avatar || undefined,
         };
 
-        console.log('✅ AuthData creado para login:', authData);
         onLoginSuccess(authData);
       }
     } catch (error: any) {

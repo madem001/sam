@@ -18,7 +18,6 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateUser, onJoinFromNotification, onMarkAsRead }) => {
-  console.log('👤 ProfileScreen renderizado con user:', user);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -67,12 +66,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
       if (!user.id) return;
 
       try {
-        console.log('🎴 [PROFILE] Cargando cartas para estudiante:', user.id);
         const cards = await professorCardsApi.getStudentCards(user.id);
-        console.log('🎴 [PROFILE] Cartas recibidas:', cards.length);
 
         const mappedProfessors: Professor[] = cards.map((c: any) => {
-          console.log('🎴 [PROFILE] Carta:', c.card?.name, 'Puntos:', c.card?.points);
           return {
             id: c.card.teacher_id,
             cardId: c.card.id,
@@ -87,7 +83,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           };
         });
 
-        console.log('✅ [PROFILE] Cartas mapeadas:', mappedProfessors);
         setProfessors(mappedProfessors);
         setIsLoadingProfessors(false);
       } catch (error) {
@@ -276,16 +271,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
     const dragDistance = Math.abs(dragState.currentX) + Math.abs(dragState.currentY);
 
     if (dragDistance > 10) {
-      console.log('⏸️ Clic ignorado - fue un drag de', dragDistance, 'px');
       return;
     }
 
     const prof = professors[index];
-    console.log('🎯 Clic en carta:', prof.name, 'Index:', index, 'Active:', activeCardIndex, 'Locked:', prof.locked);
 
     if (index === activeCardIndex) {
       if (!prof.locked) {
-        console.log('🔓 Carta desbloqueada - abriendo modal');
 
         const { data: pointsData } = await supabase
           .from('student_professor_points')
@@ -294,7 +286,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           .eq('professor_id', prof.id)
           .maybeSingle();
 
-        console.log('📊 Puntos obtenidos:', pointsData?.points || 0);
 
         setSelectedCardForRedemption({
           cardId: prof.cardId || '',
@@ -306,10 +297,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           professorDescription: prof.description || 'Experto en su área',
         });
       } else {
-        console.log('🔒 Carta bloqueada - no se abre modal');
       }
     } else {
-      console.log('📍 Cambiando carta activa a:', index);
       setActiveCardIndex(index);
     }
   };
@@ -551,7 +540,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onLogout, onUpdateU
           professorDescription={selectedCardForRedemption.professorDescription}
           onClose={() => setSelectedCardForRedemption(null)}
           onRedeem={async () => {
-            console.log('🔄 Recargando cartas después de canjear recompensa...');
             const cards = await professorCardsApi.getStudentCards(user.id);
             const mappedProfessors: Professor[] = cards.map((c: any) => ({
               id: c.card.teacher_id,

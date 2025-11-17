@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const isProd = mode === 'production';
+
     return {
       server: {
         port: 8000,
@@ -18,6 +20,10 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      esbuild: isProd ? {
+        drop: ['console', 'debugger'],
+        pure: ['console.log', 'console.info', 'console.warn']
+      } : {}
     };
 });

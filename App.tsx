@@ -45,11 +45,9 @@ const App: React.FC = () => {
         const savedUserId = localStorage.getItem('userId');
 
         if (savedUserId) {
-          console.log('🔄 Restaurando sesión para usuario:', savedUserId);
           const profile = await api.authApi.getProfile(savedUserId);
 
           if (profile) {
-            console.log('✅ Sesión restaurada:', profile);
             setUser({
               id: profile.id,
               email: profile.email,
@@ -62,7 +60,6 @@ const App: React.FC = () => {
             });
             setIsAuthenticated(true);
           } else {
-            console.log('⚠️ Perfil no encontrado, limpiando sesión');
             localStorage.removeItem('userId');
           }
         }
@@ -104,7 +101,6 @@ const App: React.FC = () => {
 
   //   channel
   //     .on('presence', { event: 'sync' }, () => {
-  //       console.log('👥 Presencia sincronizada');
   //     })
   //     .subscribe(async (status) => {
   //       if (status === 'SUBSCRIBED') {
@@ -114,7 +110,6 @@ const App: React.FC = () => {
   //           role: user.role,
   //           online_at: new Date().toISOString(),
   //         });
-  //         console.log('✅ Presencia reportada para:', user.name);
   //       }
   //     });
 
@@ -125,28 +120,22 @@ const App: React.FC = () => {
 
 
   const handleLoginSuccess = async (authData: AuthData) => {
-    console.log('🎯 App.handleLoginSuccess llamado con:', authData);
     setIsLoading(true);
 
     try {
       const loggedInUser = await api.login(authData);
-      console.log('👤 Usuario logueado:', loggedInUser);
 
       if (loggedInUser) {
           setUser(loggedInUser);
           localStorage.setItem('userId', loggedInUser.id);
-          console.log('✅ User state actualizado y sesión guardada');
 
           if (loggedInUser.role === UserRole.Student) {
               setActiveScreen(Screen.Profile);
-              console.log('📱 Screen set to Profile');
           } else if (loggedInUser.role === UserRole.Teacher) {
               setActiveScreen(TeacherScreen.Dashboard);
-              console.log('📱 Screen set to Teacher Dashboard');
           }
 
           setIsAuthenticated(true);
-          console.log('✅ Autenticado correctamente');
       } else {
           console.error('❌ No se obtuvo usuario');
           alert("No se pudo obtener el usuario.");
@@ -163,7 +152,6 @@ const App: React.FC = () => {
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem('userId');
-      console.log('👋 Sesión cerrada');
   };
 
   const handleUserUpdate = async (updatedData: Partial<User>) => {
@@ -176,7 +164,6 @@ const App: React.FC = () => {
 
       if (Object.keys(updates).length > 0) {
         await api.authApi.updateProfile(user.id, updates);
-        console.log('✅ Perfil actualizado en la base de datos');
       }
 
       setUser(prevUser => (prevUser ? { ...prevUser, ...updatedData } : null));
@@ -304,24 +291,17 @@ const App: React.FC = () => {
   };
 
   const renderAuthenticatedContent = () => {
-      console.log('🎨 renderAuthenticatedContent - user:', user);
-      console.log('🎨 isAuthenticated:', isAuthenticated);
-      console.log('🎨 activeScreen:', activeScreen);
 
       if (!user) {
-        console.log('❌ No hay usuario');
         return null;
       }
 
-      console.log('🎨 User role:', user.role, 'Comparando con Student:', UserRole.Student, 'Son iguales:', user.role === UserRole.Student);
 
       switch(user.role) {
           case UserRole.Teacher:
-              console.log('👨‍🏫 Renderizando Teacher Dashboard');
               const students = allUsers.filter(u => u.role === UserRole.Student);
               return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={students} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} />;
           case UserRole.Student:
-              console.log('👨‍🎓 Renderizando Student Screen');
               return (
                 <>
                     <main className="flex-1 overflow-y-auto">
@@ -331,24 +311,19 @@ const App: React.FC = () => {
                 </>
               );
           case UserRole.Admin:
-              console.log('👨‍💼 Renderizando Admin Screen');
               const allStudents = allUsers.filter(u => u.role === UserRole.Student);
               return <TeacherDashboard user={user} onLogout={handleLogout} enabledModules={enabledModules} customModules={customModules} students={allStudents} onInviteStudents={(studentIds, roomCode, battleName) => sendBattleInvitations(studentIds, roomCode, battleName, user.name)} theme={theme} onToggleTheme={handleToggleTheme} />;
           default:
-            console.log('❌ Role no reconocido:', user.role);
             return null;
       }
   }
   
   const renderAppContent = () => {
-      console.log('🖼️ renderAppContent - isAppLoading:', isAppLoading, 'isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
 
       if (isAppLoading) {
-        console.log('⏳ Mostrando LoadingScreen (app cargando)');
         return <LoadingScreen />;
       }
       if (isLoading) {
-          console.log('⏳ Mostrando spinner (isLoading)');
           return (
               <div className="flex justify-center items-center h-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
@@ -357,10 +332,8 @@ const App: React.FC = () => {
       }
 
       if (isAuthenticated && user) {
-        console.log('✅ Usuario autenticado, renderizando contenido');
         return renderAuthenticatedContent();
       } else {
-        console.log('🔐 Mostrando LoginScreen');
         return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
       }
   }

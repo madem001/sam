@@ -74,7 +74,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   }, [activeGame]);
 
   const updatePresence = async (gameId: string) => {
-    console.log('💓 [TEACHER] Actualizando presencia para juego:', gameId);
 
     const { error } = await supabase
       .from('teacher_presence')
@@ -90,12 +89,10 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
     if (error) {
       console.error('❌ [TEACHER] Error actualizando presencia:', error);
     } else {
-      console.log('✅ [TEACHER] Presencia actualizada');
     }
   };
 
   const clearPresence = async () => {
-    console.log('🔌 [TEACHER] Limpiando presencia');
 
     await supabase
       .from('teacher_presence')
@@ -107,7 +104,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   };
 
   const terminateGameOnExit = async () => {
-    console.log('🚪 [TEACHER] Saliendo de la pantalla, terminando juego activo...');
 
     const { data: currentGame } = await supabase
       .from('all_for_all_games')
@@ -117,7 +113,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
       .maybeSingle();
 
     if (currentGame) {
-      console.log('🛑 [TEACHER] Terminando juego:', currentGame.id);
 
       await clearPresence();
 
@@ -160,7 +155,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   const loadResponses = async () => {
     if (!activeGame) return;
 
-    console.log('Loading responses for game:', activeGame.id);
 
     const { data, error } = await supabase
       .from('all_for_all_responses')
@@ -171,7 +165,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
       .eq('game_id', activeGame.id)
       .order('rank_position', { ascending: true });
 
-    console.log('Responses loaded:', data, 'Error:', error);
 
     if (data) {
       setResponses(data as any);
@@ -203,7 +196,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
   };
 
   const startGame = async () => {
-    console.log('🎮 [TEACHER] Verificando disponibilidad de sala...');
 
     const { data: existingGames } = await supabase
       .from('all_for_all_games')
@@ -213,14 +205,12 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
     if (existingGames && existingGames.length > 0) {
       const otherTeacherGame = existingGames.find(g => g.teacher_id !== teacherId);
       if (otherTeacherGame) {
-        console.log('🚫 [TEACHER] Sala ocupada por otro profesor');
         alert('La sala está ocupada. Otro profesor tiene un juego activo en este momento.');
         await loadActiveGame();
         return;
       }
     }
 
-    console.log('🎮 [TEACHER] Iniciando juego All for All...');
 
     const { data, error } = await supabase
       .from('all_for_all_games')
@@ -235,12 +225,10 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
       .single();
 
     if (data) {
-      console.log('✅ [TEACHER] Juego creado:', data.id);
       setActiveGame(data);
       setResponses([]);
 
       await updatePresence(data.id);
-      console.log('✅ [TEACHER] Presencia registrada para el juego');
     } else {
       console.error('❌ [TEACHER] Error creando juego:', error);
     }
@@ -285,7 +273,6 @@ const AllForAllControlScreen: React.FC<AllForAllControlScreenProps> = ({ teacher
         points
       );
 
-      console.log('✅ Puntos asignados exitosamente:', points, 'a', response.student?.name);
 
       loadResponses();
     } catch (error) {

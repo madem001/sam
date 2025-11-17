@@ -128,11 +128,9 @@ export const websocketApi = {
     });
 
     socket.on('connect', () => {
-      console.log('✅ WebSocket conectado:', socket?.id);
     });
 
     socket.on('disconnect', () => {
-      console.log('❌ WebSocket desconectado');
     });
 
     socket.on('connect_error', (error) => {
@@ -154,14 +152,12 @@ export const websocketApi = {
   joinBattle: (battleId: string) => {
     if (socket) {
       socket.emit('battle:join', battleId);
-      console.log('🎮 Unido a batalla:', battleId);
     }
   },
 
   leaveBattle: (battleId: string) => {
     if (socket) {
       socket.emit('battle:leave', battleId);
-      console.log('👋 Saliendo de batalla:', battleId);
     }
   },
 

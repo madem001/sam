@@ -13,7 +13,6 @@ const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
  * @returns - El objeto de usuario con todos los datos
  */
 export const login = async (authData: AuthData): Promise<User | null> => {
-    console.log('🔐 api.login llamado con:', authData);
 
     if (authData.role === UserRole.Admin) {
         const adminUser: User = {
@@ -50,7 +49,6 @@ export const login = async (authData: AuthData): Promise<User | null> => {
         user.cycles = authData.cycles;
     }
 
-    console.log('✅ Usuario creado:', user);
     return user;
 };
 

@@ -56,7 +56,6 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   };
 
   const terminateBattleOnExit = async () => {
-    console.log('🚪 [TEACHER] Saliendo de la pantalla de control, terminando batalla...');
 
     const { data: currentBattle } = await supabase
       .from('battles')
@@ -65,7 +64,6 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
       .maybeSingle();
 
     if (currentBattle && (currentBattle.status === 'in_progress' || currentBattle.status === 'waiting')) {
-      console.log('🛑 [TEACHER] Terminando batalla:', currentBattle.id);
 
       await supabase
         .from('battles')
@@ -78,7 +76,6 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
   };
 
   const handleStartBattle = async () => {
-    console.log('🎮 [TEACHER] Verificando disponibilidad de sala...');
 
     const { data: activeBattles } = await supabase
       .from('battles')
@@ -88,16 +85,13 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
     if (activeBattles && activeBattles.length > 0) {
       const otherTeacherBattle = activeBattles.find(b => b.id !== battleId);
       if (otherTeacherBattle) {
-        console.log('🚫 [TEACHER] Sala ocupada por otra batalla');
         alert('La sala está ocupada. Otra batalla está activa en este momento. Espera a que termine para iniciar tu batalla.');
         return;
       }
     }
 
-    console.log('🎮 [TEACHER] Iniciando batalla:', battleId);
     const success = await battleApi.startBattle(battleId);
     if (success) {
-      console.log('✅ [TEACHER] Batalla iniciada exitosamente');
       await loadBattleData();
     } else {
       console.error('❌ [TEACHER] Error al iniciar batalla');
@@ -109,10 +103,8 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
     if (!confirm('¿Reiniciar la batalla? Se borrarán todos los resultados actuales.')) {
       return;
     }
-    console.log('🔄 [TEACHER] Reiniciando batalla:', battleId);
     const success = await battleApi.restartBattle(battleId);
     if (success) {
-      console.log('✅ [TEACHER] Batalla reiniciada exitosamente');
       await loadBattleData();
     } else {
       console.error('❌ [TEACHER] Error al reiniciar batalla');
@@ -122,10 +114,8 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
 
   const handleNextQuestion = async () => {
     try {
-      console.log('⏭️ [CONTROL] Avanzando a siguiente pregunta...');
       const success = await battleApi.nextQuestion(battleId);
       if (success) {
-        console.log('✅ [CONTROL] Pregunta avanzada exitosamente');
         await loadBattleData();
       } else {
         console.error('❌ [CONTROL] Error al avanzar pregunta');
@@ -163,11 +153,9 @@ const BattleControlScreen: React.FC<BattleControlScreenProps> = ({ battleId, onB
         const uniqueGroupsAnswered = new Set(answers?.map(a => a.group_id) || []).size;
 
         if (uniqueGroupsAnswered >= totalGroups && !isAdvancing) {
-          console.log('🎯 [AUTO-ADVANCE] ¡Todos respondieron! Avanzando en 2 segundos...');
           setIsAdvancing(true);
 
           setTimeout(async () => {
-            console.log('⏭️ [AUTO-ADVANCE] Avanzando automáticamente...');
             await handleNextQuestion();
             setIsAdvancing(false);
           }, 2000);
