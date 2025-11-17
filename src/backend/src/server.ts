@@ -4,6 +4,12 @@ import { createServer } from 'http';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import battleRoutes from './routes/battleRoutes.js';
+import professorCardRoutes from './routes/professorCardRoutes.js';
+import achievementRoutes from './routes/achievementRoutes.js';
+import questionRoutes from './routes/questionRoutes.js';
+import allForAllRoutes from './routes/allForAllRoutes.js';
+import rewardRoutes from './routes/rewardRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import { initWebSocket } from './websocket/index.js';
 
 dotenv.config();
@@ -21,6 +27,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/battles', battleRoutes);
+app.use('/api/professor-cards', professorCardRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/all-for-all', allForAllRoutes);
+app.use('/api/rewards', rewardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'EduBattle Arena API is running' });
