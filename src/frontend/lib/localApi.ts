@@ -43,6 +43,11 @@ export const authApi = {
     return data;
   },
 
+  getProfile: async () => {
+    const { data } = await api.get('/auth/me');
+    return data;
+  },
+
   updateProfile: async (userId: string, updates: { name?: string; avatar?: string }) => {
     const { data } = await api.put('/auth/profile', updates);
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
