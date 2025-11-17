@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { BattlesModule } from './battles/battles.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     }),
     PrismaModule,
     AuthModule,
+    BattlesModule,
     WebsocketModule,
   ],
 })
