@@ -13,8 +13,9 @@ taskkill /F /IM tsx.exe >nul 2>&1
 echo       ✓ Procesos de Node.js terminados
 echo.
 
-echo [2/3] 🧹 Limpiando puertos 3000 y 8000...
+echo [2/3] 🧹 Limpiando puertos 3000, 4000 y 8000...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :4000') do taskkill /F /PID %%a >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000') do taskkill /F /PID %%a >nul 2>&1
 echo       ✓ Puertos liberados
 echo.
@@ -28,6 +29,8 @@ echo ╔════════════════════════
 echo ║                     ✅ LIMPIEZA COMPLETA                    ║
 echo ╚════════════════════════════════════════════════════════════╝
 echo.
-echo   ℹ️  Ahora puedes ejecutar INICIAR-TODO.bat
+echo   ℹ️  Ahora puedes ejecutar:
+echo      - INICIAR-TODO.bat (Backend Express)
+echo      - INICIAR-NESTJS.bat (Backend NestJS)
 echo.
 pause

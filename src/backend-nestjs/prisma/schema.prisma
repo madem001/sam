@@ -1,0 +1,360 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+}
+
+enum BattleStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+}
+
+enum CardRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+// ============================================
+// USUARIOS Y PERFILES
+// ============================================
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  name            String
+  role            UserRole
+  avatar          String?
+  avatarBase64    String?
+  professorPoints Int      @default(0)
+  points          Int      @default(0)
+  level           Int      @default(1)
+  streak          Int      @default(0)
+  bio             String?
+  subject         String?
+  yearsTeaching   Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  battlesAsTeacher     Battle[]
+  groupMembers         GroupMember[]
+  battleAnswers        BattleAnswer[]
+  achievements         UserAchievement[]
+  notifications        Notification[]
+  questionSets         QuestionSet[]
+  allForAllGames       AllForAllGame[]
+  allForAllResponses   AllForAllResponse[]
+  professorCards       ProfessorCard[]
+  studentCards         StudentProfessorCard[]
+  studentPointsGiven   StudentProfessorPoints[] @relation("ProfessorGiving")
+  studentPointsReceived StudentProfessorPoints[] @relation("StudentReceiving")
+  rewards              Reward[]
+  presenceAsTeacher    TeacherPresence?
+
+  @@index([email])
+  @@index([role])
+}
+
+// ============================================
+// BATALLAS
+// ============================================
+
+model Battle {
+  id                    String       @id @default(cuid())
+  name                  String
+  teacherId             String
+  teacher               User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  battleCode            String       @unique
+  questionCount         Int
+  groupCount            Int
+  studentsPerGroup      Int          @default(4)
+  status                BattleStatus @default(WAITING)
+  currentQuestionIndex  Int          @default(0)
+  timePerQuestion       Int?
+  eliminationEnabled    Boolean      @default(false)
+  createdAt             DateTime     @default(now())
+  startedAt             DateTime?
+  finishedAt            DateTime?
+
+  groups                BattleGroup[]
+  questions             BattleQuestion[]
+  answers               BattleAnswer[]
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([battleCode])
+  @@index([createdAt])
+}
+
+model BattleGroup {
+  id                   String   @id @default(cuid())
+  battleId             String
+  battle               Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupNumber          Int
+  groupCode            String   @unique
+  score                Int      @default(0)
+  studentsCount        Int      @default(0)
+  currentQuestionIndex Int      @default(0)
+  currentTimeRemaining Int?
+  isEliminated         Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  members              GroupMember[]
+  answers              BattleAnswer[]
+
+  @@unique([battleId, groupNumber])
+  @@index([battleId])
+  @@index([groupCode])
+}
+
+model GroupMember {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName String
+  joinedAt    DateTime @default(now())
+
+  @@unique([groupId, studentId])
+  @@index([groupId])
+  @@index([studentId])
+}
+
+model BattleQuestion {
+  id             String   @id @default(cuid())
+  battleId       String
+  battle         Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  questionText   String
+  answers        Json
+  correctIndex   Int
+  orderIndex     Int
+  createdAt      DateTime @default(now())
+
+  battleAnswers  BattleAnswer[]
+
+  @@index([battleId])
+  @@index([orderIndex])
+}
+
+model BattleAnswer {
+  id              String   @id @default(cuid())
+  battleId        String
+  battle          Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  groupId         String
+  group           BattleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        BattleQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  studentId       String
+  student         User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  selectedAnswer  Int
+  isCorrect       Boolean
+  responseTime    Int?
+  answeredAt      DateTime @default(now())
+
+  @@index([battleId])
+  @@index([groupId])
+  @@index([questionId])
+  @@index([studentId])
+}
+
+// ============================================
+// ALL FOR ALL (Todos contra Todos)
+// ============================================
+
+model AllForAllGame {
+  id             String   @id @default(cuid())
+  teacherId      String
+  teacher        User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  wordText       String
+  wordColor      String
+  correctAnswer  String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  endedAt        DateTime?
+
+  responses      AllForAllResponse[]
+
+  @@index([teacherId])
+  @@index([isActive])
+}
+
+model AllForAllResponse {
+  id            String   @id @default(cuid())
+  gameId        String
+  game          AllForAllGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  buttonPressed String
+  isCorrect     Boolean
+  responseTime  String
+  rankPosition  Int
+  pointsAwarded Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@unique([gameId, studentId])
+  @@index([gameId])
+  @@index([studentId])
+  @@index([rankPosition])
+}
+
+// ============================================
+// BANCOS DE PREGUNTAS
+// ============================================
+
+model QuestionSet {
+  id         String   @id @default(cuid())
+  teacherId  String
+  teacher    User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  name       String
+  questions  Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([teacherId])
+}
+
+// ============================================
+// PROFESOR CARDS Y PUNTOS
+// ============================================
+
+model ProfessorCard {
+  id          String      @id @default(cuid())
+  professorId String
+  professor   User        @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  rarity      CardRarity
+  attack      Int
+  defense     Int
+  speed       Int
+  special     String?
+  isUnlocked  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  studentCards StudentProfessorCard[]
+
+  @@index([professorId])
+  @@index([rarity])
+}
+
+model StudentProfessorCard {
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  cardId     String
+  card       ProfessorCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  obtainedAt DateTime @default(now())
+
+  @@id([studentId, cardId])
+  @@index([studentId])
+  @@index([cardId])
+}
+
+model StudentProfessorPoints {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     User     @relation("StudentReceiving", fields: [studentId], references: [id], onDelete: Cascade)
+  professorId String
+  professor   User     @relation("ProfessorGiving", fields: [professorId], references: [id], onDelete: Cascade)
+  points      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, professorId])
+  @@index([studentId])
+  @@index([professorId])
+}
+
+// ============================================
+// LOGROS Y ACHIEVEMENTS
+// ============================================
+
+model AchievementDefinition {
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  icon             String
+  unlockCondition  String
+  pointsReward     Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@index([name])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   AchievementDefinition @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+// ============================================
+// RECOMPENSAS
+// ============================================
+
+model Reward {
+  id          String   @id @default(cuid())
+  teacherId   String
+  teacher     User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  costPoints  Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([teacherId])
+  @@index([isActive])
+}
+
+// ============================================
+// PRESENCIA DE PROFESORES
+// ============================================
+
+model TeacherPresence {
+  teacherId     String   @id
+  teacher       User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  gameId        String?
+  isOnline      Boolean  @default(false)
+  lastHeartbeat DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isOnline])
+  @@index([gameId])
+}
+
+// ============================================
+// NOTIFICACIONES
+// ============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  type      String
+  payload   Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
